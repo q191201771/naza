@@ -1,7 +1,7 @@
 package connstat2
 
 import (
-	"github.com/q191201771/nezha/assert"
+	"github.com/q191201771/nezha/pkg/assert"
 	"net"
 	"testing"
 	"time"

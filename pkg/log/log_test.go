@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/q191201771/nezha/assert"
+	"github.com/q191201771/nezha/pkg/assert"
 	"testing"
 )
 

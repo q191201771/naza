@@ -15,6 +15,7 @@ func (mtt MockTestingT) Errorf(format string, args ...interface{}) {
 	fmt.Errorf(format, args...)
 }
 func TestEqual(t *testing.T) {
+	// 测试Equal
 	Equal(t, nil, nil)
 	Equal(t, nil, nil, "fxxk.")
 	Equal(t, 1, 1)
@@ -30,12 +31,23 @@ func TestEqual(t *testing.T) {
 	var b []byte
 	Equal(t, nil, b)
 
+	// 测试isNil
 	Equal(t, true, isNil(nil))
 	Equal(t, false, isNil("aaa"))
+	// 测试equal
 	Equal(t, false, equal([]byte{}, "aaa"))
 	Equal(t, true, equal([]byte{}, []byte{}))
 	Equal(t, true, equal([]byte{0, 1, 2}, []byte{0, 1, 2}))
 
+	// 测试Equal失败
 	var mtt MockTestingT
 	Equal(mtt, false, isNil(nil))
+}
+
+func TestIsNotNil(t *testing.T) {
+	IsNotNil(t, 1)
+
+	// 测试IsNotNil失败
+	var mtt MockTestingT
+	IsNotNil(mtt, nil)
 }

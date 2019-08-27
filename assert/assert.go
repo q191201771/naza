@@ -20,6 +20,13 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msg ...string) 
 	return
 }
 
+func IsNotNil(t TestingT, actual interface{}, msg ...string) {
+	if isNil(actual) {
+		t.Errorf("%s expected not nil, but actual=%+v", msg, actual)
+	}
+	return
+}
+
 func isNil(actual interface{}) bool {
 	if actual == nil {
 		return true

@@ -55,9 +55,21 @@ func TestGlobal(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	l, err := New(Config{Level:LevelError+1})
+	var (
+		l Logger
+		err error
+	)
+	l, err = New(Config{Level:LevelError+1})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, logErr, err)
+
+	l, err = New(Config{Filename:"/tmp"})
+	assert.Equal(t, nil, l)
+	assert.IsNotNil(t, err)
+
+	l, err = New(Config{Filename:"./log_test.go/111"})
+	assert.Equal(t, nil, l)
+	assert.IsNotNil(t, err)
 }
 
 func TestRotate(t *testing.T) {

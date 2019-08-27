@@ -56,18 +56,18 @@ func TestGlobal(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	var (
-		l Logger
+		l   Logger
 		err error
 	)
-	l, err = New(Config{Level:LevelError+1})
+	l, err = New(Config{Level: LevelError + 1})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, logErr, err)
 
-	l, err = New(Config{Filename:"/tmp"})
+	l, err = New(Config{Filename: "/tmp"})
 	assert.Equal(t, nil, l)
 	assert.IsNotNil(t, err)
 
-	l, err = New(Config{Filename:"./log_test.go/111"})
+	l, err = New(Config{Filename: "./log_test.go/111"})
 	assert.Equal(t, nil, l)
 	assert.IsNotNil(t, err)
 }
@@ -82,10 +82,10 @@ func TestRotate(t *testing.T) {
 	err := Init(c)
 	assert.Equal(t, nil, err)
 	b := make([]byte, 1024)
-	for i := 0; i < 2 * 1024; i++ {
+	for i := 0; i < 2*1024; i++ {
 		Info(b)
 	}
-	for i := 0; i < 2 * 1024; i++ {
+	for i := 0; i < 2*1024; i++ {
 		Infof("%+v", b)
 	}
 }

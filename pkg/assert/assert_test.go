@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 // 大部分时候 TestingT interface 的实例为单元测试中的 *testing.T 和 *testing.B
 // MockTestingT 是为了对自身做单元测试
 type MockTestingT struct {

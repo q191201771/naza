@@ -11,7 +11,7 @@ type MockServer struct {
 	l net.Listener
 }
 
-func (ms *MockServer)start() (err error) {
+func (ms *MockServer) start() (err error) {
 	ms.l, err = net.Listen("tcp", ":10027")
 	if err != nil {
 		return err
@@ -38,7 +38,7 @@ func (ms *MockServer)start() (err error) {
 	return
 }
 
-func (ms *MockServer)stop() {
+func (ms *MockServer) stop() {
 	ms.l.Close()
 }
 
@@ -53,7 +53,7 @@ func BenchmarkRaw(b *testing.B) {
 
 	for i := 0; i < n; i++ {
 		conn, err := net.Dial("tcp", ":10027")
-		assert.Equal(b, nil , err)
+		assert.Equal(b, nil, err)
 		conns = append(conns, conn)
 	}
 
@@ -76,7 +76,7 @@ func BenchmarkDeadline(b *testing.B) {
 
 	for i := 0; i < n; i++ {
 		conn, err := net.Dial("tcp", ":10027")
-		assert.Equal(b, nil , err)
+		assert.Equal(b, nil, err)
 		conns = append(conns, conn)
 	}
 

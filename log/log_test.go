@@ -1,8 +1,8 @@
 package log
 
 import (
-	"testing"
 	"github.com/q191201771/nezha/assert"
+	"testing"
 )
 
 func TestLogger(t *testing.T) {

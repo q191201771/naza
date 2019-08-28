@@ -1,4 +1,4 @@
-// package connstat 待整理，未正式使用
+// package connstat NOTICE 待整理，未正式使用
 package connstat
 
 import (

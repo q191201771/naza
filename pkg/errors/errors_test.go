@@ -1,9 +1,9 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"testing"
-	"errors"
 )
 
 func TestPanicIfErrorOccur(t *testing.T) {

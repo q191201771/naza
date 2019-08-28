@@ -1,3 +1,4 @@
+// Package bininfo 将编译时的git版本号，时间，Go编译器信息打入程序中
 package bininfo
 
 import (
@@ -7,9 +8,9 @@ import (
 
 // 编译时通过如下方式传入编译时信息
 // go build -ldflags " \
-//   -X 'github.com/q191201771/lal/pkg/util/bininfo.GitCommitID=`git log --pretty=format:'%h' -n 1`' \
-//   -X 'github.com/q191201771/lal/pkg/util/bininfo.BuildTime=`date +'%Y.%m.%d.%H%M%S'`' \
-//   -X 'github.com/q191201771/lal/pkg/util/bininfo.BuildGoVersion=`go version`' \
+//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.GitCommitID=`git log --pretty=format:'%h' -n 1`' \
+//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.BuildTime=`date +'%Y.%m.%d.%H%M%S'`' \
+//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.BuildGoVersion=`go version`' \
 // "
 
 var (

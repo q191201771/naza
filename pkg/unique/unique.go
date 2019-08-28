@@ -1,3 +1,4 @@
+// package unique 对象唯一ID
 package unique
 
 import (
@@ -5,12 +6,16 @@ import (
 	"sync/atomic"
 )
 
-var globalID = uint64(0)
+var global Unique
 
 func GenUniqueKey(prefix string) string {
-	return fmt.Sprintf("%s%d", prefix, genUniqueID())
+	return global.GenUniqueKey(prefix)
 }
 
-func genUniqueID() uint64 {
-	return atomic.AddUint64(&globalID, 1)
+type Unique struct {
+	id uint64
+}
+
+func (u *Unique) GenUniqueKey(prefix string) string {
+	return fmt.Sprintf("%s%d", prefix, atomic.AddUint64(&u.id, 1))
 }

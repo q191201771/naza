@@ -2,9 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/q191201771/nezha/pkg/errors"
 	"github.com/q191201771/nezha/pkg/log"
 	"net"
+	"os"
+	"runtime/pprof"
 	"sync"
 	"time"
 )
@@ -42,6 +45,11 @@ func raw(writeTimeoutSec int) {
 
 	b := time.Now()
 	log.Infof("b:%+v", b)
+	fp, err := os.Create(fmt.Sprintf("profile.out.%d", writeTimeoutSec))
+	errors.PanicIfErrorOccur(err)
+	defer fp.Close()
+	err = pprof.StartCPUProfile(fp)
+	errors.PanicIfErrorOccur(err)
 	for i := 0; i < numOfConn; i++ {
 		go func(ii int) {
 			for j := 0; j < numOfMsgPerConn; j++ {
@@ -56,6 +64,7 @@ func raw(writeTimeoutSec int) {
 		}(i)
 	}
 	wg.Wait()
+	pprof.StopCPUProfile()
 	log.Infof("cost=%v", time.Now().Sub(b))
 
 	for i := 0; i < numOfConn; i++ {

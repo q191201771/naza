@@ -4,39 +4,45 @@ package bininfo
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 // 编译时通过如下方式传入编译时信息
+//
+// #GitCommitID=`git log --pretty=format:'%h' -n 1`
+// GitCommitLog=`git log --pretty=oneline -n 1`
+// GitStatus=`git status -s`
+// BuildTime=`date +'%Y.%m.%d.%H%M%S'`
+// BuildGoVersion=`go version`
+//
 // go build -ldflags " \
-//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.GitCommitID=`git log --pretty=format:'%h' -n 1`' \
-//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.BuildTime=`date +'%Y.%m.%d.%H%M%S'`' \
-//   -X 'github.com/q191201771/nezha/pkg/bininfo/bininfo.BuildGoVersion=`go version`' \
+// -X 'github.com/q191201771/nezha/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
+// -X 'github.com/q191201771/nezha/pkg/bininfo.GitStatus=${GitStatus}' \
+// -X 'github.com/q191201771/nezha/pkg/bininfo.BuildTime=${BuildTime}' \
+// -X 'github.com/q191201771/nezha/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
 // "
 
 var (
-	GitCommitID    string
-	BuildTime      string
-	BuildGoVersion string
+	GitCommitLog   = "unknown"
+	GitStatus      = "unknown"
+	BuildTime      = "unknown"
+	BuildGoVersion = "unknown"
 )
 
 func StringifySingleLine() string {
-	return fmt.Sprintf("GitCommitID=%s. BuildTime=%s. GoVersion=%s. runtime=%s/%s.",
-		GitCommitID, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
+	return fmt.Sprintf("GitCommitLog=%s. GitStatus=%s. BuildTime=%s. GoVersion=%s. runtime=%s/%s.",
+		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
 func StringifyMultiLine() string {
-	return fmt.Sprintf("GitCommitID=%s\nBuildTime=%s\nGoVersion=%s\nruntime=%s/%s.",
-		GitCommitID, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
+	return fmt.Sprintf("GitCommitLog=%s\nGitStatus=%s\nBuildTime=%s\nGoVersion=%s\nruntime=%s/%s.",
+		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
 func init() {
-	if GitCommitID == "" {
-		GitCommitID = "unknown"
-	}
-	if BuildTime == "" {
-		BuildTime = "unknown"
-	}
-	if BuildGoVersion == "" {
-		BuildGoVersion = "unknown"
+	if GitStatus == "" {
+		GitStatus = "cleanly"
+	} else {
+		GitStatus = strings.ReplaceAll(strings.ReplaceAll(GitStatus, "\r\n", " |"), "\n", " |")
 	}
 }

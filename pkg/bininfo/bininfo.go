@@ -39,10 +39,14 @@ func StringifyMultiLine() string {
 		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
-func init() {
+func beauty() {
 	if GitStatus == "" {
 		GitStatus = "cleanly"
 	} else {
-		GitStatus = strings.ReplaceAll(strings.ReplaceAll(GitStatus, "\r\n", " |"), "\n", " |")
+		GitStatus = strings.Replace(strings.Replace(GitStatus, "\r\n", " |", -1), "\n", " |", -1)
 	}
+}
+
+func init() {
+	beauty()
 }

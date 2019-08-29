@@ -12,3 +12,8 @@ func TestStringifySingleLine(t *testing.T) {
 func TestStringifyMultiLine(t *testing.T) {
 	fmt.Println(StringifyMultiLine())
 }
+
+func TestCorner(t *testing.T) {
+	GitStatus = ""
+	beauty()
+}

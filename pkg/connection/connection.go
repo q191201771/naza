@@ -16,21 +16,21 @@ type Connection interface {
 	// 包含 interface net.Conn 的所有方法
 	net.Conn
 
-	// 额外提供的读方法
 	ReadAtLeast(buf []byte, min int) (n int, err error)
 	ReadLine() (line []byte, isPrefix bool, err error)
 
-	// 额外提供的写方法
 	Printf(fmt string, v ...interface{}) (n int, err error)
+
+	ModWriteBufSize(n int)
 }
 
 type Config struct {
-	 // 如果不为0，则使用 buffer
+	// 如果不为0，则之后每次读/写使用 buffer 缓冲
 	ReadBufSize  int
 	WriteBufSize int
 
 	// 如果不为0，则之后每次读/写都带超时
-	ReadTimeoutMS int
+	ReadTimeoutMS  int
 	WriteTimeoutMS int
 }
 
@@ -58,11 +58,14 @@ type connection struct {
 	config Config
 }
 
-// 为保证运行时性能，调用方需保证：
-// 1. 调用 Config 方法时，不并行调用其它接口造成竞态读写属性
-// 2. 只能在使用无缓冲时切换成缓冲，如果已经有缓冲，则不能再次切换
-func (c *connection) Config(config Config) {
-	c.config = config
+func (c *connection) ModWriteBufSize(n int) {
+	if c.config.WriteBufSize > 0 {
+		// 如果之前已经设置过写缓冲，直接 panic
+		// 这里改成 flush 后替换成新缓冲也行，暂时没这个必要
+		panic(connectionErr)
+	}
+	c.config.WriteBufSize = n
+	c.w = bufio.NewWriterSize(c.Conn, n)
 }
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {

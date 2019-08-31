@@ -22,40 +22,32 @@ type Connection interface {
 
 	// 额外提供的写方法
 	Printf(fmt string, v ...interface{}) (n int, err error)
-
-	// 带超时的读/写方法
-	ReadWithTimeout(b []byte, timeoutMS int) (n int, err error)
-	ReadAtLeastWithTimeout(buf []byte, min int, timeoutMS int) (n int, err error)
-	ReadLineWithTimeout(timeoutMS int) (line []byte, isPrefix bool, err error)
-	WriteWithTimeout(b []byte, timeoutMS int) (n int, err error)
-	PrintfWithTimeout(timeoutMS int, fmt string, v ...interface{}) (n int, err error)
 }
 
-// 可配置是直接从 net.Conn 上读/写数据，还是中间添加一层buffer缓冲
 type Config struct {
+	 // 如果不为0，则使用 buffer
 	ReadBufSize  int
 	WriteBufSize int
+
+	// 如果不为0，则之后每次读/写都带超时
+	ReadTimeoutMS int
+	WriteTimeoutMS int
 }
 
-func New(conn net.Conn, config *Config) Connection {
+func New(conn net.Conn, config Config) Connection {
 	var c connection
 	c.Conn = conn
-	if config != nil {
-		if config.ReadBufSize > 0 {
-			c.r = bufio.NewReaderSize(conn, config.ReadBufSize)
-		}
-		if config.WriteBufSize > 0 {
-			c.w = bufio.NewWriterSize(conn, config.WriteBufSize)
-		}
-		c.config = *config
-	}
-	if c.r == nil {
+	if config.ReadBufSize > 0 {
+		c.r = bufio.NewReaderSize(conn, config.ReadBufSize)
+	} else {
 		c.r = conn
 	}
-	if c.w == nil {
+	if config.WriteBufSize > 0 {
+		c.w = bufio.NewWriterSize(conn, config.WriteBufSize)
+	} else {
 		c.w = conn
 	}
-
+	c.config = config
 	return &c
 }
 
@@ -66,42 +58,17 @@ type connection struct {
 	config Config
 }
 
-func (c *connection) ReadAtLeastWithTimeout(buf []byte, min int, timeoutMS int) (n int, err error) {
-	if timeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-	}
-	return io.ReadAtLeast(c.r, buf, min)
-}
-
-func (c *connection) ReadLineWithTimeout(timeoutMS int) (line []byte, isPrefix bool, err error) {
-	if timeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-	}
-	return c.ReadLine()
-}
-
-func (c *connection) ReadWithTimeout(b []byte, timeoutMS int) (n int, err error) {
-	if timeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-	}
-	return c.Conn.Read(b)
-}
-
-func (c *connection) WriteWithTimeout(b []byte, timeoutMS int) (n int, err error) {
-	if timeoutMS > 0 {
-		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-	}
-	return c.Conn.Write(b)
-}
-
-func (c *connection) PrintfWithTimeout(timeoutMS int, format string, v ...interface{}) (n int, err error) {
-	if timeoutMS > 0 {
-		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-	}
-	return fmt.Fprintf(c.Conn, format, v...)
+// 为保证运行时性能，调用方需保证：
+// 1. 调用 Config 方法时，不并行调用其它接口造成竞态读写属性
+// 2. 只能在使用无缓冲时切换成缓冲，如果已经有缓冲，则不能再次切换
+func (c *connection) Config(config Config) {
+	c.config = config
 }
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
+	if c.config.ReadTimeoutMS > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+	}
 	return io.ReadAtLeast(c.r, buf, min)
 }
 
@@ -109,20 +76,32 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	bufioReader, ok := c.r.(*bufio.Reader)
 	if !ok {
 		// 目前只有使用了 bufio.Reader 时才能执行 ReadLine 操作
-		return nil, false, connectionErr
+		panic(connectionErr)
+	}
+	if c.config.ReadTimeoutMS > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
 	}
 	return bufioReader.ReadLine()
 }
 
 func (c *connection) Printf(format string, v ...interface{}) (n int, err error) {
+	if c.config.WriteTimeoutMS > 0 {
+		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+	}
 	return fmt.Fprintf(c.Conn, format, v...)
 }
 
 func (c *connection) Read(b []byte) (n int, err error) {
+	if c.config.ReadTimeoutMS > 0 {
+		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+	}
 	return c.r.Read(b)
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
+	if c.config.WriteTimeoutMS > 0 {
+		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+	}
 	return c.w.Write(b)
 }
 

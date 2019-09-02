@@ -58,6 +58,7 @@ type connection struct {
 	config Config
 }
 
+// 这个函数不加锁，由调用方保证不和写操作并发执行
 func (c *connection) ModWriteBufSize(n int) {
 	if c.config.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
@@ -70,7 +71,7 @@ func (c *connection) ModWriteBufSize(n int) {
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if c.config.ReadTimeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
 	}
 	return io.ReadAtLeast(c.r, buf, min)
 }
@@ -82,28 +83,28 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 		panic(connectionErr)
 	}
 	if c.config.ReadTimeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
 	}
 	return bufioReader.ReadLine()
 }
 
 func (c *connection) Printf(format string, v ...interface{}) (n int, err error) {
 	if c.config.WriteTimeoutMS > 0 {
-		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
 	}
 	return fmt.Fprintf(c.Conn, format, v...)
 }
 
 func (c *connection) Read(b []byte) (n int, err error) {
 	if c.config.ReadTimeoutMS > 0 {
-		c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
 	}
 	return c.r.Read(b)
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
 	if c.config.WriteTimeoutMS > 0 {
-		c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
 	}
 	return c.w.Write(b)
 }

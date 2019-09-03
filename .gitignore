@@ -5,5 +5,6 @@ profile.out
 /.idea
 /.trash
 /bin
+/pre-commit.sh
 
 profile.out*

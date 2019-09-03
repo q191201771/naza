@@ -11,7 +11,7 @@ type MockTestingT struct {
 }
 
 func (mtt MockTestingT) Errorf(format string, args ...interface{}) {
-	fmt.Errorf(format, args...)
+	_ = fmt.Errorf(format, args...)
 }
 func TestEqual(t *testing.T) {
 	// 测试Equal

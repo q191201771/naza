@@ -22,6 +22,8 @@ type Connection interface {
 	Printf(fmt string, v ...interface{}) (n int, err error)
 
 	ModWriteBufSize(n int)
+	ModReadTimeoutMS(n int)
+	ModWriteTimeoutMS(n int)
 }
 
 type Config struct {
@@ -58,7 +60,9 @@ type connection struct {
 	config Config
 }
 
-// 这个函数不加锁，由调用方保证不和写操作并发执行
+// Mod函数不加锁
+
+// 由调用方保证不和写操作并发执行
 func (c *connection) ModWriteBufSize(n int) {
 	if c.config.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
@@ -67,6 +71,20 @@ func (c *connection) ModWriteBufSize(n int) {
 	}
 	c.config.WriteBufSize = n
 	c.w = bufio.NewWriterSize(c.Conn, n)
+}
+
+func (c *connection) ModReadTimeoutMS(n int) {
+	if c.config.ReadTimeoutMS > 0 {
+		panic(connectionErr)
+	}
+	c.config.ReadTimeoutMS = n
+}
+
+func (c *connection) ModWriteTimeoutMS(n int) {
+	if c.config.WriteTimeoutMS > 0 {
+		panic(connectionErr)
+	}
+	c.config.WriteTimeoutMS = n
 }
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {

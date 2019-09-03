@@ -60,7 +60,7 @@ type connection struct {
 	config Config
 }
 
-// Mod函数不加锁
+// Mod类型函数不加锁
 
 // 由调用方保证不和写操作并发执行
 func (c *connection) ModWriteBufSize(n int) {

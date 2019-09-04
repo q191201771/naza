@@ -28,6 +28,9 @@ type Logger interface {
 	Warn(v ...interface{})
 	Error(v ...interface{})
 
+	// 打印错误并退出程序，日志级别为 LevelError
+	FatalIfErrorNotNil(err error)
+
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
 }
@@ -157,6 +160,13 @@ func (l *logger) Error(v ...interface{}) {
 	l.Output(LevelError, 3, v...)
 }
 
+func (l *logger) FatalIfErrorNotNil(err error) {
+	if err != nil {
+		l.Outputf(LevelError, 3, "fatal since error not nil. err=%+v", err)
+		os.Exit(1)
+	}
+}
+
 // TODO chef: Outputf 和 Output 代码重复
 func (l *logger) Outputf(level Level, calldepth int, format string, v ...interface{}) {
 	if l.c.Level > level {
@@ -250,6 +260,13 @@ func Warn(v ...interface{}) {
 
 func Error(v ...interface{}) {
 	global.Output(LevelError, 3, v...)
+}
+
+func FatalIfErrorNotNil(err error) {
+	if err != nil {
+		global.Outputf(LevelError, 3, "fatal since error not nil. err=%+v", err)
+		os.Exit(1)
+	}
 }
 
 func Outputf(level Level, calldepth int, format string, v ...interface{}) {

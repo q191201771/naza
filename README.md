@@ -34,6 +34,7 @@ pkg/                  ......源码包
     |-- connection/   ......对 net.Conn 接口的二次封装
     |-- errors/       ......错误处理相关
     |-- log/          ......日志库
+    |-- mockserver    ......模拟一些服务端，用于快速测试其它代码
     |-- unique/       ......对象唯一ID
 demo/                 ......示例相关的代码
     |-- connstat/     ......简单测试 net.Conn.SetWriteDeadline 的性能

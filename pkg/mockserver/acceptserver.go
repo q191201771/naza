@@ -18,9 +18,7 @@ func (s *MockAcceptServer) Run(addr string) (err error) {
 	if err != nil {
 		return
 	}
-	s.m.Lock()
 	c, err := s.l.Accept()
-	s.m.Unlock()
 	if err != nil {
 		return
 	}
@@ -30,7 +28,10 @@ func (s *MockAcceptServer) Run(addr string) (err error) {
 
 func (s *MockAcceptServer) Dispose() {
 	s.m.Lock()
-	s.l.Close()
+	if s.l != nil {
+		s.l.Close()
+
+	}
 	s.m.Unlock()
 }
 

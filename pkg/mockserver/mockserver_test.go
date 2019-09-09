@@ -23,7 +23,7 @@ func TestMockAcceptServer(t *testing.T) {
 	var conns []net.Conn
 	go s.Run(addr)
 	for i := 0; i < 16; i++ {
-		c, err := net.DialTimeout("tcp", addr, time.Duration(1000) * time.Millisecond)
+		c, err := net.DialTimeout("tcp", addr, time.Duration(1000)*time.Millisecond)
 		if err != nil {
 			break
 		}

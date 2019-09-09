@@ -47,9 +47,9 @@ const (
 type Config struct {
 	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
 
+	// 文件输出和控制台输出可同时打开，控制台输出主要用做开发时调试，支持level彩色输出，以及源码文件、行号
 	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
 	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
-	// 文件输出和控制台输出可同时打开，控制台输出主要用做开发时调试，支持level彩色输出，以及源码文件、行号
 
 	RotateMByte int `json:"rotate_mbyte"` // 日志大小达到多少兆后翻滚，如果为0，则不翻滚
 }
@@ -175,7 +175,7 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 
 	msg := fmt.Sprintf(format, v...)
 	if l.stdoutLogger != nil {
-		l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
+		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -187,14 +187,14 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 				if fi.Size() > int64(l.c.RotateMByte)*1024*1024 {
 					newFileName := l.c.Filename + "." + time.Now().Format("20060102150405")
 					if err := os.Rename(l.c.Filename, newFileName); err == nil {
-						l.fp.Close()
+						_ = l.fp.Close()
 						l.fp, _ = os.Create(l.c.Filename)
 						l.fileLogger.SetOutput(l.fp)
 					}
 				}
 			}
 		}
-		l.fileLogger.Output(calldepth, levelToString[level]+msg)
+		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
 	}
 }
 
@@ -205,7 +205,7 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 
 	msg := fmt.Sprint(v...)
 	if l.stdoutLogger != nil {
-		l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
+		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -217,14 +217,14 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 				if fi.Size() > int64(l.c.RotateMByte)*1024*1024 {
 					newFileName := l.c.Filename + "." + time.Now().Format("20060102150405")
 					if err := os.Rename(l.c.Filename, newFileName); err == nil {
-						l.fp.Close()
+						_ = l.fp.Close()
 						l.fp, _ = os.Create(l.c.Filename)
 						l.fileLogger.SetOutput(l.fp)
 					}
 				}
 			}
 		}
-		l.fileLogger.Output(calldepth, levelToString[level]+msg)
+		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
 	}
 }
 

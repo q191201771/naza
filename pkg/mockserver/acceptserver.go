@@ -6,9 +6,9 @@ import (
 )
 
 type MockAcceptServer struct {
-	l net.Listener
+	l     net.Listener
 	conns []net.Conn
-	m sync.Mutex
+	m     sync.Mutex
 }
 
 func (s *MockAcceptServer) Run(addr string) (err error) {
@@ -34,4 +34,3 @@ func (s *MockAcceptServer) Dispose() {
 	}
 	s.m.Unlock()
 }
-

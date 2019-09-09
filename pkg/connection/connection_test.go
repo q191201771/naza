@@ -19,11 +19,11 @@ func TestWriteTimeout(t *testing.T) {
 	go func() {
 		conn, _ := l.Accept()
 		defer conn.Close()
-		<- ch
+		<-ch
 	}()
 	conn, err := net.Dial("tcp", ":10027")
 	c := New(conn, Config{
-		WriteTimeoutMS:1000,
+		WriteTimeoutMS: 1000,
 	})
 	assert.Equal(t, nil, err)
 	b := make([]byte, 128)

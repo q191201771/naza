@@ -32,9 +32,9 @@ pkg/                  ......源码包
     |-- bele/         ......提供了大小端的转换操作
     |-- bininfo/      ......将编译时的git版本号，时间，Go编译器信息打入程序中
     |-- connection/   ......对 net.Conn 接口的二次封装
-    |-- errors/       ......错误处理相关
     |-- log/          ......日志库
     |-- mockserver    ......模拟一些服务端，用于快速测试其它代码
+    |-- mockwriter    ......模拟Writer接口，用于快速测试其它代码
     |-- unique/       ......对象唯一ID
 demo/                 ......示例相关的代码
     |-- connstat/     ......简单测试 net.Conn.SetWriteDeadline 的性能

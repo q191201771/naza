@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/q191201771/nezha/pkg/errors"
 	"github.com/q191201771/nezha/pkg/log"
 	"net"
 	"os"
@@ -36,7 +35,7 @@ func raw(writeTimeoutSec int) {
 	ms.start(addr)
 	for i := 0; i < numOfConn; i++ {
 		conn, err := net.Dial("tcp", addr)
-		errors.PanicIfErrorOccur(err)
+		log.FatalIfErrorNotNil(err)
 		conns = append(conns, conn)
 	}
 
@@ -46,19 +45,19 @@ func raw(writeTimeoutSec int) {
 	b := time.Now()
 	log.Infof("b:%+v", b)
 	fp, err := os.Create(fmt.Sprintf("profile.out.%d", writeTimeoutSec))
-	errors.PanicIfErrorOccur(err)
+	log.FatalIfErrorNotNil(err)
 	defer fp.Close()
 	err = pprof.StartCPUProfile(fp)
-	errors.PanicIfErrorOccur(err)
+	log.FatalIfErrorNotNil(err)
 	for i := 0; i < numOfConn; i++ {
 		go func(ii int) {
 			for j := 0; j < numOfMsgPerConn; j++ {
 				if writeTimeoutSec != 0 {
 					err := conns[ii].SetWriteDeadline(time.Now().Add(time.Duration(writeTimeoutSec) * time.Second))
-					errors.PanicIfErrorOccur(err)
+					log.FatalIfErrorNotNil(err)
 				}
 				_, err := conns[ii].Write(buf)
-				errors.PanicIfErrorOccur(err)
+				log.FatalIfErrorNotNil(err)
 			}
 			wg.Done()
 		}(i)
@@ -69,7 +68,7 @@ func raw(writeTimeoutSec int) {
 
 	for i := 0; i < numOfConn; i++ {
 		err := conns[i].Close()
-		errors.PanicIfErrorOccur(err)
+		log.FatalIfErrorNotNil(err)
 	}
 	ms.stop()
 	log.Info("< raw.")

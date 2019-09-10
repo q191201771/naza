@@ -200,4 +200,33 @@ func TestWriteLE(t *testing.T) {
 	}
 }
 
-// TODO chef: benchmark
+func BenchmarkBEFloat64(b *testing.B) {
+	buf := &bytes.Buffer{}
+	_ = binary.Write(buf, binary.BigEndian, float64(123.4))
+	for i := 0; i < b.N; i++ {
+		BEFloat64(buf.Bytes())
+	}
+}
+
+func BenchmarkBEPutUint24(b *testing.B) {
+	out := make([]byte, 3)
+	for i := 0; i < b.N; i++ {
+		BEPutUint24(out, uint32(i))
+	}
+}
+
+func BenchmarkBEUint24(b *testing.B) {
+	buf := []byte{1, 2, 3}
+	for i := 0; i < b.N; i++ {
+		BEUint24(buf)
+	}
+}
+
+func BenchmarkWriteBE(b *testing.B) {
+	out := &bytes.Buffer{}
+	in := uint64(123)
+	for i := 0; i < b.N; i++ {
+		_ = WriteBE(out, in)
+	}
+}
+

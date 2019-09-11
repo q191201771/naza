@@ -2,7 +2,9 @@ package log
 
 import (
 	"github.com/q191201771/nezha/pkg/assert"
+	"os"
 	"testing"
+	originLog "log"
 )
 
 func TestLogger(t *testing.T) {
@@ -101,5 +103,14 @@ func BenchmarkStdout(b *testing.B) {
 	assert.Equal(b, nil, err)
 	for i := 0; i < b.N; i++ {
 		Infof("hello %s %d", "world", i)
+	}
+}
+
+func BenchmarkOriginLog(b *testing.B) {
+	fp, _ := os.Create("/tmp/origin.log")
+	originLog.SetOutput(fp)
+	originLog.SetFlags(originLog.Ldate | originLog.Lshortfile)
+	for i := 0; i < b.N; i++ {
+		originLog.Printf("hello %s %d", "world", i)
 	}
 }

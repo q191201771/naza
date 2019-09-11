@@ -93,13 +93,13 @@ func New(c Config) (Logger, error) {
 
 const (
 	levelDebugString = "DEBUG "
-	levelInfoString  = "INFO  "
-	levelWarnString  = "WARN  "
+	levelInfoString  = " INFO "
+	levelWarnString  = " WARN "
 	levelErrorString = "ERROR "
 
 	levelDebugColorString = "\033[22;37mDEBUG\033[0m "
-	levelInfoColorString  = "\033[22;36mINFO\033[0m  "
-	levelWarnColorString  = "\033[22;33mWARN\033[0m  "
+	levelInfoColorString  = " \033[22;36mINFO\033[0m "
+	levelWarnColorString  = " \033[22;33mWARN\033[0m "
 	levelErrorColorString = "\033[22;31mERROR\033[0m "
 )
 
@@ -174,8 +174,8 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 		return
 	}
 
-	msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
+		msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 		_ = l.stdoutLogger.Output(calldepth, msg)
 	}
 	if l.fileLogger != nil {
@@ -195,6 +195,7 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 				}
 			}
 		}
+		msg := levelToString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 		_ = l.fileLogger.Output(calldepth, msg)
 	}
 }
@@ -204,8 +205,8 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 		return
 	}
 
-	msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
+		msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 		_ = l.stdoutLogger.Output(calldepth, msg)
 	}
 	if l.fileLogger != nil {
@@ -225,6 +226,7 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 				}
 			}
 		}
+		msg := levelToString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 		_ = l.fileLogger.Output(calldepth, msg)
 	}
 }
@@ -299,7 +301,7 @@ func shortFileSuffix(calldepth int) string {
 		}
 	}
 	file = short
-	return fmt.Sprintf(" - %s:%d", file, line)
+	return fmt.Sprintf("  - %s:%d", file, line)
 }
 
 func init() {

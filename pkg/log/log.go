@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -47,7 +48,7 @@ const (
 type Config struct {
 	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
 
-	// 文件输出和控制台输出可同时打开，控制台输出主要用做开发时调试，支持level彩色输出，以及源码文件、行号
+	// 文件输出和控制台输出可同时打开，控制台输出主要用做开发时调试，支持level彩色输出
 	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
 	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
 
@@ -77,7 +78,7 @@ func New(c Config) (Logger, error) {
 		fl = log.New(fp, "", log.Ldate|log.Lmicroseconds)
 	}
 	if c.IsToStdout {
-		sl = log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds|log.Lshortfile)
+		sl = log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds)
 	}
 
 	l := &logger{
@@ -173,9 +174,9 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 		return
 	}
 
-	msg := fmt.Sprintf(format, v...)
+	msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
+		_ = l.stdoutLogger.Output(calldepth, msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -194,7 +195,7 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 				}
 			}
 		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
+		_ = l.fileLogger.Output(calldepth, msg)
 	}
 }
 
@@ -203,9 +204,9 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 		return
 	}
 
-	msg := fmt.Sprint(v...)
+	msg := levelToColorString[level]+fmt.Sprint(v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
+		_ = l.stdoutLogger.Output(calldepth, msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -224,7 +225,7 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 				}
 			}
 		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
+		_ = l.fileLogger.Output(calldepth, msg)
 	}
 }
 
@@ -282,6 +283,23 @@ func Init(c Config) error {
 	var err error
 	global, err = New(c)
 	return err
+}
+
+func shortFileSuffix(calldepth int) string {
+	_, file, line, ok := runtime.Caller(calldepth)
+	if !ok {
+		file = "???"
+		line = 0
+	}
+	short := file
+	for i := len(file) - 1; i > 0; i-- {
+		if file[i] == '/' {
+			short = file[i+1:]
+			break
+		}
+	}
+	file = short
+	return fmt.Sprintf(" - %s:%d", file, line)
 }
 
 func init() {

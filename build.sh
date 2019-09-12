@@ -9,4 +9,4 @@ if [ ! -d ${ROOT_DIR}/bin ]; then
   mkdir bin
 fi
 
-cd ${ROOT_DIR}/demo/connstat && go build -o ${ROOT_DIR}/bin/connstat
+echo 'build done.'

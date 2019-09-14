@@ -11,7 +11,7 @@ func TestNewMockWriter(t *testing.T) {
 
 func TestMockWriter_Write(t *testing.T) {
 	var (
-		w   MockWriter
+		w   *MockWriter
 		n   int
 		err error
 		b   = []byte("hello")
@@ -35,7 +35,7 @@ func TestMockWriter_Write(t *testing.T) {
 
 func TestMockWriter_SetSpecificType(t *testing.T) {
 	var (
-		w   MockWriter
+		w   *MockWriter
 		n   int
 		err error
 		b   = []byte("hello")
@@ -80,8 +80,8 @@ func BenchmarkNewMockWriter(b *testing.B) {
 	}
 }
 
-func newMockWriter2(t WriterType) *MockWriter {
-	return &MockWriter{
+func newMockWriter2(t WriterType) MockWriter {
+	return MockWriter{
 		t: t,
 	}
 }

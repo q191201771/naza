@@ -26,8 +26,8 @@ type MockWriter struct {
 	b     bytes.Buffer
 }
 
-func NewMockWriter(t WriterType) MockWriter {
-	return MockWriter{
+func NewMockWriter(t WriterType) *MockWriter {
+	return &MockWriter{
 		t: t,
 	}
 }

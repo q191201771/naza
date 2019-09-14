@@ -23,11 +23,11 @@ type MockWriter struct {
 	t     WriterType
 	ts    map[uint32]WriterType
 	count uint32
-	b bytes.Buffer
+	b     bytes.Buffer
 }
 
-func NewMockWriter(t WriterType) *MockWriter {
-	return &MockWriter{
+func NewMockWriter(t WriterType) MockWriter {
+	return MockWriter{
 		t: t,
 	}
 }
@@ -48,11 +48,10 @@ func (w *MockWriter) Write(b []byte) (int, error) {
 		return len(b), nil
 	case WriterTypeReturnError:
 		return 0, mockWriterErr
-	//case WriterTypeIntoBuffer:
-	//	return w.b.Write(b)
+		//case WriterTypeIntoBuffer:
+		//	return w.b.Write(b)
 	}
 
 	return w.b.Write(b)
-
 	//panic("never reach here.")
 }

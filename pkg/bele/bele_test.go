@@ -229,4 +229,3 @@ func BenchmarkWriteBE(b *testing.B) {
 		_ = WriteBE(out, in)
 	}
 }
-

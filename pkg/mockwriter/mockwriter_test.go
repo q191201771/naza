@@ -11,10 +11,10 @@ func TestNewMockWriter(t *testing.T) {
 
 func TestMockWriter_Write(t *testing.T) {
 	var (
-		w *MockWriter
-		n int
+		w   MockWriter
+		n   int
 		err error
-		b = []byte("hello")
+		b   = []byte("hello")
 	)
 
 	w = NewMockWriter(WriterTypeDoNothing)
@@ -35,10 +35,10 @@ func TestMockWriter_Write(t *testing.T) {
 
 func TestMockWriter_SetSpecificType(t *testing.T) {
 	var (
-		w *MockWriter
-		n int
+		w   MockWriter
+		n   int
 		err error
-		b = []byte("hello")
+		b   = []byte("hello")
 	)
 	w = NewMockWriter(WriterTypeDoNothing)
 	w.SetSpecificType(map[uint32]WriterType{
@@ -68,5 +68,29 @@ func TestMockWriter_SetSpecificType(t *testing.T) {
 		n, err = w.Write(b)
 		assert.Equal(t, expectedLen[i], n)
 		assert.Equal(t, expectedErr[i], err)
+	}
+}
+
+func BenchmarkNewMockWriter(b *testing.B) {
+	b.ReportAllocs()
+	var tmp uint32
+	for i := 0; i < b.N; i++ {
+		mw := NewMockWriter(WriterTypeDoNothing)
+		tmp = tmp + mw.count
+	}
+}
+
+func newMockWriter2(t WriterType) *MockWriter {
+	return &MockWriter{
+		t: t,
+	}
+}
+
+func BenchmarkNewMockWriter2(b *testing.B) {
+	b.ReportAllocs()
+	var tmp uint32
+	for i := 0; i < b.N; i++ {
+		mw := newMockWriter2(WriterTypeDoNothing)
+		tmp = tmp + mw.count
 	}
 }

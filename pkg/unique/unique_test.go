@@ -14,7 +14,7 @@ func TestGenUniqueKey(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		go func(j int) {
 			var uk string
-			if j % 2 == 0 {
+			if j%2 == 0 {
 				uk = GenUniqueKey("hello")
 			} else {
 				uk = GenUniqueKey("world")

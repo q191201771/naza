@@ -2,9 +2,9 @@ package log
 
 import (
 	"github.com/q191201771/nezha/pkg/assert"
+	originLog "log"
 	"os"
 	"testing"
-	originLog "log"
 )
 
 func TestLogger(t *testing.T) {

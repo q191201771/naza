@@ -176,7 +176,7 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 
 	msg := fmt.Sprintf(format, v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level] + msg)
+		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -195,7 +195,7 @@ func (l *logger) Outputf(level Level, calldepth int, format string, v ...interfa
 				}
 			}
 		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level] + msg)
+		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
 	}
 }
 
@@ -206,7 +206,7 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 
 	msg := fmt.Sprint(v...) + shortFileSuffix(calldepth)
 	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level] + msg)
+		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
 	}
 	if l.fileLogger != nil {
 		if l.c.RotateMByte > 0 {
@@ -225,7 +225,7 @@ func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 				}
 			}
 		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level] + msg)
+		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
 	}
 }
 

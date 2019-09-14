@@ -18,7 +18,7 @@ func BEUint16(p []byte) uint16 {
 }
 
 func BEUint24(p []byte) uint32 {
-	return uint32(p[2]) | uint32(p[1]) << 8 | uint32(p[0]) << 16
+	return uint32(p[2]) | uint32(p[1])<<8 | uint32(p[0])<<16
 }
 
 func BEUint32(p []byte) (ret uint32) {

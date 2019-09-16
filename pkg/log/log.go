@@ -2,9 +2,10 @@
 package log
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,59 +13,67 @@ import (
 	"time"
 )
 
-// TODO chef:
-// - 性能优化，目前是基于系统库log实现的
-// - 和系统库中的log跑个benchmark对比
+// 1. 带日志级别
+// 2. 可选输出至控制台或文件，也可以同时输出
+// 3. 日志文件支持按天翻转
+//
+// 目前性能和标准库log相当
 
-var logErr = errors.New("log:fxxk")
+var LogErr = errors.New("log:fxxk")
 
 type Logger interface {
 	Debugf(format string, v ...interface{})
 	Infof(format string, v ...interface{})
 	Warnf(format string, v ...interface{})
 	Errorf(format string, v ...interface{})
+	Fatalf(format string, v ...interface{}) // 打印日志并退出程序
 
 	Debug(v ...interface{})
 	Info(v ...interface{})
 	Warn(v ...interface{})
 	Error(v ...interface{})
+	Fatal(v ...interface{})
 
-	// 打印错误并退出程序，日志级别为 LevelError
 	FatalIfErrorNotNil(err error)
 
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
+	Out(level Level, calldepth int, s string)
+}
+
+type Config struct {
+	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
+
+	// 文件输出和控制台输出可同时打开
+	// 控制台输出主要用做开发时调试，打开后level字段使用彩色输出
+	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
+	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
+
+	IsRotateDaily bool `json:"rotate_daily"` // 日志按天翻转
+
+	ShortFileFlag bool `json:"short_file_flag"` // 是否在每行日志尾部添加源码文件及行号的信息
 }
 
 type Level uint8
 
 const (
-	LevelDebug = iota
+	_ = iota
+	LevelDebug
 	LevelInfo
 	LevelWarn
 	LevelError
+	LevelFatal
 )
-
-type Config struct {
-	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
-
-	// 文件输出和控制台输出可同时打开，控制台输出主要用做开发时调试，支持level彩色输出
-	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
-	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
-
-	RotateMByte int `json:"rotate_mbyte"` // 日志大小达到多少兆后翻滚，如果为0，则不翻滚
-}
 
 func New(c Config) (Logger, error) {
 	var (
-		fl  *log.Logger
-		sl  *log.Logger
-		dir string
-		fp  *os.File
-		err error
+		dir     string
+		fp      *os.File
+		console io.Writer
+		err     error
 	)
-	if c.Level < LevelDebug || c.Level > LevelError {
-		return nil, logErr
+	if c.Level < LevelDebug || c.Level > LevelFatal {
+		return nil, LogErr
 	}
 	if c.Filename != "" {
 		dir = filepath.Dir(c.Filename)
@@ -75,18 +84,17 @@ func New(c Config) (Logger, error) {
 		if err != nil {
 			return nil, err
 		}
-		fl = log.New(fp, "", log.Ldate|log.Lmicroseconds)
 	}
 	if c.IsToStdout {
-		sl = log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds)
+		console = os.Stdout
 	}
 
 	l := &logger{
-		fileLogger:   fl,
-		stdoutLogger: sl,
-		c:            c,
-		dir:          dir,
-		fp:           fp,
+		c:       c,
+		dir:     dir,
+		fp:      fp,
+		console: console,
+		currRoundTime:time.Now(),
 	}
 	return l, nil
 }
@@ -96,11 +104,13 @@ const (
 	levelInfoString  = " INFO "
 	levelWarnString  = " WARN "
 	levelErrorString = "ERROR "
+	levelFatalString = "FATAL "
 
 	levelDebugColorString = "\033[22;37mDEBUG\033[0m "
-	levelInfoColorString  = " \033[22;36mINFO\033[0m "
-	levelWarnColorString  = " \033[22;33mWARN\033[0m "
+	levelInfoColorString  = "\033[22;36m INFO\033[0m "
+	levelWarnColorString  = "\033[22;33m WARN\033[0m "
 	levelErrorColorString = "\033[22;31mERROR\033[0m "
+	levelFatalColorString = "\033[22;31mFATAL\033[0m " // 颜色和error的一样
 )
 
 var (
@@ -109,183 +119,172 @@ var (
 		LevelInfo:  levelInfoString,
 		LevelWarn:  levelWarnString,
 		LevelError: levelErrorString,
+		LevelFatal: levelFatalString,
 	}
 	levelToColorString = map[Level]string{
 		LevelDebug: levelDebugColorString,
 		LevelInfo:  levelInfoColorString,
 		LevelWarn:  levelWarnColorString,
 		LevelError: levelErrorColorString,
+		LevelFatal: levelFatalColorString,
 	}
 )
 
 type logger struct {
-	fileLogger   *log.Logger
-	stdoutLogger *log.Logger
-	c            Config
+	c Config
 
 	dir string
 
-	m  sync.Mutex
-	fp *os.File
+	m       sync.Mutex
+	fp      *os.File
+	console io.Writer
+	buf     bytes.Buffer
+	currRoundTime time.Time
+}
+
+func (l *logger) Outputf(level Level, calldepth int, format string, v ...interface{}) {
+	l.Out(level, 3, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Debugf(format string, v ...interface{}) {
-	l.Outputf(LevelDebug, 3, format, v...)
+	l.Out(LevelDebug, 3, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Infof(format string, v ...interface{}) {
-	l.Outputf(LevelInfo, 3, format, v...)
+	l.Out(LevelInfo, 3, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Warnf(format string, v ...interface{}) {
-	l.Outputf(LevelWarn, 3, format, v...)
+	l.Out(LevelWarn, 3, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Errorf(format string, v ...interface{}) {
-	l.Outputf(LevelError, 3, format, v...)
+	l.Out(LevelError, 3, fmt.Sprintf(format, v...))
+}
+
+func (l *logger) Fatalf(format string, v ...interface{}) {
+	l.Out(LevelFatal, 3, fmt.Sprintf(format, v...))
+	os.Exit(1)
+}
+
+func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
+	l.Out(level, 3, fmt.Sprint(v...))
 }
 
 func (l *logger) Debug(v ...interface{}) {
-	l.Output(LevelDebug, 3, v...)
+	l.Out(LevelDebug, 3, fmt.Sprint(v...))
 }
 
 func (l *logger) Info(v ...interface{}) {
-	l.Output(LevelInfo, 3, v...)
+	l.Out(LevelInfo, 3, fmt.Sprint(v...))
 }
 
 func (l *logger) Warn(v ...interface{}) {
-	l.Output(LevelWarn, 3, v...)
+	l.Out(LevelWarn, 3, fmt.Sprint(v...))
 }
 
 func (l *logger) Error(v ...interface{}) {
-	l.Output(LevelError, 3, v...)
+	l.Out(LevelError, 3, fmt.Sprint(v...))
+}
+
+func (l *logger) Fatal(v ...interface{}) {
+	l.Out(LevelFatal, 3, fmt.Sprint(v...))
+	os.Exit(1)
 }
 
 func (l *logger) FatalIfErrorNotNil(err error) {
 	if err != nil {
-		l.Outputf(LevelError, 3, "fatal since error not nil. err=%+v", err)
+		l.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
 		os.Exit(1)
 	}
 }
 
-// TODO chef: Outputf 和 Output 代码重复
-func (l *logger) Outputf(level Level, calldepth int, format string, v ...interface{}) {
+func (l *logger) Out(level Level, calldepth int, s string) {
 	if l.c.Level > level {
 		return
 	}
 
-	msg := fmt.Sprintf(format, v...) + shortFileSuffix(calldepth)
-	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
+	l.m.Lock()
+	defer l.m.Unlock()
+
+	now := time.Now()
+
+	// 格式化日志内容
+	l.buf.Reset()
+	writeTime(&l.buf, now)
+	if l.console != nil {
+		l.buf.WriteString(levelToColorString[level])
+	} else {
+		l.buf.WriteString(levelToString[level])
 	}
-	if l.fileLogger != nil {
-		if l.c.RotateMByte > 0 {
-			l.m.Lock()
-			// 把写日志的操作也锁住，避免日志移走后，其他协程继续写老日志文件
-			// TODO chef: 性能比较差，系统库内部也有锁
-			defer l.m.Unlock()
-			if fi, err := os.Stat(l.c.Filename); err == nil {
-				if fi.Size() > int64(l.c.RotateMByte)*1024*1024 {
-					newFileName := l.c.Filename + "." + time.Now().Format("20060102150405")
-					if err := os.Rename(l.c.Filename, newFileName); err == nil {
-						_ = l.fp.Close()
-						l.fp, _ = os.Create(l.c.Filename)
-						l.fileLogger.SetOutput(l.fp)
-					}
-				}
+	l.buf.WriteString(s)
+	if l.c.ShortFileFlag {
+		writeShortFile(&l.buf, calldepth)
+	}
+	if len(s) == 0 || s[len(s)-1] != '\n' {
+		l.buf.WriteByte('\n')
+	}
+
+	// 输出至控制台
+	if l.console != nil {
+		_, _ = l.console.Write(l.buf.Bytes())
+	}
+
+	// 输出至日志文件
+	if l.fp != nil {
+		if now.Day() != l.currRoundTime.Day() {
+			backupName := l.c.Filename + "." + l.currRoundTime.Format("20060102")
+			if err := os.Rename(l.c.Filename, backupName); err == nil {
+				_ = l.fp.Close()
+				l.fp, _ = os.Create(l.c.Filename)
 			}
+			l.currRoundTime = now
 		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
+		_, _ = l.fp.Write(l.buf.Bytes())
 	}
 }
 
-func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
-	if l.c.Level > level {
-		return
+// @NOTICE 该函数拷贝自 Go 标准库
+// Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
+func itoa(buf *bytes.Buffer, i int, wid int) {
+	// Assemble decimal in reverse order.
+	var b [20]byte
+	bp := len(b) - 1
+	for i >= 10 || wid > 1 {
+		wid--
+		q := i / 10
+		b[bp] = byte('0' + i - q*10)
+		bp--
+		i = q
 	}
-
-	msg := fmt.Sprint(v...) + shortFileSuffix(calldepth)
-	if l.stdoutLogger != nil {
-		_ = l.stdoutLogger.Output(calldepth, levelToColorString[level]+msg)
-	}
-	if l.fileLogger != nil {
-		if l.c.RotateMByte > 0 {
-			l.m.Lock()
-			// 把写日志的操作也锁住，避免日志移走后，其他协程继续写老日志文件
-			// TODO chef: 性能比较差，系统库内部也有锁
-			defer l.m.Unlock()
-			if fi, err := os.Stat(l.c.Filename); err == nil {
-				if fi.Size() > int64(l.c.RotateMByte)*1024*1024 {
-					newFileName := l.c.Filename + "." + time.Now().Format("20060102150405")
-					if err := os.Rename(l.c.Filename, newFileName); err == nil {
-						_ = l.fp.Close()
-						l.fp, _ = os.Create(l.c.Filename)
-						l.fileLogger.SetOutput(l.fp)
-					}
-				}
-			}
-		}
-		_ = l.fileLogger.Output(calldepth, levelToString[level]+msg)
-	}
+	// i < 10
+	b[bp] = byte('0' + i)
+	buf.Write(b[bp:])
 }
 
-var global Logger
+func writeTime(buf *bytes.Buffer, t time.Time) {
+	year, month, day := t.Date()
+	itoa(buf, year, 4)
+	buf.WriteByte('/')
+	itoa(buf, int(month), 2)
+	buf.WriteByte('/')
+	itoa(buf, day, 2)
+	buf.WriteByte(' ')
 
-func Debugf(format string, v ...interface{}) {
-	global.Outputf(LevelDebug, 3, format, v...)
+	hour, min, sec := t.Clock()
+	itoa(buf, hour, 2)
+	buf.WriteByte(':')
+	itoa(buf, min, 2)
+	buf.WriteByte(':')
+	itoa(buf, sec, 2)
+	buf.WriteByte('.')
+	itoa(buf, t.Nanosecond()/1e3, 6)
+	buf.WriteByte(' ')
 }
 
-func Infof(format string, v ...interface{}) {
-	global.Outputf(LevelInfo, 3, format, v...)
-}
+func writeShortFile(buf *bytes.Buffer, calldepth int) {
+	buf.Write([]byte{' ', '-', ' '})
 
-func Warnf(format string, v ...interface{}) {
-	global.Outputf(LevelWarn, 3, format, v...)
-}
-
-func Errorf(format string, v ...interface{}) {
-	global.Outputf(LevelError, 3, format, v...)
-}
-
-func Debug(v ...interface{}) {
-	global.Output(LevelDebug, 3, v...)
-}
-
-func Info(v ...interface{}) {
-	global.Output(LevelInfo, 3, v...)
-}
-
-func Warn(v ...interface{}) {
-	global.Output(LevelWarn, 3, v...)
-}
-
-func Error(v ...interface{}) {
-	global.Output(LevelError, 3, v...)
-}
-
-func FatalIfErrorNotNil(err error) {
-	if err != nil {
-		global.Outputf(LevelError, 3, "fatal since error not nil. err=%+v", err)
-		os.Exit(1)
-	}
-}
-
-func Outputf(level Level, calldepth int, format string, v ...interface{}) {
-	global.Outputf(level, calldepth, format, v...)
-}
-
-func Output(level Level, calldepth int, v ...interface{}) {
-	global.Output(level, calldepth, v...)
-}
-
-// 这里不加锁保护，如果要调用Init函数初始化全局的Logger，那么由调用方保证调用Init函数时不会并发调用全局Logger的其他方法
-func Init(c Config) error {
-	var err error
-	global, err = New(c)
-	return err
-}
-
-func shortFileSuffix(calldepth int) string {
 	_, file, line, ok := runtime.Caller(calldepth)
 	if !ok {
 		file = "???"
@@ -299,12 +298,8 @@ func shortFileSuffix(calldepth int) string {
 		}
 	}
 	file = short
-	return fmt.Sprintf("  - %s:%d", file, line)
-}
 
-func init() {
-	global, _ = New(Config{
-		Level:      LevelDebug,
-		IsToStdout: true,
-	})
+	buf.WriteString(file)
+	buf.WriteByte(':')
+	itoa(buf, line, -1)
 }

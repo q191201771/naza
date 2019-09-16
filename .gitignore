@@ -1,10 +1,12 @@
 coverage.txt
 coverage.html
 profile.out
+tmp
 
 /.idea
 /.trash
 /bin
 /pre-commit.sh
+/TODO.md
 
 profile.out*

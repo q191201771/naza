@@ -1,4 +1,8 @@
-//package connection 对 net.Conn 接口的二次封装
+// package connection
+//
+// 对 net.Conn 接口的二次封装，目的有两个：
+// 1. 在流媒体传输这种特定的长连接场景下提供更方便、高性能的接口
+// 2. 便于后续将 TCPConn 替换成其他传输协议
 package connection
 
 import (

@@ -49,7 +49,7 @@ type Config struct {
 	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
 	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
 
-	IsRotateDaily bool `json:"rotate_daily"` // 日志按天翻转
+	IsRotateDaily bool `json:"is_rotate_daily"` // 日志按天翻转
 
 	ShortFileFlag bool `json:"short_file_flag"` // 是否在每行日志尾部添加源码文件及行号的信息
 }

@@ -132,6 +132,10 @@ func (c *connection) Write(b []byte) (n int, err error) {
 }
 
 func (c *connection) Close() error {
+	w, ok := c.w.(*bufio.Writer)
+	if ok {
+		w.Flush()
+	}
 	return c.Conn.Close()
 }
 

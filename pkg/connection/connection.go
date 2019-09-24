@@ -45,6 +45,7 @@ type Connection interface {
 	Done() <- chan error
 
 	// TODO chef: 这几个接口是否不提供
+	ModWriteChanSize(n int)
 	ModWriteBufSize(n int)
 	ModReadTimeoutMS(n int)
 	ModWriteTimeoutMS(n int)
@@ -116,6 +117,16 @@ type connection struct {
 // Mod类型函数不加锁
 
 // 由调用方保证不和写操作并发执行
+func (c *connection) ModWriteChanSize(n int) {
+	if c.config.WChanSize > 0 {
+		panic(connectionErr)
+	}
+	c.config.WChanSize = n
+	c.wChan = make(chan wmsg, n)
+	c.flushDoneChan = make(chan struct{}, 1)
+	go c.runWriteLoop()
+}
+
 func (c *connection) ModWriteBufSize(n int) {
 	if c.config.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
@@ -282,6 +293,7 @@ func (c *connection) flush() error {
 
 func (c *connection) Close() error {
 	log.Debugf("Close.")
+	c.close(nil)
 	return nil
 }
 

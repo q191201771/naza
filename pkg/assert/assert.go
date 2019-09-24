@@ -1,4 +1,4 @@
-// Package assert 提供了单元测试时的断言功能，减少一些模板代码
+// package assert 提供了单元测试时的断言功能，减少一些模板代码
 //
 // 代码参考了 https://github.com/stretchr/testify
 //

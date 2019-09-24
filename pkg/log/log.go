@@ -57,7 +57,7 @@ type Config struct {
 type Level uint8
 
 const (
-	_ = iota
+	_ Level = iota
 	LevelDebug
 	LevelInfo
 	LevelWarn

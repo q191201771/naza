@@ -18,26 +18,57 @@ var connectionErr = errors.New("connection: fxxk")
 
 type Connection interface {
 	// 包含 interface net.Conn 的所有方法
+	// Read
+	// Write
+	// Close
+	// LocalAddr
+	// RemoteAddr
+	// SetDeadline
+	// SetReadDeadline
+	// SetWriteDeadline
 	net.Conn
 
 	ReadAtLeast(buf []byte, min int) (n int, err error)
 	ReadLine() (line []byte, isPrefix bool, err error)
 
+	// TODO chef: 这个接口是否不提供
 	Printf(fmt string, v ...interface{}) (n int, err error)
 
+	// 如果使用了 bufio 写缓冲，则将缓冲中的数据发送出去
+	// 如果使用了 channel 异步发送，则阻塞等待，直到之前 channel 中的数据全部发送完毕
+	Flush() error
+
+	// TODO chef: 这几个接口是否不提供
 	ModWriteBufSize(n int)
 	ModReadTimeoutMS(n int)
 	ModWriteTimeoutMS(n int)
 }
 
 type Config struct {
-	// 如果不为0，则之后每次读/写使用 buffer 缓冲
+	// 如果不为0，则之后每次读/写使用 bufio 的缓冲
 	ReadBufSize  int
 	WriteBufSize int
 
 	// 如果不为0，则之后每次读/写都带超时
 	ReadTimeoutMS  int
 	WriteTimeoutMS int
+
+	// 如果不过0，则写使用 channel 将数据发送到后台协程中发送
+	WChanSize int
+}
+
+type wMsgT int
+
+const (
+	_ wMsgT = iota
+	wMsgTWrite
+	wMsgTFlush
+	wMsgTClose
+)
+
+type wmsg struct {
+	t wMsgT
+	b []byte
 }
 
 func New(conn net.Conn, config Config) Connection {
@@ -53,6 +84,11 @@ func New(conn net.Conn, config Config) Connection {
 	} else {
 		c.w = conn
 	}
+	if config.WChanSize > 0 {
+		c.wChan = make(chan wmsg, config.WChanSize)
+		c.flushDoneChan = make(chan struct{}, 1)
+		go c.runWriteLoop()
+	}
 	c.config = config
 	return &c
 }
@@ -61,6 +97,8 @@ type connection struct {
 	Conn   net.Conn
 	r      io.Reader
 	w      io.Writer
+	wChan  chan wmsg
+	flushDoneChan chan struct{}
 	config Config
 }
 
@@ -93,6 +131,7 @@ func (c *connection) ModWriteTimeoutMS(n int) {
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if c.config.ReadTimeoutMS > 0 {
+		// TODO chef: 超时的错误返回
 		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
 	}
 	return io.ReadAtLeast(c.r, buf, min)
@@ -125,17 +164,69 @@ func (c *connection) Read(b []byte) (n int, err error) {
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
+	if c.config.WChanSize > 0 {
+		c.wChan <- wmsg{}
+		return len(b), nil
+	}
+	return c.write(b)
+}
+
+func (c *connection) write(b []byte) (n int, err error) {
 	if c.config.WriteTimeoutMS > 0 {
 		_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
 	}
 	return c.w.Write(b)
 }
 
-func (c *connection) Close() error {
+func (c *connection) runWriteLoop() {
+	for {
+		msg, ok := <- c.wChan
+		if !ok {
+			return
+		}
+		switch msg.t {
+		case wMsgTWrite:
+			if _, err := c.write(msg.b); err != nil {
+				_ = c.Close()
+			}
+		case wMsgTFlush:
+			c.flush()
+			c.flushDoneChan <- struct{}{}
+		case wMsgTClose:
+			// TODO chef: 是否需要
+		}
+	}
+}
+
+func (c *connection) Flush() error {
+	if c.config.WChanSize > 0 {
+		c.wChan <- wmsg{t:wMsgTFlush}
+		<- c.flushDoneChan
+		return nil
+	}
+
+	return c.flush()
+}
+
+func (c *connection) flush() error {
 	w, ok := c.w.(*bufio.Writer)
 	if ok {
-		w.Flush()
+		if c.config.WriteTimeoutMS > 0 {
+			_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		}
+		if err := w.Flush(); err != nil {
+			_ = c.Close()
+		}
 	}
+	return nil
+}
+
+// 调用方需保证不和 Write 接口并发调用
+func (c *connection) Close() error {
+	if c.config.WChanSize > 0 {
+		close(c.wChan)
+	}
+
 	return c.Conn.Close()
 }
 
@@ -154,6 +245,7 @@ func (c *connection) SetDeadline(t time.Time) error {
 func (c *connection) SetReadDeadline(t time.Time) error {
 	return c.Conn.SetReadDeadline(t)
 }
+
 func (c *connection) SetWriteDeadline(t time.Time) error {
 	return c.Conn.SetWriteDeadline(t)
 }

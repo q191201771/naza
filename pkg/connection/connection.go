@@ -42,7 +42,7 @@ type Connection interface {
 
 	// 阻塞直到连接主动或被动关闭
 	// @return 返回 nil 则是本端主动调用 Close 关闭
-	Done() <- chan error
+	Done() <-chan error
 
 	// TODO chef: 这几个接口是否不提供
 	ModWriteChanSize(n int)
@@ -103,15 +103,15 @@ func New(conn net.Conn, config Config) Connection {
 }
 
 type connection struct {
-	Conn   net.Conn
-	r      io.Reader
-	w      io.Writer
-	config Config
-	wChan  chan wmsg
+	Conn          net.Conn
+	r             io.Reader
+	w             io.Writer
+	config        Config
+	wChan         chan wmsg
 	flushDoneChan chan struct{}
-	doneChan chan error
-	exitChan chan struct{}
-	closeOnce sync.Once
+	doneChan      chan error
+	exitChan      chan struct{}
+	closeOnce     sync.Once
 }
 
 // Mod类型函数不加锁
@@ -161,8 +161,8 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	}
 	n, err = io.ReadAtLeast(c.r, buf, min)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return n, err
 }
@@ -182,8 +182,8 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	}
 	line, isPrefix, err = bufioReader.ReadLine()
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return line, isPrefix, err
 }
@@ -205,15 +205,15 @@ func (c *connection) Read(b []byte) (n int, err error) {
 	}
 	n, err = c.r.Read(b)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return n, err
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
 	if c.config.WChanSize > 0 {
-		c.wChan <- wmsg{t:wMsgTWrite, b:b}
+		c.wChan <- wmsg{t: wMsgTWrite, b: b}
 		return len(b), nil
 	}
 	return c.write(b)
@@ -229,8 +229,8 @@ func (c *connection) write(b []byte) (n int, err error) {
 	}
 	n, err = c.w.Write(b)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return n, err
 }
@@ -238,10 +238,10 @@ func (c *connection) write(b []byte) (n int, err error) {
 func (c *connection) runWriteLoop() {
 	for {
 		select {
-		case <- c.exitChan:
+		case <-c.exitChan:
 			log.Debug("exitChan recv, exit write loop.")
 			return
-		case msg := <- c.wChan:
+		case msg := <-c.wChan:
 			switch msg.t {
 			case wMsgTWrite:
 				if _, err := c.write(msg.b); err != nil {
@@ -264,8 +264,8 @@ func (c *connection) runWriteLoop() {
 
 func (c *connection) Flush() error {
 	if c.config.WChanSize > 0 {
-		c.wChan <- wmsg{t:wMsgTFlush}
-		<- c.flushDoneChan
+		c.wChan <- wmsg{t: wMsgTFlush}
+		<-c.flushDoneChan
 		return nil
 	}
 
@@ -283,8 +283,8 @@ func (c *connection) flush() error {
 			}
 		}
 		if err := w.Flush(); err != nil {
-			c.doneChan <- err
 			log.Debugf("error=%v", err)
+			c.close(err)
 			return err
 		}
 	}
@@ -303,23 +303,22 @@ func (c *connection) close(err error) {
 		if c.config.WChanSize > 0 {
 			c.exitChan <- struct{}{}
 		}
-		if err != nil {
-			c.doneChan <- err
-		}
+		c.doneChan <- err
 		_ = c.Conn.Close()
 	})
 }
 
-func (c *connection) Done() <- chan error {
-	err := <- c.doneChan
-	log.Debugf("Done. err=%v", err)
-	if err != nil {
-		c.close(err)
-	}
-
-	ch := make(chan error, 1)
-	ch <- err
-	return ch
+func (c *connection) Done() <-chan error {
+	return c.doneChan
+	//err := <-c.doneChan
+	//log.Debugf("Done. err=%v", err)
+	//if err != nil {
+	//	c.close(err)
+	//}
+	//
+	//ch := make(chan error, 1)
+	//ch <- err
+	//return ch
 }
 
 func (c *connection) LocalAddr() net.Addr {
@@ -333,8 +332,8 @@ func (c *connection) RemoteAddr() net.Addr {
 func (c *connection) SetDeadline(t time.Time) error {
 	err := c.Conn.SetDeadline(t)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return err
 }
@@ -342,8 +341,8 @@ func (c *connection) SetDeadline(t time.Time) error {
 func (c *connection) SetReadDeadline(t time.Time) error {
 	err := c.Conn.SetReadDeadline(t)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return err
 }
@@ -351,8 +350,8 @@ func (c *connection) SetReadDeadline(t time.Time) error {
 func (c *connection) SetWriteDeadline(t time.Time) error {
 	err := c.Conn.SetWriteDeadline(t)
 	if err != nil {
-		c.doneChan <- err
 		log.Debugf("error=%v", err)
+		c.close(err)
 	}
 	return err
 }

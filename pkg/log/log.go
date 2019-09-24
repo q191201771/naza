@@ -90,11 +90,11 @@ func New(c Config) (Logger, error) {
 	}
 
 	l := &logger{
-		c:       c,
-		dir:     dir,
-		fp:      fp,
-		console: console,
-		currRoundTime:time.Now(),
+		c:             c,
+		dir:           dir,
+		fp:            fp,
+		console:       console,
+		currRoundTime: time.Now(),
 	}
 	return l, nil
 }
@@ -135,10 +135,10 @@ type logger struct {
 
 	dir string
 
-	m       sync.Mutex
-	fp      *os.File
-	console io.Writer
-	buf     bytes.Buffer
+	m             sync.Mutex
+	fp            *os.File
+	console       io.Writer
+	buf           bytes.Buffer
 	currRoundTime time.Time
 }
 

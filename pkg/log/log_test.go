@@ -9,9 +9,9 @@ import (
 
 func TestLogger(t *testing.T) {
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/aaa.log",
-		IsToStdout:  true,
+		Level:         LevelInfo,
+		Filename:      "/tmp/lallogtest/aaa.log",
+		IsToStdout:    true,
 		IsRotateDaily: true,
 	}
 	l, err := New(c)
@@ -40,9 +40,9 @@ func TestGlobal(t *testing.T) {
 	Error("g test msg by Error")
 
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/bbb.log",
-		IsToStdout:  true,
+		Level:      LevelInfo,
+		Filename:   "/tmp/lallogtest/bbb.log",
+		IsToStdout: true,
 	}
 	err := Init(c)
 	assert.Equal(t, nil, err)
@@ -79,9 +79,9 @@ func TestNew(t *testing.T) {
 
 func TestRotate(t *testing.T) {
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/ccc.log",
-		IsToStdout:  false,
+		Level:         LevelInfo,
+		Filename:      "/tmp/lallogtest/ccc.log",
+		IsToStdout:    false,
 		IsRotateDaily: true,
 	}
 	err := Init(c)
@@ -98,11 +98,11 @@ func TestRotate(t *testing.T) {
 func BenchmarkStdout(b *testing.B) {
 	b.ReportAllocs()
 	c := Config{
-		Level:    LevelInfo,
+		Level: LevelInfo,
 		//Filename: "/tmp/lallogtest/ddd.log",
-		Filename:    "/dev/null",
+		Filename: "/dev/null",
 		//IsToStdout:  true,
-		ShortFileFlag:true,
+		ShortFileFlag: true,
 	}
 	err := Init(c)
 	assert.Equal(b, nil, err)

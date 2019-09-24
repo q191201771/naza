@@ -75,8 +75,8 @@ func Init(c Config) error {
 
 func init() {
 	global, _ = New(Config{
-		Level:      LevelDebug,
-		IsToStdout: true,
-		ShortFileFlag:true,
+		Level:         LevelDebug,
+		IsToStdout:    true,
+		ShortFileFlag: true,
 	})
 }

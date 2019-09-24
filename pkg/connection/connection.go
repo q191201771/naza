@@ -9,8 +9,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/q191201771/nezha/pkg/log"
 	"io"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -38,6 +40,10 @@ type Connection interface {
 	// 如果使用了 channel 异步发送，则阻塞等待，直到之前 channel 中的数据全部发送完毕
 	Flush() error
 
+	// 阻塞直到连接主动或被动关闭
+	// @return 返回 nil 则是本端主动调用 Close 关闭
+	Done() <- chan error
+
 	// TODO chef: 这几个接口是否不提供
 	ModWriteBufSize(n int)
 	ModReadTimeoutMS(n int)
@@ -63,7 +69,7 @@ const (
 	_ wMsgT = iota
 	wMsgTWrite
 	wMsgTFlush
-	wMsgTClose
+	wMsgTClose // TODO chef: 没有使用
 )
 
 type wmsg struct {
@@ -89,6 +95,8 @@ func New(conn net.Conn, config Config) Connection {
 		c.flushDoneChan = make(chan struct{}, 1)
 		go c.runWriteLoop()
 	}
+	c.doneChan = make(chan error, 1)
+	c.exitChan = make(chan struct{}, 1)
 	c.config = config
 	return &c
 }
@@ -97,9 +105,12 @@ type connection struct {
 	Conn   net.Conn
 	r      io.Reader
 	w      io.Writer
+	config Config
 	wChan  chan wmsg
 	flushDoneChan chan struct{}
-	config Config
+	doneChan chan error
+	exitChan chan struct{}
+	closeOnce sync.Once
 }
 
 // Mod类型函数不加锁
@@ -131,10 +142,18 @@ func (c *connection) ModWriteTimeoutMS(n int) {
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if c.config.ReadTimeoutMS > 0 {
-		// TODO chef: 超时的错误返回
-		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		if err != nil {
+			log.Debugf("error=%v", err)
+			return 0, err
+		}
 	}
-	return io.ReadAtLeast(c.r, buf, min)
+	n, err = io.ReadAtLeast(c.r, buf, min)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return n, err
 }
 
 func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
@@ -144,9 +163,18 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 		panic(connectionErr)
 	}
 	if c.config.ReadTimeoutMS > 0 {
-		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		if err != nil {
+			log.Debugf("error=%v", err)
+			return nil, false, err
+		}
 	}
-	return bufioReader.ReadLine()
+	line, isPrefix, err = bufioReader.ReadLine()
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return line, isPrefix, err
 }
 
 func (c *connection) Printf(format string, v ...interface{}) (n int, err error) {
@@ -158,14 +186,23 @@ func (c *connection) Printf(format string, v ...interface{}) (n int, err error) 
 
 func (c *connection) Read(b []byte) (n int, err error) {
 	if c.config.ReadTimeoutMS > 0 {
-		_ = c.Conn.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+		if err != nil {
+			log.Debugf("error=%v", err)
+			return 0, err
+		}
 	}
-	return c.r.Read(b)
+	n, err = c.r.Read(b)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return n, err
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
 	if c.config.WChanSize > 0 {
-		c.wChan <- wmsg{}
+		c.wChan <- wmsg{t:wMsgTWrite, b:b}
 		return len(b), nil
 	}
 	return c.write(b)
@@ -173,27 +210,43 @@ func (c *connection) Write(b []byte) (n int, err error) {
 
 func (c *connection) write(b []byte) (n int, err error) {
 	if c.config.WriteTimeoutMS > 0 {
-		_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		if err != nil {
+			log.Debugf("error=%v", err)
+			return 0, err
+		}
 	}
-	return c.w.Write(b)
+	n, err = c.w.Write(b)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return n, err
 }
 
 func (c *connection) runWriteLoop() {
 	for {
-		msg, ok := <- c.wChan
-		if !ok {
+		select {
+		case <- c.exitChan:
+			log.Debug("exitChan recv, exit write loop.")
 			return
-		}
-		switch msg.t {
-		case wMsgTWrite:
-			if _, err := c.write(msg.b); err != nil {
-				_ = c.Close()
+		case msg := <- c.wChan:
+			switch msg.t {
+			case wMsgTWrite:
+				if _, err := c.write(msg.b); err != nil {
+					log.Debugf("error=%v", err)
+					return
+				}
+			case wMsgTFlush:
+				if err := c.flush(); err != nil {
+					log.Debugf("error=%v", err)
+					c.flushDoneChan <- struct{}{}
+					return
+				}
+				c.flushDoneChan <- struct{}{}
+			case wMsgTClose:
+				// TODO chef: 是否需要
 			}
-		case wMsgTFlush:
-			c.flush()
-			c.flushDoneChan <- struct{}{}
-		case wMsgTClose:
-			// TODO chef: 是否需要
 		}
 	}
 }
@@ -212,22 +265,49 @@ func (c *connection) flush() error {
 	w, ok := c.w.(*bufio.Writer)
 	if ok {
 		if c.config.WriteTimeoutMS > 0 {
-			_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+			if err != nil {
+				log.Debugf("error=%v", err)
+				return err
+			}
 		}
 		if err := w.Flush(); err != nil {
-			_ = c.Close()
+			c.doneChan <- err
+			log.Debugf("error=%v", err)
+			return err
 		}
 	}
 	return nil
 }
 
-// 调用方需保证不和 Write 接口并发调用
 func (c *connection) Close() error {
-	if c.config.WChanSize > 0 {
-		close(c.wChan)
+	log.Debugf("Close.")
+	return nil
+}
+
+func (c *connection) close(err error) {
+	log.Debugf("close. err=%v", err)
+	c.closeOnce.Do(func() {
+		if c.config.WChanSize > 0 {
+			c.exitChan <- struct{}{}
+		}
+		if err != nil {
+			c.doneChan <- err
+		}
+		_ = c.Conn.Close()
+	})
+}
+
+func (c *connection) Done() <- chan error {
+	err := <- c.doneChan
+	log.Debugf("Done. err=%v", err)
+	if err != nil {
+		c.close(err)
 	}
 
-	return c.Conn.Close()
+	ch := make(chan error, 1)
+	ch <- err
+	return ch
 }
 
 func (c *connection) LocalAddr() net.Addr {
@@ -239,13 +319,28 @@ func (c *connection) RemoteAddr() net.Addr {
 }
 
 func (c *connection) SetDeadline(t time.Time) error {
-	return c.Conn.SetDeadline(t)
+	err := c.Conn.SetDeadline(t)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return err
 }
 
 func (c *connection) SetReadDeadline(t time.Time) error {
-	return c.Conn.SetReadDeadline(t)
+	err := c.Conn.SetReadDeadline(t)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return err
 }
 
 func (c *connection) SetWriteDeadline(t time.Time) error {
-	return c.Conn.SetWriteDeadline(t)
+	err := c.Conn.SetWriteDeadline(t)
+	if err != nil {
+		c.doneChan <- err
+		log.Debugf("error=%v", err)
+	}
+	return err
 }

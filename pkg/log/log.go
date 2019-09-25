@@ -221,7 +221,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	if l.c.ShortFileFlag {
 		writeShortFile(&l.buf, calldepth)
 	}
-	if len(s) == 0 || s[len(s)-1] != '\n' {
+	if l.buf.Len() == 0 || l.buf.Bytes()[l.buf.Len()-1] != '\n' {
 		l.buf.WriteByte('\n')
 	}
 

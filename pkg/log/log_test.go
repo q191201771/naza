@@ -1,6 +1,7 @@
 package log
 
 import (
+	"encoding/hex"
 	"github.com/q191201771/nezha/pkg/assert"
 	originLog "log"
 	"os"
@@ -16,6 +17,8 @@ func TestLogger(t *testing.T) {
 	}
 	l, err := New(c)
 	assert.Equal(t, nil, err)
+	buf := []byte("1234567890987654321")
+	l.Error(hex.Dump(buf))
 	l.Debugf("l test msg by Debug%s", "f")
 	l.Infof("l test msg by Info%s", "f")
 	l.Warnf("l test msg by Warn%s", "f")
@@ -30,6 +33,8 @@ func TestLogger(t *testing.T) {
 }
 
 func TestGlobal(t *testing.T) {
+	buf := []byte("1234567890987654321")
+	Error(hex.Dump(buf))
 	Debugf("g test msg by Debug%s", "f")
 	Infof("g test msg by Info%s", "f")
 	Warnf("g test msg by Warn%s", "f")

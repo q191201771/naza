@@ -2,6 +2,7 @@ package log
 
 import (
 	"encoding/hex"
+	"errors"
 	"github.com/q191201771/nezha/pkg/assert"
 	originLog "log"
 	"os"
@@ -69,7 +70,7 @@ func TestNew(t *testing.T) {
 		l   Logger
 		err error
 	)
-	l, err = New(Config{Level: LevelFatal + 1})
+	l, err = New(Config{Level: LevelPanic + 1})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, LogErr, err)
 
@@ -98,6 +99,41 @@ func TestRotate(t *testing.T) {
 	for i := 0; i < 2*1024; i++ {
 		Infof("%+v", b)
 	}
+}
+
+func withRecover(f func()) {
+	defer func() {
+		recover()
+	}()
+	f()
+}
+
+func TestPanic(t *testing.T) {
+	withRecover(func() {
+		Debug("ddd")
+		Panic("aaa")
+	})
+	withRecover(func() {
+		Panicf("%s", "bbb")
+	})
+	withRecover(func() {
+		PanicIfErrorNotNil(errors.New("mock error"))
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.Panic("aaa")
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.Panicf("%s", "bbb")
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.PanicIfErrorNotNil(errors.New("mock error"))
+	})
 }
 
 func BenchmarkStdout(b *testing.B) {

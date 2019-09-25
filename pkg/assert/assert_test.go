@@ -29,6 +29,7 @@ func TestEqual(t *testing.T) {
 	Equal(t, nil, i)
 	var b []byte
 	Equal(t, nil, b)
+	//Equal(t, nil, errors.New("mock error"))
 
 	// 测试isNil
 	Equal(t, true, isNil(nil))

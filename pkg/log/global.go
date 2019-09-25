@@ -31,6 +31,10 @@ func Fatalf(format string, v ...interface{}) {
 	global.Out(LevelFatal, 3, fmt.Sprintf(format, v...))
 }
 
+func Panicf(format string, v ...interface{}) {
+	global.Out(LevelPanic, 3, fmt.Sprintf(format, v...))
+}
+
 func Output(level Level, calldepth int, v ...interface{}) {
 	global.Out(level, 3, fmt.Sprint(v...))
 }
@@ -55,10 +59,21 @@ func Fatal(v ...interface{}) {
 	global.Out(LevelFatal, 3, fmt.Sprint(v...))
 }
 
+func Panic(v ...interface{}) {
+	global.Out(LevelPanic, 3, fmt.Sprint(v...))
+}
+
 func FatalIfErrorNotNil(err error) {
 	if err != nil {
 		global.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
 		os.Exit(1)
+	}
+}
+
+func PanicIfErrorNotNil(err error) {
+	if err != nil {
+		global.Out(LevelPanic, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
+		panic(err)
 	}
 }
 

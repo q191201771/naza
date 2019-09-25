@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 
 set -e
+
+gofiles=$(git diff --name-only --diff-filter=ACM | grep '.go$')
+unformatted=$(gofmt -l $gofiles)
+
+if [ ! -z "$unformatted" ]; then
+  echo >&2 "Go files should be formatted with gofmt. Please run:"
+  for fn in $unformatted; do
+      echo >&2 "  gofmt -w $PWD/$fn"
+  done
+  #exit 1
+else
+  echo >&2 "Go files be formatted."
+fi
+
 echo "" > coverage.txt
 
 for d in $(go list ./... | grep -v vendor | grep nezha/pkg); do

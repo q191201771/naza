@@ -27,14 +27,17 @@ type Logger interface {
 	Warnf(format string, v ...interface{})
 	Errorf(format string, v ...interface{})
 	Fatalf(format string, v ...interface{}) // 打印日志并退出程序
+	Panicf(format string, v ...interface{})
 
 	Debug(v ...interface{})
 	Info(v ...interface{})
 	Warn(v ...interface{})
 	Error(v ...interface{})
 	Fatal(v ...interface{})
+	Panic(v ...interface{})
 
 	FatalIfErrorNotNil(err error)
+	PanicIfErrorNotNil(err error)
 
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
@@ -57,12 +60,13 @@ type Config struct {
 type Level uint8
 
 const (
-	_ = iota
+	_ Level = iota
 	LevelDebug
 	LevelInfo
 	LevelWarn
 	LevelError
 	LevelFatal
+	LevelPanic
 )
 
 func New(c Config) (Logger, error) {
@@ -72,7 +76,7 @@ func New(c Config) (Logger, error) {
 		console io.Writer
 		err     error
 	)
-	if c.Level < LevelDebug || c.Level > LevelFatal {
+	if c.Level < LevelDebug || c.Level > LevelPanic {
 		return nil, LogErr
 	}
 	if c.Filename != "" {
@@ -90,11 +94,11 @@ func New(c Config) (Logger, error) {
 	}
 
 	l := &logger{
-		c:       c,
-		dir:     dir,
-		fp:      fp,
-		console: console,
-		currRoundTime:time.Now(),
+		c:             c,
+		dir:           dir,
+		fp:            fp,
+		console:       console,
+		currRoundTime: time.Now(),
 	}
 	return l, nil
 }
@@ -105,12 +109,14 @@ const (
 	levelWarnString  = " WARN "
 	levelErrorString = "ERROR "
 	levelFatalString = "FATAL "
+	levelPanicString = "PANIC "
 
 	levelDebugColorString = "\033[22;37mDEBUG\033[0m "
 	levelInfoColorString  = "\033[22;36m INFO\033[0m "
 	levelWarnColorString  = "\033[22;33m WARN\033[0m "
 	levelErrorColorString = "\033[22;31mERROR\033[0m "
-	levelFatalColorString = "\033[22;31mFATAL\033[0m " // 颜色和error的一样
+	levelFatalColorString = "\033[22;31mFATAL\033[0m " // 颜色和 error 级别一样
+	levelPanicColorString = "\033[22;31mPANIC\033[0m " // 颜色和 error 级别一样
 )
 
 var (
@@ -120,6 +126,7 @@ var (
 		LevelWarn:  levelWarnString,
 		LevelError: levelErrorString,
 		LevelFatal: levelFatalString,
+		LevelPanic: levelPanicString,
 	}
 	levelToColorString = map[Level]string{
 		LevelDebug: levelDebugColorString,
@@ -127,6 +134,7 @@ var (
 		LevelWarn:  levelWarnColorString,
 		LevelError: levelErrorColorString,
 		LevelFatal: levelFatalColorString,
+		LevelPanic: levelPanicColorString,
 	}
 )
 
@@ -135,10 +143,10 @@ type logger struct {
 
 	dir string
 
-	m       sync.Mutex
-	fp      *os.File
-	console io.Writer
-	buf     bytes.Buffer
+	m             sync.Mutex
+	fp            *os.File
+	console       io.Writer
+	buf           bytes.Buffer
 	currRoundTime time.Time
 }
 
@@ -167,6 +175,11 @@ func (l *logger) Fatalf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
+func (l *logger) Panicf(format string, v ...interface{}) {
+	l.Out(LevelPanic, 3, fmt.Sprintf(format, v...))
+	panic(fmt.Sprintf(format, v...))
+}
+
 func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
 	l.Out(level, 3, fmt.Sprint(v...))
 }
@@ -192,10 +205,22 @@ func (l *logger) Fatal(v ...interface{}) {
 	os.Exit(1)
 }
 
+func (l *logger) Panic(v ...interface{}) {
+	l.Out(LevelPanic, 3, fmt.Sprint(v...))
+	panic(fmt.Sprint(v...))
+}
+
 func (l *logger) FatalIfErrorNotNil(err error) {
 	if err != nil {
 		l.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
 		os.Exit(1)
+	}
+}
+
+func (l *logger) PanicIfErrorNotNil(err error) {
+	if err != nil {
+		l.Out(LevelPanic, 3, fmt.Sprintf("panic since error not nil. err=%+v", err))
+		panic(err)
 	}
 }
 
@@ -221,7 +246,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	if l.c.ShortFileFlag {
 		writeShortFile(&l.buf, calldepth)
 	}
-	if len(s) == 0 || s[len(s)-1] != '\n' {
+	if l.buf.Len() == 0 || l.buf.Bytes()[l.buf.Len()-1] != '\n' {
 		l.buf.WriteByte('\n')
 	}
 

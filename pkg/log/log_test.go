@@ -1,6 +1,8 @@
 package log
 
 import (
+	"encoding/hex"
+	"errors"
 	"github.com/q191201771/nezha/pkg/assert"
 	originLog "log"
 	"os"
@@ -9,13 +11,15 @@ import (
 
 func TestLogger(t *testing.T) {
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/aaa.log",
-		IsToStdout:  true,
+		Level:         LevelInfo,
+		Filename:      "/tmp/lallogtest/aaa.log",
+		IsToStdout:    true,
 		IsRotateDaily: true,
 	}
 	l, err := New(c)
 	assert.Equal(t, nil, err)
+	buf := []byte("1234567890987654321")
+	l.Error(hex.Dump(buf))
 	l.Debugf("l test msg by Debug%s", "f")
 	l.Infof("l test msg by Info%s", "f")
 	l.Warnf("l test msg by Warn%s", "f")
@@ -30,6 +34,8 @@ func TestLogger(t *testing.T) {
 }
 
 func TestGlobal(t *testing.T) {
+	buf := []byte("1234567890987654321")
+	Error(hex.Dump(buf))
 	Debugf("g test msg by Debug%s", "f")
 	Infof("g test msg by Info%s", "f")
 	Warnf("g test msg by Warn%s", "f")
@@ -40,9 +46,9 @@ func TestGlobal(t *testing.T) {
 	Error("g test msg by Error")
 
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/bbb.log",
-		IsToStdout:  true,
+		Level:      LevelInfo,
+		Filename:   "/tmp/lallogtest/bbb.log",
+		IsToStdout: true,
 	}
 	err := Init(c)
 	assert.Equal(t, nil, err)
@@ -64,7 +70,7 @@ func TestNew(t *testing.T) {
 		l   Logger
 		err error
 	)
-	l, err = New(Config{Level: LevelFatal + 1})
+	l, err = New(Config{Level: LevelPanic + 1})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, LogErr, err)
 
@@ -79,9 +85,9 @@ func TestNew(t *testing.T) {
 
 func TestRotate(t *testing.T) {
 	c := Config{
-		Level:       LevelInfo,
-		Filename:    "/tmp/lallogtest/ccc.log",
-		IsToStdout:  false,
+		Level:         LevelInfo,
+		Filename:      "/tmp/lallogtest/ccc.log",
+		IsToStdout:    false,
 		IsRotateDaily: true,
 	}
 	err := Init(c)
@@ -95,14 +101,49 @@ func TestRotate(t *testing.T) {
 	}
 }
 
+func withRecover(f func()) {
+	defer func() {
+		recover()
+	}()
+	f()
+}
+
+func TestPanic(t *testing.T) {
+	withRecover(func() {
+		Debug("ddd")
+		Panic("aaa")
+	})
+	withRecover(func() {
+		Panicf("%s", "bbb")
+	})
+	withRecover(func() {
+		PanicIfErrorNotNil(errors.New("mock error"))
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.Panic("aaa")
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.Panicf("%s", "bbb")
+	})
+	withRecover(func() {
+		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		assert.Equal(t, nil, err)
+		l.PanicIfErrorNotNil(errors.New("mock error"))
+	})
+}
+
 func BenchmarkStdout(b *testing.B) {
 	b.ReportAllocs()
 	c := Config{
-		Level:    LevelInfo,
+		Level: LevelInfo,
 		//Filename: "/tmp/lallogtest/ddd.log",
-		Filename:    "/dev/null",
+		Filename: "/dev/null",
 		//IsToStdout:  true,
-		ShortFileFlag:true,
+		ShortFileFlag: true,
 	}
 	err := Init(c)
 	assert.Equal(b, nil, err)

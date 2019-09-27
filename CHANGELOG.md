@@ -1,3 +1,12 @@
+#### v0.3.0
+
+- package connection:
+    - 可配置使用 channel 进行异步发送：Config 中增加 WChanSize。增加 Flush, Done, ModWriteChanSize 三个方法
+- package log:
+    - 增加 panic 相关的方法
+- 其它:
+    - test.sh 中添加 gofmt 检查
+
 #### v0.2.0
 
 - package log:

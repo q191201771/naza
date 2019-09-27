@@ -6,7 +6,7 @@ if [[ "$uname" == "Darwin" ]]; then
     echo "CHEFERASEME run gofmt check..."
     gofiles=$(git diff --name-only --diff-filter=ACM | grep '.go$')
     if [ ! -z "$gofiles" ]; then
-        echo "CHEFERASEME mod gofiles exist:" $gofiles
+        #echo "CHEFERASEME mod gofiles exist:" $gofiles
         unformatted=$(gofmt -l $gofiles)
         if [ ! -z "$unformatted" ]; then
             echo "Go files should be formatted with gofmt. Please run:"

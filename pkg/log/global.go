@@ -82,16 +82,12 @@ func Out(level Level, calldepth int, s string) {
 }
 
 // 这里不加锁保护，如果要调用Init函数初始化全局的Logger，那么由调用方保证调用Init函数时不会并发调用全局Logger的其他方法
-func Init(c Config) error {
+func Init(modOptions ...ModOption) error {
 	var err error
-	global, err = New(c)
+	global, err = New(modOptions...)
 	return err
 }
 
 func init() {
-	global, _ = New(Config{
-		Level:         LevelDebug,
-		IsToStdout:    true,
-		ShortFileFlag: true,
-	})
+	_ = Init()
 }

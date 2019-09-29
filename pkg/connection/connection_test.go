@@ -22,8 +22,8 @@ func TestWriteTimeout(t *testing.T) {
 		<-ch
 	}()
 	conn, err := net.Dial("tcp", ":10027")
-	c := New(conn, Config{
-		WriteTimeoutMS: 1000,
+	c := New(conn, func(opt *Option) {
+		opt.WriteTimeoutMS = 1000
 	})
 	assert.Equal(t, nil, err)
 	b := make([]byte, 128)

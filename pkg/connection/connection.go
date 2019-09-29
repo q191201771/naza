@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var connectionErr = errors.New("connection: fxxk")
+var connectionErr = errors.New("nezha.connection: fxxk")
 
 type Connection interface {
 	// 包含 interface net.Conn 的所有方法
@@ -49,7 +49,7 @@ type Connection interface {
 	ModWriteTimeoutMS(n int)
 }
 
-type Config struct {
+type Option struct {
 	// 如果不为0，则之后每次读/写使用 bufio 的缓冲
 	ReadBufSize  int
 	WriteBufSize int
@@ -59,31 +59,51 @@ type Config struct {
 	WriteTimeoutMS int
 
 	// 如果不为0，则写使用 channel 将数据发送到后台协程中发送
-	WChanSize int
+	WriteChanSize int
 }
 
-func New(conn net.Conn, config Config) Connection {
-	var c connection
+// 没有配置的属性，将按如下配置
+var defaultOption = Option{
+	ReadBufSize:    0,
+	WriteBufSize:   0,
+	ReadTimeoutMS:  0,
+	WriteTimeoutMS: 0,
+	WriteChanSize:  0,
+}
+
+type ModOption func(option *Option)
+
+func New(conn net.Conn, modOptions ...ModOption) Connection {
+	c := new(connection)
+	c.doneChan = make(chan error, 1)
 	c.Conn = conn
-	if config.ReadBufSize > 0 {
-		c.r = bufio.NewReaderSize(conn, config.ReadBufSize)
+
+	c.option = defaultOption
+
+	for _, fn := range modOptions {
+		fn(&c.option)
+	}
+
+	if c.option.ReadBufSize > 0 {
+		c.r = bufio.NewReaderSize(conn, c.option.ReadBufSize)
 	} else {
 		c.r = conn
 	}
-	if config.WriteBufSize > 0 {
-		c.w = bufio.NewWriterSize(conn, config.WriteBufSize)
+
+	if c.option.WriteBufSize > 0 {
+		c.w = bufio.NewWriterSize(conn, c.option.WriteBufSize)
 	} else {
 		c.w = conn
 	}
-	if config.WChanSize > 0 {
-		c.wChan = make(chan wMsg, config.WChanSize)
+
+	if c.option.WriteBufSize > 0 {
+		c.wChan = make(chan wMsg, c.option.WriteBufSize)
 		c.flushDoneChan = make(chan struct{}, 1)
+		c.exitChan = make(chan struct{}, 1)
 		go c.runWriteLoop()
 	}
-	c.doneChan = make(chan error, 1)
-	c.exitChan = make(chan struct{}, 1)
-	c.config = config
-	return &c
+
+	return c
 }
 
 type wMsgT int
@@ -103,51 +123,51 @@ type connection struct {
 	Conn          net.Conn
 	r             io.Reader
 	w             io.Writer
-	config        Config
+	option        Option
 	wChan         chan wMsg
 	flushDoneChan chan struct{}
-	doneChan      chan error
 	exitChan      chan struct{}
+	doneChan      chan error
 	closeOnce     sync.Once
 }
 
 func (c *connection) ModWriteChanSize(n int) {
-	if c.config.WChanSize > 0 {
+	if c.option.WriteChanSize > 0 {
 		panic(connectionErr)
 	}
-	c.config.WChanSize = n
+	c.option.WriteChanSize = n
 	c.wChan = make(chan wMsg, n)
 	c.flushDoneChan = make(chan struct{}, 1)
 	go c.runWriteLoop()
 }
 
 func (c *connection) ModWriteBufSize(n int) {
-	if c.config.WriteBufSize > 0 {
+	if c.option.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
 		// 这里改成 flush 后替换成新缓冲也行，暂时没这个必要
 		panic(connectionErr)
 	}
-	c.config.WriteBufSize = n
+	c.option.WriteBufSize = n
 	c.w = bufio.NewWriterSize(c.Conn, n)
 }
 
 func (c *connection) ModReadTimeoutMS(n int) {
-	if c.config.ReadTimeoutMS > 0 {
+	if c.option.ReadTimeoutMS > 0 {
 		panic(connectionErr)
 	}
-	c.config.ReadTimeoutMS = n
+	c.option.ReadTimeoutMS = n
 }
 
 func (c *connection) ModWriteTimeoutMS(n int) {
-	if c.config.WriteTimeoutMS > 0 {
+	if c.option.WriteTimeoutMS > 0 {
 		panic(connectionErr)
 	}
-	c.config.WriteTimeoutMS = n
+	c.option.WriteTimeoutMS = n
 }
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
-	if c.config.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMS > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
 			log.Debugf("nezha connection. error=%v, conn=%p", err, c)
 			return 0, err
@@ -168,8 +188,8 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 		// 目前只有使用了 bufio.Reader 时才能执行 ReadLine 操作
 		panic(connectionErr)
 	}
-	if c.config.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMS > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
 			log.Debugf("nezha connection. error=%v, conn=%p", err, c)
 			return nil, false, err
@@ -184,8 +204,8 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 }
 
 func (c *connection) Read(b []byte) (n int, err error) {
-	if c.config.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.config.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMS > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
 			log.Debugf("nezha connection. error=%v, conn=%p", err, c)
 			return 0, err
@@ -200,7 +220,7 @@ func (c *connection) Read(b []byte) (n int, err error) {
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
-	if c.config.WChanSize > 0 {
+	if c.option.WriteChanSize > 0 {
 		c.wChan <- wMsg{t: wMsgTWrite, b: b}
 		return len(b), nil
 	}
@@ -208,8 +228,8 @@ func (c *connection) Write(b []byte) (n int, err error) {
 }
 
 func (c *connection) write(b []byte) (n int, err error) {
-	if c.config.WriteTimeoutMS > 0 {
-		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+	if c.option.WriteTimeoutMS > 0 {
+		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
 		if err != nil {
 			log.Debugf("nezha connection. error=%v, conn=%p", err, c)
 			return 0, err
@@ -249,7 +269,7 @@ func (c *connection) runWriteLoop() {
 }
 
 func (c *connection) Flush() error {
-	if c.config.WChanSize > 0 {
+	if c.option.WriteChanSize > 0 {
 		c.wChan <- wMsg{t: wMsgTFlush}
 		<-c.flushDoneChan
 		return nil
@@ -261,8 +281,8 @@ func (c *connection) Flush() error {
 func (c *connection) flush() error {
 	w, ok := c.w.(*bufio.Writer)
 	if ok {
-		if c.config.WriteTimeoutMS > 0 {
-			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
+		if c.option.WriteTimeoutMS > 0 {
+			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
 			if err != nil {
 				log.Debugf("nezha connection. error=%v, conn=%p", err, c)
 				return err
@@ -286,7 +306,7 @@ func (c *connection) Close() error {
 func (c *connection) close(err error) {
 	log.Debugf("nezha connection close. err=%v, conn=%p", err, c)
 	c.closeOnce.Do(func() {
-		if c.config.WChanSize > 0 {
+		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}
 		}
 		c.doneChan <- err

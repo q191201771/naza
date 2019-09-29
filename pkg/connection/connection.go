@@ -8,7 +8,6 @@ package connection
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"github.com/q191201771/nezha/pkg/log"
 	"io"
 	"net"
@@ -31,10 +30,7 @@ type Connection interface {
 	net.Conn
 
 	ReadAtLeast(buf []byte, min int) (n int, err error)
-	ReadLine() (line []byte, isPrefix bool, err error)
-
-	// TODO chef: 这个接口是否不提供
-	Printf(fmt string, v ...interface{}) (n int, err error)
+	ReadLine() (line []byte, isPrefix bool, err error) // 只有设置了 ReadBufSize 才可以使用这个方法
 
 	// 如果使用了 bufio 写缓冲，则将缓冲中的数据发送出去
 	// 如果使用了 channel 异步发送，则阻塞等待，直到之前 channel 中的数据全部发送完毕
@@ -165,6 +161,7 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	return n, err
 }
 
+// TODO chef: 测试 bufio 设置的大小 < 换行符位置时的情况
 func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	bufioReader, ok := c.r.(*bufio.Reader)
 	if !ok {
@@ -184,13 +181,6 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 		c.close(err)
 	}
 	return line, isPrefix, err
-}
-
-func (c *connection) Printf(format string, v ...interface{}) (n int, err error) {
-	if c.config.WriteTimeoutMS > 0 {
-		_ = c.Conn.SetWriteDeadline(time.Now().Add(time.Duration(c.config.WriteTimeoutMS) * time.Millisecond))
-	}
-	return fmt.Fprintf(c.Conn, format, v...)
 }
 
 func (c *connection) Read(b []byte) (n int, err error) {

@@ -62,19 +62,6 @@ type Config struct {
 	WChanSize int
 }
 
-type wMsgT int
-
-const (
-	_ wMsgT = iota
-	wMsgTWrite
-	wMsgTFlush
-)
-
-type wmsg struct {
-	t wMsgT
-	b []byte
-}
-
 func New(conn net.Conn, config Config) Connection {
 	var c connection
 	c.Conn = conn
@@ -89,7 +76,7 @@ func New(conn net.Conn, config Config) Connection {
 		c.w = conn
 	}
 	if config.WChanSize > 0 {
-		c.wChan = make(chan wmsg, config.WChanSize)
+		c.wChan = make(chan wMsg, config.WChanSize)
 		c.flushDoneChan = make(chan struct{}, 1)
 		go c.runWriteLoop()
 	}
@@ -99,12 +86,25 @@ func New(conn net.Conn, config Config) Connection {
 	return &c
 }
 
+type wMsgT int
+
+const (
+	_ wMsgT = iota
+	wMsgTWrite
+	wMsgTFlush
+)
+
+type wMsg struct {
+	t wMsgT
+	b []byte
+}
+
 type connection struct {
 	Conn          net.Conn
 	r             io.Reader
 	w             io.Writer
 	config        Config
-	wChan         chan wmsg
+	wChan         chan wMsg
 	flushDoneChan chan struct{}
 	doneChan      chan error
 	exitChan      chan struct{}
@@ -116,7 +116,7 @@ func (c *connection) ModWriteChanSize(n int) {
 		panic(connectionErr)
 	}
 	c.config.WChanSize = n
-	c.wChan = make(chan wmsg, n)
+	c.wChan = make(chan wMsg, n)
 	c.flushDoneChan = make(chan struct{}, 1)
 	go c.runWriteLoop()
 }
@@ -201,7 +201,7 @@ func (c *connection) Read(b []byte) (n int, err error) {
 
 func (c *connection) Write(b []byte) (n int, err error) {
 	if c.config.WChanSize > 0 {
-		c.wChan <- wmsg{t: wMsgTWrite, b: b}
+		c.wChan <- wMsg{t: wMsgTWrite, b: b}
 		return len(b), nil
 	}
 	return c.write(b)
@@ -250,7 +250,7 @@ func (c *connection) runWriteLoop() {
 
 func (c *connection) Flush() error {
 	if c.config.WChanSize > 0 {
-		c.wChan <- wmsg{t: wMsgTFlush}
+		c.wChan <- wMsg{t: wMsgTFlush}
 		<-c.flushDoneChan
 		return nil
 	}

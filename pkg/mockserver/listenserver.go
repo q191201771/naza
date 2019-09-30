@@ -1,7 +1,7 @@
 package mockserver
 
 import (
-	"github.com/q191201771/nezha/pkg/nazalog"
+	"github.com/q191201771/naza/pkg/nazalog"
 	"net"
 	"time"
 )

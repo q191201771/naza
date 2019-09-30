@@ -8,14 +8,14 @@ package connection
 import (
 	"bufio"
 	"errors"
-	"github.com/q191201771/nezha/pkg/nazalog"
+	"github.com/q191201771/naza/pkg/nazalog"
 	"io"
 	"net"
 	"sync"
 	"time"
 )
 
-var connectionErr = errors.New("nezha.connection: fxxk")
+var connectionErr = errors.New("naza.connection: fxxk")
 
 type Connection interface {
 	// 包含 interface net.Conn 的所有方法
@@ -170,13 +170,13 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 			return 0, err
 		}
 	}
 	n, err = io.ReadAtLeast(c.r, buf, min)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return n, err
@@ -192,13 +192,13 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 			return nil, false, err
 		}
 	}
 	line, isPrefix, err = bufioReader.ReadLine()
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return line, isPrefix, err
@@ -208,13 +208,13 @@ func (c *connection) Read(b []byte) (n int, err error) {
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 			return 0, err
 		}
 	}
 	n, err = c.r.Read(b)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return n, err
@@ -232,13 +232,13 @@ func (c *connection) write(b []byte) (n int, err error) {
 	if c.option.WriteTimeoutMS > 0 {
 		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 			return 0, err
 		}
 	}
 	n, err = c.w.Write(b)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return n, err
@@ -254,12 +254,12 @@ func (c *connection) runWriteLoop() {
 			switch msg.t {
 			case wMsgTWrite:
 				if _, err := c.write(msg.b); err != nil {
-					nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+					nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 					return
 				}
 			case wMsgTFlush:
 				if err := c.flush(); err != nil {
-					nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+					nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 					c.flushDoneChan <- struct{}{}
 					return
 				}
@@ -285,12 +285,12 @@ func (c *connection) flush() error {
 		if c.option.WriteTimeoutMS > 0 {
 			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
 			if err != nil {
-				nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+				nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 				return err
 			}
 		}
 		if err := w.Flush(); err != nil {
-			nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 			c.close(err)
 			return err
 		}
@@ -299,13 +299,13 @@ func (c *connection) flush() error {
 }
 
 func (c *connection) Close() error {
-	nazalog.Debugf("nezha connection Close. conn=%p", c)
+	nazalog.Debugf("naza connection Close. conn=%p", c)
 	c.close(nil)
 	return nil
 }
 
 func (c *connection) close(err error) {
-	nazalog.Debugf("nezha connection close. err=%v, conn=%p", err, c)
+	nazalog.Debugf("naza connection close. err=%v, conn=%p", err, c)
 	c.closeOnce.Do(func() {
 		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}
@@ -330,7 +330,7 @@ func (c *connection) RemoteAddr() net.Addr {
 func (c *connection) SetDeadline(t time.Time) error {
 	err := c.Conn.SetDeadline(t)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err
@@ -339,7 +339,7 @@ func (c *connection) SetDeadline(t time.Time) error {
 func (c *connection) SetReadDeadline(t time.Time) error {
 	err := c.Conn.SetReadDeadline(t)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err
@@ -348,7 +348,7 @@ func (c *connection) SetReadDeadline(t time.Time) error {
 func (c *connection) SetWriteDeadline(t time.Time) error {
 	err := c.Conn.SetWriteDeadline(t)
 	if err != nil {
-		nazalog.Debugf("nezha connection. error=%v, conn=%p", err, c)
+		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err

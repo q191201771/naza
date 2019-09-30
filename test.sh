@@ -28,7 +28,7 @@ fi
 echo "CHEFERASEME run coverage test..."
 echo "" > coverage.txt
 
-for d in $(go list ./... | grep -v vendor | grep nezha/pkg); do
+for d in $(go list ./... | grep -v vendor | grep naza/pkg); do
     go test -race -coverprofile=profile.out -covermode=atomic $d
     if [ -f profile.out ]; then
         cat profile.out >> coverage.txt

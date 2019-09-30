@@ -16,10 +16,10 @@ import (
 // BuildGoVersion=`go version`
 //
 // go build -ldflags " \
-// -X 'github.com/q191201771/nezha/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
-// -X 'github.com/q191201771/nezha/pkg/bininfo.GitStatus=${GitStatus}' \
-// -X 'github.com/q191201771/nezha/pkg/bininfo.BuildTime=${BuildTime}' \
-// -X 'github.com/q191201771/nezha/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
+// -X 'github.com/q191201771/naza/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
+// -X 'github.com/q191201771/naza/pkg/bininfo.GitStatus=${GitStatus}' \
+// -X 'github.com/q191201771/naza/pkg/bininfo.BuildTime=${BuildTime}' \
+// -X 'github.com/q191201771/naza/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
 // "
 
 var (

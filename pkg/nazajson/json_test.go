@@ -1,8 +1,8 @@
 package nazajson
 
 import (
-	"github.com/q191201771/nezha/pkg/assert"
-	"github.com/q191201771/nezha/pkg/nazalog"
+	"github.com/q191201771/naza/pkg/assert"
+	"github.com/q191201771/naza/pkg/nazalog"
 	"testing"
 )
 

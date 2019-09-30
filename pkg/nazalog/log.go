@@ -96,10 +96,10 @@ func New(modOptions ...ModOption) (Logger, error) {
 	}
 	if l.option.Filename != "" {
 		l.dir = filepath.Dir(l.option.Filename)
-		if err = os.MkdirAll(l.dir, 0644); err != nil {
+		if err = os.MkdirAll(l.dir, 0666); err != nil {
 			return nil, err
 		}
-		if l.fp, err = os.Create(l.option.Filename); err != nil {
+		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666); err != nil {
 			return nil, err
 		}
 	}

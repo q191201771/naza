@@ -1,4 +1,4 @@
-package nzjson
+package nazajson
 
 import (
 	"encoding/json"

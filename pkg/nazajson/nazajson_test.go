@@ -1,4 +1,4 @@
-package nzjson
+package nazajson
 
 import (
 	"github.com/q191201771/nezha/pkg/assert"

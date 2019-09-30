@@ -1,6 +1,6 @@
 coverage.txt
 coverage.html
-profile.out
+profile.out*
 tmp
 
 /.idea
@@ -9,4 +9,4 @@ tmp
 /pre-commit.sh
 /TODO.md
 
-profile.out*
+/pkg/tag

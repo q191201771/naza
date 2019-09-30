@@ -1,5 +1,5 @@
-// package log 日志库
-package log
+// package nazalog 日志库
+package nazalog
 
 import (
 	"bytes"

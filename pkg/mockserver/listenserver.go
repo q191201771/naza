@@ -1,7 +1,7 @@
 package mockserver
 
 import (
-	"github.com/q191201771/nezha/pkg/log"
+	"github.com/q191201771/nezha/pkg/nazalog"
 	"net"
 	"time"
 )
@@ -19,7 +19,7 @@ func (s *MockListenServer) Run(addr string) (err error) {
 	}
 	for i := 0; ; i++ {
 		if _, err := net.DialTimeout("tcp", addr, time.Duration(200)*time.Millisecond); err != nil {
-			log.Infof("Dial failed. i=%d, err=%+v", i, err)
+			nazalog.Infof("Dial failed. i=%d, err=%+v", i, err)
 			break
 		}
 

@@ -1,4 +1,4 @@
-package log
+package nazalog
 
 import (
 	"fmt"

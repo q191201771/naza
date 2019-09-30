@@ -2,7 +2,7 @@ package connection
 
 import (
 	"github.com/q191201771/nezha/pkg/assert"
-	"github.com/q191201771/nezha/pkg/log"
+	"github.com/q191201771/nezha/pkg/nazalog"
 	"net"
 	"testing"
 )
@@ -29,7 +29,7 @@ func TestWriteTimeout(t *testing.T) {
 	b := make([]byte, 128)
 	for {
 		n, err := c.Write(b)
-		log.Infof("%d %+v", n, err)
+		nazalog.Infof("%d %+v", n, err)
 		if err != nil {
 			break
 		}

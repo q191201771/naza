@@ -2,7 +2,7 @@ package nazajson
 
 import (
 	"github.com/q191201771/nezha/pkg/assert"
-	"github.com/q191201771/nezha/pkg/log"
+	"github.com/q191201771/nezha/pkg/nazalog"
 	"testing"
 )
 
@@ -114,5 +114,5 @@ func BenchmarkExist(b *testing.B) {
 		exist = j.Exist(".")
 		exist = j.Exist("..")
 	}
-	log.Debug(exist)
+	nazalog.Debug(exist)
 }

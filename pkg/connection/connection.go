@@ -138,6 +138,7 @@ func (c *connection) ModWriteChanSize(n int) {
 	c.option.WriteChanSize = n
 	c.wChan = make(chan wMsg, n)
 	c.flushDoneChan = make(chan struct{}, 1)
+	c.exitChan = make(chan struct{}, 1)
 	go c.runWriteLoop()
 }
 

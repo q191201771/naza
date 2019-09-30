@@ -1,7 +1,7 @@
 package mockserver
 
 import (
-	"github.com/q191201771/nezha/pkg/assert"
+	"github.com/q191201771/naza/pkg/assert"
 	"net"
 	"testing"
 	"time"

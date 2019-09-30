@@ -1,22 +1,22 @@
-package log
+package nazalog
 
 import (
 	"encoding/hex"
 	"errors"
-	"github.com/q191201771/nezha/pkg/assert"
 	originLog "log"
 	"os"
 	"testing"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 func TestLogger(t *testing.T) {
-	c := Config{
-		Level:         LevelInfo,
-		Filename:      "/tmp/lallogtest/aaa.log",
-		IsToStdout:    true,
-		IsRotateDaily: true,
-	}
-	l, err := New(c)
+	l, err := New(func(option *Option) {
+		option.Level = LevelInfo
+		option.Filename = "/tmp/lallogtest/aaa.log"
+		option.IsToStdout = true
+		option.IsRotateDaily = true
+	})
 	assert.Equal(t, nil, err)
 	buf := []byte("1234567890987654321")
 	l.Error(hex.Dump(buf))
@@ -45,12 +45,12 @@ func TestGlobal(t *testing.T) {
 	Warn("g test msg by Warn")
 	Error("g test msg by Error")
 
-	c := Config{
-		Level:      LevelInfo,
-		Filename:   "/tmp/lallogtest/bbb.log",
-		IsToStdout: true,
-	}
-	err := Init(c)
+	err := Init(func(option *Option) {
+		option.Level = LevelInfo
+		option.Filename = "/tmp/lallogtest/bbb.log"
+		option.IsToStdout = true
+
+	})
 	assert.Equal(t, nil, err)
 	Debugf("gc test msg by Debug%s", "f")
 	Infof("gc test msg by Info%s", "f")
@@ -70,27 +70,33 @@ func TestNew(t *testing.T) {
 		l   Logger
 		err error
 	)
-	l, err = New(Config{Level: LevelPanic + 1})
+	l, err = New(func(option *Option) {
+		option.Level = LevelPanic + 1
+	})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, LogErr, err)
 
-	l, err = New(Config{Filename: "/tmp"})
+	l, err = New(func(option *Option) {
+		option.Filename = "/tmp"
+	})
 	assert.Equal(t, nil, l)
 	assert.IsNotNil(t, err)
 
-	l, err = New(Config{Filename: "./log_test.go/111"})
+	l, err = New(func(option *Option) {
+		option.Filename = "./log_test.go/111"
+	})
 	assert.Equal(t, nil, l)
 	assert.IsNotNil(t, err)
 }
 
 func TestRotate(t *testing.T) {
-	c := Config{
-		Level:         LevelInfo,
-		Filename:      "/tmp/lallogtest/ccc.log",
-		IsToStdout:    false,
-		IsRotateDaily: true,
-	}
-	err := Init(c)
+	err := Init(func(option *Option) {
+		option.Level = LevelInfo
+		option.Filename = "/tmp/lallogtest/ccc.log"
+		option.IsToStdout = false
+		option.IsRotateDaily = true
+
+	})
 	assert.Equal(t, nil, err)
 	b := make([]byte, 1024)
 	for i := 0; i < 2*1024; i++ {
@@ -120,17 +126,17 @@ func TestPanic(t *testing.T) {
 		PanicIfErrorNotNil(errors.New("mock error"))
 	})
 	withRecover(func() {
-		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		l, err := New()
 		assert.Equal(t, nil, err)
 		l.Panic("aaa")
 	})
 	withRecover(func() {
-		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		l, err := New()
 		assert.Equal(t, nil, err)
 		l.Panicf("%s", "bbb")
 	})
 	withRecover(func() {
-		l, err := New(Config{Level: LevelDebug, IsToStdout: true})
+		l, err := New()
 		assert.Equal(t, nil, err)
 		l.PanicIfErrorNotNil(errors.New("mock error"))
 	})
@@ -138,14 +144,11 @@ func TestPanic(t *testing.T) {
 
 func BenchmarkStdout(b *testing.B) {
 	b.ReportAllocs()
-	c := Config{
-		Level: LevelInfo,
-		//Filename: "/tmp/lallogtest/ddd.log",
-		Filename: "/dev/null",
-		//IsToStdout:  true,
-		ShortFileFlag: true,
-	}
-	err := Init(c)
+
+	err := Init(func(option *Option) {
+		option.Level = LevelInfo
+		option.Filename = "/dev/null"
+	})
 	assert.Equal(b, nil, err)
 	for i := 0; i < b.N; i++ {
 		Infof("hello %s %d", "world", i)

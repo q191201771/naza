@@ -1,5 +1,5 @@
-// package log 日志库
-package log
+// package nazalog 日志库
+package nazalog
 
 import (
 	"bytes"
@@ -44,7 +44,7 @@ type Logger interface {
 	Out(level Level, calldepth int, s string)
 }
 
-type Config struct {
+type Option struct {
 	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
 
 	// 文件输出和控制台输出可同时打开
@@ -57,11 +57,20 @@ type Config struct {
 	ShortFileFlag bool `json:"short_file_flag"` // 是否在每行日志尾部添加源码文件及行号的信息
 }
 
+// 没有配置的属性，将按如下配置
+var defaultOption = Option{
+	Level:         LevelDebug,
+	Filename:      "",
+	IsToStdout:    true,
+	IsRotateDaily: false,
+	ShortFileFlag: true,
+}
+
 type Level uint8
 
 const (
-	_ Level = iota
-	LevelDebug
+	_          Level = iota
+	LevelDebug       // 1
 	LevelInfo
 	LevelWarn
 	LevelError
@@ -69,37 +78,35 @@ const (
 	LevelPanic
 )
 
-func New(c Config) (Logger, error) {
-	var (
-		dir     string
-		fp      *os.File
-		console io.Writer
-		err     error
-	)
-	if c.Level < LevelDebug || c.Level > LevelPanic {
-		return nil, LogErr
-	}
-	if c.Filename != "" {
-		dir = filepath.Dir(c.Filename)
-		if err := os.MkdirAll(dir, 0777); err != nil {
-			return nil, err
-		}
-		fp, err = os.Create(c.Filename)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if c.IsToStdout {
-		console = os.Stdout
+type ModOption func(option *Option)
+
+func New(modOptions ...ModOption) (Logger, error) {
+	var err error
+
+	l := new(logger)
+	l.currRoundTime = time.Now()
+	l.option = defaultOption
+
+	for _, fn := range modOptions {
+		fn(&l.option)
 	}
 
-	l := &logger{
-		c:             c,
-		dir:           dir,
-		fp:            fp,
-		console:       console,
-		currRoundTime: time.Now(),
+	if l.option.Level < LevelDebug || l.option.Level > LevelPanic {
+		return nil, LogErr
 	}
+	if l.option.Filename != "" {
+		l.dir = filepath.Dir(l.option.Filename)
+		if err = os.MkdirAll(l.dir, 0644); err != nil {
+			return nil, err
+		}
+		if l.fp, err = os.Create(l.option.Filename); err != nil {
+			return nil, err
+		}
+	}
+	if l.option.IsToStdout {
+		l.console = os.Stdout
+	}
+
 	return l, nil
 }
 
@@ -139,7 +146,7 @@ var (
 )
 
 type logger struct {
-	c Config
+	option Option
 
 	dir string
 
@@ -225,7 +232,7 @@ func (l *logger) PanicIfErrorNotNil(err error) {
 }
 
 func (l *logger) Out(level Level, calldepth int, s string) {
-	if l.c.Level > level {
+	if l.option.Level > level {
 		return
 	}
 
@@ -243,7 +250,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 		l.buf.WriteString(levelToString[level])
 	}
 	l.buf.WriteString(s)
-	if l.c.ShortFileFlag {
+	if l.option.ShortFileFlag {
 		writeShortFile(&l.buf, calldepth)
 	}
 	if l.buf.Len() == 0 || l.buf.Bytes()[l.buf.Len()-1] != '\n' {
@@ -258,10 +265,10 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	// 输出至日志文件
 	if l.fp != nil {
 		if now.Day() != l.currRoundTime.Day() {
-			backupName := l.c.Filename + "." + l.currRoundTime.Format("20060102")
-			if err := os.Rename(l.c.Filename, backupName); err == nil {
+			backupName := l.option.Filename + "." + l.currRoundTime.Format("20060102")
+			if err := os.Rename(l.option.Filename, backupName); err == nil {
 				_ = l.fp.Close()
-				l.fp, _ = os.Create(l.c.Filename)
+				l.fp, _ = os.Create(l.option.Filename)
 			}
 			l.currRoundTime = now
 		}

@@ -1,3 +1,3 @@
-module github.com/q191201771/nezha
+module github.com/q191201771/naza
 
 go 1.12

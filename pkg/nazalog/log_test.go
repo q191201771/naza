@@ -13,7 +13,7 @@ import (
 func TestLogger(t *testing.T) {
 	l, err := New(func(option *Option) {
 		option.Level = LevelInfo
-		option.Filename = "/tmp/lallogtest/aaa.log"
+		option.Filename = "/tmp/nazalogtest/aaa.log"
 		option.IsToStdout = true
 		option.IsRotateDaily = true
 	})
@@ -47,7 +47,7 @@ func TestGlobal(t *testing.T) {
 
 	err := Init(func(option *Option) {
 		option.Level = LevelInfo
-		option.Filename = "/tmp/lallogtest/bbb.log"
+		option.Filename = "/tmp/nazalogtest/bbb.log"
 		option.IsToStdout = true
 
 	})
@@ -92,7 +92,7 @@ func TestNew(t *testing.T) {
 func TestRotate(t *testing.T) {
 	err := Init(func(option *Option) {
 		option.Level = LevelInfo
-		option.Filename = "/tmp/lallogtest/ccc.log"
+		option.Filename = "/tmp/nazalogtest/ccc.log"
 		option.IsToStdout = false
 		option.IsRotateDaily = true
 

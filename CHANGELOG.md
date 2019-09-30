@@ -1,3 +1,18 @@
+#### v0.4.0
+
+- package log:
+    - rename -> package nazalog
+    - mkdir 0777 and create file 0666, append if file exist
+    - 配置使用 Option
+    - 配置默认值修改： 打印至控制台开关默认打开，打印源码文件行号开关默认打开
+- package connection:
+    - erase func Printf
+    - 配置使用 Option
+- package nazajson:
+    - 新增包，作为系统包 json 的补充
+- 其它:
+    - repo name nezha -> naza
+
 #### v0.3.0
 
 - package connection:

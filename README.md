@@ -36,6 +36,7 @@ pkg/                  ......源码包
     |-- mockwriter/   ......模拟 Writer 接口，用于快速测试其它代码
     |-- nazajson/     ......json 操作
     |-- nazalog/      ......日志库
+    |-- nazastring/   ......string和[]byte相关的操作
     |-- unique/       ......对象唯一 ID
 demo/                 ......示例相关的代码
 bin/                  ......可执行文件编译输出目录

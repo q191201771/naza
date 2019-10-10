@@ -4,8 +4,8 @@ import "unsafe"
 
 type sliceT struct {
 	array unsafe.Pointer
-	len int
-	cap int
+	len   int
+	cap   int
 }
 
 type stringStruct struct {

@@ -99,7 +99,7 @@ func New(modOptions ...ModOption) (Logger, error) {
 		if err = os.MkdirAll(l.dir, 0777); err != nil {
 			return nil, err
 		}
-		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666); err != nil {
+		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
 			return nil, err
 		}
 	}

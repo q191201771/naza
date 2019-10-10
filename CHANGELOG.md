@@ -1,3 +1,8 @@
+#### v0.4.1
+
+- package nazastring:
+    - 新增 func SliceByteToStringTmp 和 func StringToSliceByteTmp，用于无拷贝的做string和[]byte的转换
+
 #### v0.4.0
 
 - package log:

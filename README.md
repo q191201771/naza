@@ -32,6 +32,7 @@ pkg/                  ......源码包
     |-- bele/         ......提供了大小端的转换操作
     |-- bininfo/      ......将编译时的 git 版本号，时间，Go 编译器信息打入程序中
     |-- connection/   ......对 net.Conn 接口的二次封装
+    |-- filebatch/    ......文件批处理操作
     |-- mockserver/   ......模拟一些服务端，用于快速测试其它代码
     |-- mockwriter/   ......模拟 Writer 接口，用于快速测试其它代码
     |-- nazajson/     ......json 操作
@@ -52,3 +53,8 @@ bin/                  ......可执行文件编译输出目录
 
 naza 即哪吒（正确拼音为 nezha，我女儿发音读作 naza，少一个字母，挺好~），希望本仓库以后能像三头六臂，有多种武器的哪吒一样，为我提供多种工具。
 
+#### 联系我
+
+欢迎扫码加我微信，进行技术交流或扯淡。
+
+<img src="https://pengrl.com/images/yoko_vx.jpeg" width="180" height="180" />

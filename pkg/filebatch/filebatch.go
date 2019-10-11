@@ -1,7 +1,16 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package filebatch
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -56,9 +65,65 @@ func AddTailContent(content []byte, tail []byte) []byte {
 	return append(content, tail...)
 }
 
+// 文件头部添加内容
 func AddHeadContent(content []byte, head []byte) []byte {
 	if !bytes.HasSuffix(head, []byte{'\n'}) {
 		head = append(head, '\n')
 	}
 	return append(head, content...)
+}
+
+// 行号范围
+// 1表示首行，-1表示最后一行
+type LineRange struct {
+	From int
+	To   int
+}
+
+var ErrLineRange = errors.New("naza.filebatch: line range error")
+
+func calcLineRange(len int, lr LineRange) (LineRange, error) {
+	// 换算成从0开始的下标
+	if lr.From < 0 {
+		lr.From = len + lr.From
+	} else if lr.From > 0 {
+		lr.From = lr.From - 1
+	} else {
+		return lr, ErrLineRange
+	}
+	if lr.To < 0 {
+		lr.To = len + lr.To
+	} else if lr.To > 0 {
+		lr.To = lr.To - 1
+	} else {
+		return lr, ErrLineRange
+	}
+
+	// 排序交换
+	if lr.From > lr.To {
+		lr.From, lr.To = lr.To, lr.From
+	}
+
+	if lr.From < 0 || lr.From >= len || lr.To < 0 || lr.To >= len {
+		return lr, ErrLineRange
+	}
+
+	return lr, nil
+}
+
+func DeleteLines(content []byte, lr LineRange) ([]byte, error) {
+	lines := bytes.Split(content, []byte{'\n'})
+	length := len(lines)
+	nlr, err := calcLineRange(length, lr)
+	if err != nil {
+		return content, err
+	}
+	var nlines [][]byte
+	if nlr.From > 0 {
+		nlines = append(nlines, lines[:nlr.From]...)
+	}
+	if nlr.To < length-1 {
+		nlines = append(nlines, lines[nlr.To+1:]...)
+	}
+	return bytes.Join(nlines, []byte{'\n'}), nil
 }

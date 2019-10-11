@@ -1,6 +1,15 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package filebatch
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +20,20 @@ import (
 )
 
 var filenameToContent map[string][]byte
+
+var head = `// Copyright %s, Chef.  All rights reserved.
+// https://%s
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)`
+
+var tail = `
+> author: xxx
+> link: xxx
+> license: xxx
+`
 
 // /<root>/
 //     |-- /dir1/
@@ -65,7 +88,6 @@ func testWalk(t *testing.T, recursive bool, suffix string) {
 	assert.Equal(t, nil, err)
 	defer os.RemoveAll(root)
 
-	assert.Equal(t, nil, err)
 	err = Walk(root, recursive, suffix, func(path string, info os.FileInfo, content []byte) []byte {
 		nazalog.Debugf("%+v %+v %s", path, info.Name(), string(content))
 
@@ -96,27 +118,14 @@ func TestWalk(t *testing.T) {
 }
 
 func TestAddContent(t *testing.T) {
-head := `// Copyright %s, Chef.  All rights reserved.
-// https://%s
-//
-// Use of this source code is governed by a MIT-style license
-// that can be found in the License file.
-//
-// Author: Chef (191201771@qq.com)
-`
-
-	tail := `
-> author: xxx
-> link: xxx
-> license: xxx
-`
-
 	root, err := prepareTestFile()
 	assert.Equal(t, nil, err)
 	defer os.RemoveAll(root)
 
-	assert.Equal(t, nil, err)
 	err = Walk(root, true, ".txt", func(path string, info os.FileInfo, content []byte) []byte {
+		lines := bytes.Split(content, []byte{'\n'})
+		nazalog.Debugf("%+v %d", path, len(lines))
+
 		v := filenameToContent[path]
 		assert.Equal(t, v, content)
 		delete(filenameToContent, path)
@@ -129,4 +138,123 @@ head := `// Copyright %s, Chef.  All rights reserved.
 		nazalog.Debugf("%+v %+v %s", path, info.Name(), string(content))
 		return nil
 	})
+}
+
+func TestDeleteLines(t *testing.T) {
+	origin := `111
+222
+333
+444
+555`
+
+	content := []byte(origin)
+	lines := bytes.Split(content, []byte{'\n'})
+	assert.Equal(t, 5, len(lines))
+
+	var (
+		res []byte
+		err error
+	)
+
+	// 常规操作
+	res, err = DeleteLines(content, LineRange{From: 1, To: 1})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`222
+333
+444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -5, To: -5})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`222
+333
+444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 2, To: 2})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+333
+444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -4, To: -4})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+333
+444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 4, To: 4})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222
+333
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -2, To: -2})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222
+333
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 5, To: 5})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222
+333
+444`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -1, To: -1})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222
+333
+444`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 1, To: 3})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -5, To: -3})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`444
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 3, To: 5})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -3, To: -1})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+222`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 2, To: 4})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: -4, To: -2})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+555`), res)
+
+	// 非常规操作
+	res, err = DeleteLines(content, LineRange{From: 4, To: 2})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []byte(`111
+555`), res)
+
+	res, err = DeleteLines(content, LineRange{From: 0, To: 1})
+	assert.Equal(t, ErrLineRange, err)
+
+	res, err = DeleteLines(content, LineRange{From: 1, To: 0})
+	assert.Equal(t, ErrLineRange, err)
+
+	res, err = DeleteLines(content, LineRange{From: 10, To: 20})
+	assert.Equal(t, ErrLineRange, err)
 }

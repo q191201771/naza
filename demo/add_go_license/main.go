@@ -1,3 +1,11 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package main
 
 import (
@@ -19,6 +27,7 @@ var license = `// Copyright %d, Chef.  All rights reserved.
 // that can be found in the License file.
 //
 // Author: Chef (191201771@qq.com)
+
 `
 
 func main() {
@@ -29,10 +38,24 @@ func main() {
 	head := fmt.Sprintf(license, year, repo)
 	nazalog.Debug(head)
 
+	var (
+		skipCount int
+		modCount  int
+	)
 	err := filebatch.Walk(dir, true, ".go", func(path string, info os.FileInfo, content []byte) []byte {
-		return nil
+		lines := bytes.Split(content, []byte{'\n'})
+		if bytes.Index(lines[0], []byte("Copyright")) != -1 {
+			skipCount++
+			//nc, _ := filebatch.DeleteLines(content, filebatch.LineRange{From:1, To:7})
+			//return nc
+			return nil
+		}
+
+		modCount++
+		return filebatch.AddHeadContent(content, []byte(head))
 	})
 	nazalog.FatalIfErrorNotNil(err)
+	nazalog.Infof("count. mod=%d, skip=%d", modCount, skipCount)
 }
 
 func achieveRepo(root string) string {

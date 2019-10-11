@@ -1,3 +1,11 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 // package assert 提供了单元测试时的断言功能，减少一些模板代码
 //
 // 代码参考了 https://github.com/stretchr/testify

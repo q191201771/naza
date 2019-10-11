@@ -1,3 +1,10 @@
+#### v0.4.2
+
+- package filebatch:
+    - 新增的包，用于文件批处理操作
+- 新增 demo/add_go_license：给 Go 仓库的所有go源码文件添加MIT许可证
+- 新增 demo/add_blog_license：给我自己博客的所有文章尾部添加声明
+
 #### v0.4.1
 
 - package nazastring:

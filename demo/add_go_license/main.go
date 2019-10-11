@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-var license = `// Copyright %d, Chef.  All rights reserved.
+var licenseTmpl = `// Copyright %d, Chef.  All rights reserved.
 // https://%s
 //
 // Use of this source code is governed by a MIT-style license
@@ -35,8 +35,8 @@ func main() {
 
 	year := time.Now().Year()
 	repo := achieveRepo(dir)
-	head := fmt.Sprintf(license, year, repo)
-	nazalog.Debug(head)
+	license := fmt.Sprintf(licenseTmpl, year, repo)
+	nazalog.Debug(license)
 
 	var (
 		skipCount int
@@ -52,7 +52,7 @@ func main() {
 		}
 
 		modCount++
-		return filebatch.AddHeadContent(content, []byte(head))
+		return filebatch.AddHeadContent(content, []byte(license))
 	})
 	nazalog.FatalIfErrorNotNil(err)
 	nazalog.Infof("count. mod=%d, skip=%d", modCount, skipCount)

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# 在 macos 下运行 gofmt 检查
-uname=$(uname)
-if [[ "$uname" == "Darwin" ]]; then
+# 在我的开发环境下额外做一些工作
+if [[ $IS_CHEF_DEV_ENV == "true" ]]; then
+    echo "CHEFERASEME run add_go_license..."
+    add_go_license -d ./
+
     echo "CHEFERASEME run gofmt check..."
     gofiles=$(git diff --name-only --diff-filter=ACM | grep '.go$')
     if [ ! -z "$gofiles" ]; then
@@ -20,8 +22,6 @@ if [[ "$uname" == "Darwin" ]]; then
     else
         echo "CHEFERASEME mod gofiles not exist."
     fi
-else
-  echo "CHEFERASEME not run gofmt check..."
 fi
 
 # 跑 go test 生成测试覆盖率

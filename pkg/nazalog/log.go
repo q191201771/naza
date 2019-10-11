@@ -1,3 +1,11 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 // package nazalog 日志库
 package nazalog
 
@@ -99,7 +107,7 @@ func New(modOptions ...ModOption) (Logger, error) {
 		if err = os.MkdirAll(l.dir, 0777); err != nil {
 			return nil, err
 		}
-		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666); err != nil {
+		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
 			return nil, err
 		}
 	}

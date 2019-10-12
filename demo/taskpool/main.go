@@ -66,4 +66,7 @@ func taskPool() {
 func main() {
 	taskPool()
 	//originGo()
+	nazalog.Debug("waiting exit.")
+	time.Sleep(1000 * time.Second)
+	//nazalog.Debug("bye.")
 }

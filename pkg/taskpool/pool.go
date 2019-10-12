@@ -31,8 +31,11 @@ func (p *pool) Go(task Task) {
 	//	w = e.Value.(*Worker)
 	//	p.idleWorkerList.Remove(e)
 	if len(p.idleWorkerList) != 0 {
-		w = p.idleWorkerList[0]
-		p.idleWorkerList = p.idleWorkerList[1:]
+		//w = p.idleWorkerList[0]
+		//p.idleWorkerList = p.idleWorkerList[1:]
+
+		w = p.idleWorkerList[len(p.idleWorkerList)-1]
+		p.idleWorkerList = p.idleWorkerList[0:len(p.idleWorkerList)-1]
 		atomic.AddInt32(&p.idleWorkerNum, -1)
 		atomic.AddInt32(&p.busyWorkerNum, 1)
 	}

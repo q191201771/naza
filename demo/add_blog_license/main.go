@@ -19,7 +19,7 @@ import (
 )
 
 var licenseTmpl = `
-> **本文原始地址：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)
+> **本文原始地址：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)  
 > **声明：** 本文后续所有修改都会第一时间在原始地址更新。本文欢迎任何形式转载，转载时注明原始出处即可。`
 
 func main() {

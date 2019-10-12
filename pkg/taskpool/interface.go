@@ -6,6 +6,10 @@
 //
 // Author: Chef (191201771@qq.com)
 
+// TODO
+// 1. 尝试替换掉 list.List
+// 2. channel 通信是否能替换成其他方式
+
 package taskpool
 
 import (

@@ -18,6 +18,7 @@ type pool struct {
 	idleWorkerNum int32
 	busyWorkerNum int32
 
+	//m              SpinLock
 	m              sync.Mutex
 	idleWorkerList *list.List
 }
@@ -44,9 +45,11 @@ func (p *pool) Go(task Task) {
 func (p *pool) KillIdleWorkers() {
 	p.m.Lock()
 	n := p.idleWorkerList.Len()
-	for e := p.idleWorkerList.Front(); e != nil; e = e.Next() {
+	var next *list.Element
+	for e := p.idleWorkerList.Front(); e != nil; e = next {
 		w := e.Value.(*Worker)
 		w.Stop()
+		next = e.Next()
 		p.idleWorkerList.Remove(e)
 	}
 	atomic.AddInt32(&p.idleWorkerNum, int32(-n))

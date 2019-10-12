@@ -18,45 +18,56 @@ import (
 
 var (
 	taskNum       = 1000 * 1000
-	initWorkerNum = 1000
+	initWorkerNum = 1 //1000 * 20 //1000 * 10
 )
 
 func BenchmarkOriginGo(b *testing.B) {
+	nazalog.Debug("> BenchmarkOriginGo")
 	var wg sync.WaitGroup
-	for j := 0; j < b.N; j++ {
+	for j := 0; j < 1; j++ {
 		wg.Add(taskNum)
 		for i := 0; i < taskNum; i++ {
 			go func() {
-				time.Sleep(1 * time.Millisecond)
+				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 			}()
 		}
 		wg.Wait()
 	}
+	nazalog.Debug("< BenchmarkOriginGo")
 }
 
 func BenchmarkTaskPool(b *testing.B) {
+	nazalog.Debug("> BenchmarkTaskPool")
 	var wg sync.WaitGroup
 	p, _ := NewPool(func(option *Option) {
 		option.InitWorkerNum = initWorkerNum
 	})
+	//var ps []Pool
+	//var poolNum = 1
+	//for i := 0; i < poolNum; i++ {
+	//	ps = append(ps, p)
+	//}
 
 	b.ResetTimer()
-	for j := 0; j < b.N; j++ {
+	for j := 0; j < 1; j++ {
+		//b.StartTimer()
 		wg.Add(taskNum)
 		for i := 0; i < taskNum; i++ {
 			p.Go(func() {
-				time.Sleep(1 * time.Millisecond)
+				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 			})
 		}
 		wg.Wait()
-		idle, busy := p.Status()
-		nazalog.Debugf("done, worker num. idle=%d, busy=%d", idle, busy) // 此时还有个别busy也是正常的，因为只是业务方的任务代码执行完了，可能还没回收到idle队列中
-		p.KillIdleWorkers()
-		idle, busy = p.Status()
-		nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
+		//b.StopTimer()
+		//idle, busy := p.Status()
+		//nazalog.Debugf("done, worker num. idle=%d, busy=%d", idle, busy) // 此时还有个别busy也是正常的，因为只是业务方的任务代码执行完了，可能还没回收到idle队列中
+		//p.KillIdleWorkers()
+		//idle, busy = p.Status()
+		//nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
 	}
+	nazalog.Debug("< BenchmarkTaskPool")
 }
 
 func TestTaskPool(t *testing.T) {
@@ -85,6 +96,19 @@ func TestTaskPool(t *testing.T) {
 	p.KillIdleWorkers()
 	idle, busy = p.Status()
 	nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
+
+	time.Sleep(100 * time.Millisecond)
+
+	wg.Add(n)
+	for i := 0; i < n; i++ {
+		p.Go(func() {
+			time.Sleep(10 * time.Millisecond)
+			wg.Done()
+		})
+	}
+	wg.Wait()
+	idle, busy = p.Status()
+	nazalog.Debugf("done, worker num. idle=%d, busy=%d", idle, busy) // 此时还有个别busy也是正常的，因为只是业务方的任务代码执行完了，可能还没回收到idle队列中
 }
 
 func TestGlobal(t *testing.T) {

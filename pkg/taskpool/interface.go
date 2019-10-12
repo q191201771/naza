@@ -7,8 +7,7 @@
 // Author: Chef (191201771@qq.com)
 
 // TODO
-// 1. 尝试替换掉 list.List
-// 2. channel 通信是否能替换成其他方式
+// - channel 通信替换成其他方式是否有可能提高性能
 
 package taskpool
 
@@ -54,11 +53,9 @@ func NewPool(modOptions ...ModOption) (Pool, error) {
 	}
 
 	var p pool
-	//p.idleWorkerList = list.New()
 	for i := 0; i < option.InitWorkerNum; i++ {
 		w := NewWorker(&p)
 		w.Start()
-		//p.idleWorkerList.PushBack(w)
 		p.idleWorkerList = append(p.idleWorkerList, w)
 	}
 	atomic.AddInt32(&p.idleWorkerNum, int32(option.InitWorkerNum))

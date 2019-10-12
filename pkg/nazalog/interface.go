@@ -47,7 +47,6 @@ type Logger interface {
 	Out(level Level, calldepth int, s string)
 }
 
-
 type Option struct {
 	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
 

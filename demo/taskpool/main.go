@@ -1,3 +1,11 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package main
 
 import (
@@ -45,7 +53,7 @@ func taskPool() {
 		//b.StartTimer()
 		wg.Add(taskNum)
 		for i := 0; i < taskNum; i++ {
-			ps[i % poolNum].Go(func() {
+			ps[i%poolNum].Go(func() {
 				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 			})

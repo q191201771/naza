@@ -13,7 +13,6 @@
 package taskpool
 
 import (
-	"container/list"
 	"errors"
 	"sync/atomic"
 )
@@ -55,11 +54,12 @@ func NewPool(modOptions ...ModOption) (Pool, error) {
 	}
 
 	var p pool
-	p.idleWorkerList = list.New()
+	//p.idleWorkerList = list.New()
 	for i := 0; i < option.InitWorkerNum; i++ {
 		w := NewWorker(&p)
 		w.Start()
-		p.idleWorkerList.PushBack(w)
+		//p.idleWorkerList.PushBack(w)
+		p.idleWorkerList = append(p.idleWorkerList, w)
 	}
 	atomic.AddInt32(&p.idleWorkerNum, int32(option.InitWorkerNum))
 	return &p, nil

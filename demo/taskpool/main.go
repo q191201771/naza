@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	taskNum       = 1000 * 10000
+	taskNum       = 1000 * 1000
 	initWorkerNum = 1 //1000 * 20 //1000 * 10
 )
 
@@ -29,10 +29,11 @@ func originGo() {
 }
 
 func taskPool() {
+	var poolNum = 1
+
 	nazalog.Debug("> BenchmarkTaskPool")
 	var wg sync.WaitGroup
 	var ps []taskpool.Pool
-	var poolNum = 1
 	for i := 0; i < poolNum; i++ {
 		p, _ := taskpool.NewPool(func(option *taskpool.Option) {
 			option.InitWorkerNum = initWorkerNum
@@ -58,6 +59,8 @@ func taskPool() {
 		//nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
 	}
 	nazalog.Debug("< BenchmarkTaskPool")
+	idle, busy := ps[0].Status()
+	nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
 }
 
 func main() {

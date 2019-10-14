@@ -38,4 +38,4 @@ done
 
 # go test -race -coverprofile=profile.out -covermode=atomic && go tool cover -html=profile.out -o coverage.html && open coverage.html
 # go test -test.bench=".*"
-# go test -bench=. -benchtime=10s
+# go test -bench=. -benchmem -benchtime=10s

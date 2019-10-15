@@ -16,22 +16,31 @@ import (
 	"os"
 	"runtime/pprof"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
-var runNum = 1000 * 1000
 var bp bufferpool.BufferPool
-var count int32
+
+//var count int32
+var doneCount uint32
+
+var gorutineNum = 1000
+var loopNum = 1000
+var sleepMSec = 10
+var usePool = true
+
+//var usePool = false
 
 func size() int {
+	return random(0, 128*1024)
+
 	//return 128 * 1024
 
 	//ss := []int{1000, 2000, 5000}
 	//////ss := []int{128, 1024, 4096, 16384}
 	//atomic.AddInt32(&count, 1)
 	//return ss[count % 3]
-
-	return random(0, 4*1024)
 
 	//count++
 	//if count > 128 * 1024 {
@@ -48,20 +57,21 @@ func originFunc() {
 	var buf bytes.Buffer
 	size := size()
 	buf.Grow(size)
-	time.Sleep(time.Duration(random(0, 200)) * time.Millisecond)
+	atomic.AddUint32(&doneCount, 1)
 }
 
 func bufferPoolFunc() {
 	size := size()
 	buf := bp.Get(size)
 	buf.Grow(size)
-	time.Sleep(time.Duration(random(0, 200)) * time.Millisecond)
 	bp.Put(buf)
+	atomic.AddUint32(&doneCount, 1)
 }
 
 func main() {
-	f, _ := os.Create("/tmp/demo.prof")
-	pprof.StartCPUProfile(f)
+	cpufd, err := os.Create("/tmp/cpu.prof")
+	nazalog.FatalIfErrorNotNil(err)
+	pprof.StartCPUProfile(cpufd)
 	defer pprof.StopCPUProfile()
 
 	rand.Seed(time.Now().Unix())
@@ -70,23 +80,35 @@ func main() {
 
 	go func() {
 		for {
-			nazalog.Debugf("time. %+v", bp.RetrieveStatus())
+			nazalog.Debugf("time. done=%d, %+v", atomic.LoadUint32(&doneCount), bp.RetrieveStatus())
 			time.Sleep(1 * time.Second)
 
 		}
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(runNum)
+	wg.Add(gorutineNum * loopNum)
 	nazalog.Debug("> loop.")
-	for i := 0; i < runNum; i++ {
+	for i := 0; i < gorutineNum; i++ {
 		go func() {
-			//originFunc()
-			bufferPoolFunc()
-			wg.Done()
+			if usePool {
+				for j := 0; j < loopNum; j++ {
+					bufferPoolFunc()
+					wg.Done()
+				}
+			} else {
+				for j := 0; j < loopNum; j++ {
+					originFunc()
+					wg.Done()
+				}
+			}
 		}()
 	}
 	wg.Wait()
+	memfd, err := os.Create("/tmp/mem.prof")
+	nazalog.FatalIfErrorNotNil(err)
+	pprof.WriteHeapProfile(memfd)
+	memfd.Close()
 	nazalog.Debugf("%+v", bp.RetrieveStatus())
 	nazalog.Debug("< loop.")
 }

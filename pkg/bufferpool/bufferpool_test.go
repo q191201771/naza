@@ -28,6 +28,21 @@ func TestBufferPool(t *testing.T) {
 	bp.RetrieveStatus()
 }
 
+func TestGlobal(t *testing.T) {
+	buf := Get(128)
+	Put(buf)
+	RetrieveStatus()
+}
+
+func TestSliceBucket(t *testing.T) {
+	sb := NewSliceBucket()
+	buf := sb.Get()
+	assert.Equal(t, nil, buf)
+	sb.Put(&bytes.Buffer{})
+	buf = sb.Get()
+	assert.IsNotNil(t, buf)
+}
+
 func TestUp2power(t *testing.T) {
 	assert.Equal(t, 2, up2power(0))
 	assert.Equal(t, 2, up2power(1))

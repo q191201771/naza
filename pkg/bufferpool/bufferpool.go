@@ -10,7 +10,6 @@ package bufferpool
 
 import (
 	"bytes"
-	"sync"
 	"sync/atomic"
 )
 
@@ -21,12 +20,7 @@ var (
 
 type bufferPool struct {
 	status          Status
-	capToFreeBucket map[int]*item
-}
-
-type item struct {
-	m    sync.Mutex
-	core []*bytes.Buffer
+	capToFreeBucket map[int]Bucket
 }
 
 func (bp *bufferPool) Get(size int) *bytes.Buffer {
@@ -37,22 +31,17 @@ func (bp *bufferPool) Get(size int) *bytes.Buffer {
 	}
 
 	bucket := bp.capToFreeBucket[ss]
-	bucket.m.Lock()
-	if len(bucket.core) == 0 {
-		bucket.m.Unlock()
+	buf := bucket.Get()
+	if buf == nil {
 		var buf bytes.Buffer
 		buf.Grow(ss)
 		atomic.AddInt64(&bp.status.mallocCount, 1)
 		return &buf
-	} else {
-		buf := bucket.core[len(bucket.core)-1]
-		bucket.core = bucket.core[:len(bucket.core)-1]
-		bucket.m.Unlock()
-		buf.Reset()
-		atomic.AddInt64(&bp.status.hitCount, 1)
-		atomic.AddInt64(&bp.status.sizeBytes, int64(-buf.Cap()))
-		return buf
 	}
+
+	atomic.AddInt64(&bp.status.hitCount, 1)
+	atomic.AddInt64(&bp.status.sizeBytes, int64(-buf.Cap()))
+	return buf
 }
 
 func (bp *bufferPool) Put(buf *bytes.Buffer) {
@@ -65,9 +54,7 @@ func (bp *bufferPool) Put(buf *bytes.Buffer) {
 	}
 
 	bucket := bp.capToFreeBucket[size]
-	bucket.m.Lock()
-	bucket.core = append(bucket.core, buf)
-	bucket.m.Unlock()
+	bucket.Put(buf)
 }
 
 func (bp *bufferPool) RetrieveStatus() Status {

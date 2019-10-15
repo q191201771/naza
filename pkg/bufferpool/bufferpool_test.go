@@ -1,89 +1,29 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package bufferpool
 
 import (
 	"bytes"
 	"github.com/q191201771/naza/pkg/assert"
-	"math/rand"
 	"testing"
-	"time"
 )
-
-var bp *BufferPool
-var count int
 
 func TestBufferPool(t *testing.T) {
 	bp := NewBufferPool()
 	buf := &bytes.Buffer{}
+	bp.Get(128)
 	bp.Put(buf)
-	buf = bp.Get(4096)
+	buf = bp.Get(128)
 	buf.Grow(4096)
 	bp.Put(buf)
 	buf = bp.Get(4096)
 	bp.Put(buf)
-}
-
-func size() int {
-	//return 1024
-
-	//ss := []int{1000, 2000, 5000}
-	////ss := []int{128, 1024, 4096, 16384}
-	//count++
-	//return ss[count % 3]
-
-	return random(0, 128 * 1024)
-}
-
-func random(l, r int) int {
-	return l + (rand.Int() % (r - l))
-}
-
-func origin() {
-	var buf bytes.Buffer
-	size := size()
-	buf.Grow(size)
-}
-
-func bufferPool() {
-	size := size()
-	buf := bp.Get(size)
-	buf.Grow(size)
-	bp.Put(buf)
-}
-
-func BenchmarkOrigin(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		origin()
-	}
-}
-
-func BenchmarkBufferPool(b *testing.B) {
-	bp = NewBufferPool()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bufferPool()
-	}
-}
-
-func BenchmarkOriginParallel(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		b.RunParallel(func(pb *testing.PB) {
-			for pb.Next() {
-				origin()
-			}
-		})
-	}
-}
-
-func BenchmarkBufferPoolParallel(b *testing.B) {
-	bp = NewBufferPool()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.RunParallel(func(pb *testing.PB) {
-			for pb.Next() {
-				bufferPool()
-			}
-		})
-	}
 }
 
 func TestUp2power(t *testing.T) {
@@ -121,13 +61,9 @@ func TestDown2power(t *testing.T) {
 	assert.Equal(t, 512, down2power(1023))
 	assert.Equal(t, 1024, down2power(1024))
 	assert.Equal(t, 1024, down2power(1025))
-	assert.Equal(t, 1073741824 >> 1, down2power(1073741824-1))
+	assert.Equal(t, 1073741824>>1, down2power(1073741824-1))
 	assert.Equal(t, 1073741824, down2power(1073741824))
 	assert.Equal(t, 1073741824, down2power(1073741824+1))
 	assert.Equal(t, 1073741824, down2power(2047483647-1))
 	assert.Equal(t, 1073741824, down2power(2047483647))
-}
-
-func init() {
-	rand.Seed(time.Now().Unix())
 }

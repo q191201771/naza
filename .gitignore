@@ -1,7 +1,9 @@
 coverage.txt
 coverage.html
-profile.out*
 tmp
+profile.out*
+profile*.pdf
+*.test
 
 /.idea
 /.trash

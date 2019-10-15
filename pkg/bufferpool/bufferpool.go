@@ -1,3 +1,11 @@
+// Copyright 2019, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package bufferpool
 
 import (
@@ -6,72 +14,61 @@ import (
 	"sync/atomic"
 )
 
-var minSize = 1024
+var (
+	minSize = 1024
+	maxSize = 1073741824
+)
 
-type BufferPool struct {
-	getCount uint32
-	putCount uint32
-	hitCount uint32
+type bufferPool struct {
+	getCount    uint32
+	putCount    uint32
+	hitCount    uint32
 	mallocCount uint32
 
-	m sync.Mutex
-	// TODO chef: 这个map可以预申请，做成fixed size的
-	sizeToList map[int]*[]*bytes.Buffer
+	capToFreeBucket map[int]*item
 }
 
-func NewBufferPool() *BufferPool {
-	return &BufferPool{
-		sizeToList: make(map[int]*[]*bytes.Buffer),
-	}
+type item struct {
+	m    sync.Mutex
+	core []*bytes.Buffer
 }
 
-func (bp *BufferPool) Get(size int) *bytes.Buffer {
+func (bp *bufferPool) Get(size int) *bytes.Buffer {
 	atomic.AddUint32(&bp.getCount, 1)
 	ss := up2power(size)
 	if ss < minSize {
 		ss = minSize
 	}
 
-	bp.m.Lock()
-	l, ok := bp.sizeToList[ss]
-	if !ok {
-		bp.m.Unlock()
+	bucket := bp.capToFreeBucket[ss]
+	bucket.m.Lock()
+	if len(bucket.core) == 0 {
+		bucket.m.Unlock()
 		return bp.newBuffer(ss)
 	} else {
-		if len(*l) == 0 {
-			bp.m.Unlock()
-			return bp.newBuffer(ss)
-		}
-		buf := (*l)[len(*l)-1]
-		*l = (*l)[:len(*l)-1]
-		bp.m.Unlock()
+		buf := bucket.core[len(bucket.core)-1]
+		bucket.core = bucket.core[:len(bucket.core)-1]
+		bucket.m.Unlock()
 		buf.Reset()
 		atomic.AddUint32(&bp.hitCount, 1)
 		return buf
 	}
 }
 
-func (bp *BufferPool) Put(buf *bytes.Buffer) {
+func (bp *bufferPool) Put(buf *bytes.Buffer) {
 	atomic.AddUint32(&bp.putCount, 1)
 	size := down2power(buf.Cap())
 	if size < minSize {
 		size = minSize
 	}
 
-	bp.m.Lock()
-	l, ok := bp.sizeToList[size]
-	if !ok {
-		l = new([]*bytes.Buffer)
-		*l = append(*l, buf)
-		// TODO
-		bp.sizeToList[size] = l
-	} else {
-		*l = append(*l, buf)
-	}
-	bp.m.Unlock()
+	bucket := bp.capToFreeBucket[size]
+	bucket.m.Lock()
+	bucket.core = append(bucket.core, buf)
+	bucket.m.Unlock()
 }
 
-func (bp *BufferPool) newBuffer(n int) *bytes.Buffer {
+func (bp *bufferPool) newBuffer(n int) *bytes.Buffer {
 	var buf bytes.Buffer
 	buf.Grow(n)
 	atomic.AddUint32(&bp.mallocCount, 1)
@@ -80,7 +77,7 @@ func (bp *BufferPool) newBuffer(n int) *bytes.Buffer {
 
 // @return 范围为 [2, 4, 8, 16, ..., 1073741824]，如果大于等于1073741824，则直接返回n
 func up2power(n int) int {
-	if n >= 1073741824 {
+	if n >= maxSize {
 		return n
 	}
 
@@ -94,8 +91,8 @@ func up2power(n int) int {
 func down2power(n int) int {
 	if n < 2 {
 		return 2
-	} else if n >= 1073741824 {
-		return 1073741824
+	} else if n >= maxSize {
+		return maxSize
 	}
 
 	var i uint32

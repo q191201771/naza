@@ -10,9 +10,20 @@ package bufferpool
 
 import "bytes"
 
+// TODO chef: 合适的释放接口
+
 type BufferPool interface {
 	Get(size int) *bytes.Buffer
 	Put(buf *bytes.Buffer)
+	RetrieveStatus() Status
+}
+
+type Status struct {
+	getCount    int64
+	putCount    int64
+	hitCount    int64
+	mallocCount int64
+	sizeBytes   int64
 }
 
 func NewBufferPool() BufferPool {

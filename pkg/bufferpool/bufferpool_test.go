@@ -15,6 +15,7 @@ import (
 )
 
 func TestBufferPool(t *testing.T) {
+	// TODO chef: assert result
 	bp := NewBufferPool()
 	buf := &bytes.Buffer{}
 	bp.Get(128)
@@ -24,6 +25,7 @@ func TestBufferPool(t *testing.T) {
 	bp.Put(buf)
 	buf = bp.Get(4096)
 	bp.Put(buf)
+	bp.RetrieveStatus()
 }
 
 func TestUp2power(t *testing.T) {

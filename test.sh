@@ -1,41 +1,45 @@
 #!/usr/bin/env bash
 
-# 在我的开发环境下额外做一些工作
-if [[ $IS_CHEF_DEV_ENV == "true" ]]; then
-    echo "CHEFERASEME run add_go_license..."
+echo '-----add_go_license-----'
+if command -v add_go_license >/dev/null 2>&1; then
     add_go_license -d ./
-
-    echo "CHEFERASEME run gofmt check..."
-    gofiles=$(git diff --name-only --diff-filter=ACM | grep '.go$')
-    if [ ! -z "$gofiles" ]; then
-        #echo "CHEFERASEME mod gofiles exist:" $gofiles
-        unformatted=$(gofmt -l $gofiles)
-        if [ ! -z "$unformatted" ]; then
-            echo "Go files should be formatted with gofmt. Please run:"
-            for fn in $unformatted; do
-                echo "  gofmt -w $PWD/$fn"
-            done
-            #exit 1
-        else
-            echo "Go files be formatted."
-        fi
-    else
-        echo "CHEFERASEME mod gofiles not exist."
-    fi
+else
+    echo 'CHEFNOTICEME add_go_license not exist!'
 fi
 
-# 跑 go test 生成测试覆盖率
-echo "CHEFERASEME run coverage test..."
-echo "" > coverage.txt
+echo '-----gofmt-----'
+if command -v gofmt >/dev/null 2>&1; then
+    gofmt -l ./
+    gofmt -w ./
+else
+    echo 'CHEFNOTICEME gofmt not exist!'
+fi
 
-for d in $(go list ./... | grep -v vendor | grep naza/pkg); do
+echo '-----goimports-----'
+if command -v goimports >/dev/null 2>&1; then
+    goimports -l ./
+    goimports -w ./
+else
+    echo 'CHEFNOTICEME goimports not exist!'
+fi
+
+echo '-----go vet-----'
+for d in $(go list ./... | grep -v vendor); do
+    if command -v go >/dev/null 2>&1; then
+        go vet $d
+    else
+        echo 'CHEFNOTICEME go vet not exist'
+    fi
+done
+
+# 跑 go test 生成测试覆盖率
+echo "-----CI coverage-----"
+echo "" > coverage.txt
+for d in $(go list ./... | grep -v vendor | grep pkg); do
     go test -race -coverprofile=profile.out -covermode=atomic $d
     if [ -f profile.out ]; then
         cat profile.out >> coverage.txt
         rm profile.out
     fi
 done
-
-# go test -race -coverprofile=profile.out -covermode=atomic && go tool cover -html=profile.out -o coverage.html && open coverage.html
-# go test -test.bench=".*"
-# go test -bench=. -benchmem -benchtime=10s
+echo 'done.'

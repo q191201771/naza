@@ -2,7 +2,7 @@
 
 echo '-----add_go_license-----'
 if command -v add_go_license >/dev/null 2>&1; then
-    add_go_license -d ./
+    add_go_license -d ./ -e 191201771@qq.com -n Chef
 else
     echo 'CHEFNOTICEME add_go_license not exist!'
 fi

@@ -10,14 +10,15 @@ package main
 
 import (
 	"bytes"
-	"github.com/q191201771/naza/pkg/bufferpool"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"math/rand"
 	"os"
 	"runtime/pprof"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/q191201771/naza/pkg/bufferpool"
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 var bp bufferpool.BufferPool

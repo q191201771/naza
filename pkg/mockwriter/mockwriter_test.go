@@ -9,8 +9,9 @@
 package mockwriter
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
 	"testing"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 func TestNewMockWriter(t *testing.T) {

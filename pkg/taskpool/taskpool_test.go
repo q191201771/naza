@@ -9,11 +9,12 @@
 package taskpool
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/q191201771/naza/pkg/assert"
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 var (

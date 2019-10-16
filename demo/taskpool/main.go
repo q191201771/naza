@@ -9,10 +9,11 @@
 package main
 
 import (
-	"github.com/q191201771/naza/pkg/nazalog"
-	"github.com/q191201771/naza/pkg/taskpool"
 	"sync"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazalog"
+	"github.com/q191201771/naza/pkg/taskpool"
 )
 
 var (

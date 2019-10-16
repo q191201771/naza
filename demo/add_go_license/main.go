@@ -12,12 +12,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/q191201771/naza/pkg/filebatch"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/q191201771/naza/pkg/filebatch"
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 var licenseTmpl = `// Copyright %d, Chef.  All rights reserved.

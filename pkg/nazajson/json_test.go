@@ -9,9 +9,10 @@
 package nazajson
 
 import (
+	"testing"
+
 	"github.com/q191201771/naza/pkg/assert"
 	"github.com/q191201771/naza/pkg/nazalog"
-	"testing"
 )
 
 var raw = []byte(`

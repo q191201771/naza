@@ -12,9 +12,10 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/q191201771/naza/pkg/filebatch"
 	"github.com/q191201771/naza/pkg/nazalog"
-	"os"
 )
 
 var licenseTmpl = `

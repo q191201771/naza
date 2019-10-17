@@ -24,6 +24,10 @@ func RetrieveStatus() Status {
 	return global.RetrieveStatus()
 }
 
+func Init(strategy Strategy) {
+	global = NewBufferPool(strategy)
+}
+
 func init() {
-	global = NewBufferPool()
+	Init(StategyMultiStdPoolBucket)
 }

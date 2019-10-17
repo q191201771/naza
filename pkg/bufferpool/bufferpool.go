@@ -19,24 +19,29 @@ var (
 )
 
 type bufferPool struct {
-	status          Status
+	strategy        Strategy
+	singleBucket    Bucket
 	capToFreeBucket map[int]Bucket
+	status          Status
 }
 
 func (bp *bufferPool) Get(size int) *bytes.Buffer {
 	atomic.AddInt64(&bp.status.getCount, 1)
-	ss := up2power(size)
-	if ss < minSize {
-		ss = minSize
+
+	var bucket Bucket
+	if bp.strategy == StategyMultiStdPoolBucket || bp.strategy == StategyMultiSlicePoolBucket {
+		ss := up2power(size)
+		if ss < minSize {
+			ss = minSize
+		}
+		bucket = bp.capToFreeBucket[ss]
+	} else {
+		bucket = bp.singleBucket
 	}
 
-	bucket := bp.capToFreeBucket[ss]
 	buf := bucket.Get()
 	if buf == nil {
-		var buf bytes.Buffer
-		buf.Grow(ss)
-		atomic.AddInt64(&bp.status.mallocCount, 1)
-		return &buf
+		return &bytes.Buffer{}
 	}
 
 	atomic.AddInt64(&bp.status.hitCount, 1)
@@ -48,22 +53,28 @@ func (bp *bufferPool) Put(buf *bytes.Buffer) {
 	c := buf.Cap()
 	atomic.AddInt64(&bp.status.putCount, 1)
 	atomic.AddInt64(&bp.status.sizeBytes, int64(c))
-	size := down2power(c)
-	if size < minSize {
-		size = minSize
+
+	var bucket Bucket
+	if bp.strategy == StategyMultiStdPoolBucket || bp.strategy == StategyMultiSlicePoolBucket {
+		size := down2power(c)
+		if size < minSize {
+			size = minSize
+		}
+
+		bucket = bp.capToFreeBucket[size]
+	} else {
+		bucket = bp.singleBucket
 	}
 
-	bucket := bp.capToFreeBucket[size]
 	bucket.Put(buf)
 }
 
 func (bp *bufferPool) RetrieveStatus() Status {
 	return Status{
-		getCount:    atomic.LoadInt64(&bp.status.getCount),
-		putCount:    atomic.LoadInt64(&bp.status.putCount),
-		hitCount:    atomic.LoadInt64(&bp.status.hitCount),
-		mallocCount: atomic.LoadInt64(&bp.status.mallocCount),
-		sizeBytes:   atomic.LoadInt64(&bp.status.sizeBytes),
+		getCount:  atomic.LoadInt64(&bp.status.getCount),
+		putCount:  atomic.LoadInt64(&bp.status.putCount),
+		hitCount:  atomic.LoadInt64(&bp.status.hitCount),
+		sizeBytes: atomic.LoadInt64(&bp.status.sizeBytes),
 	}
 }
 

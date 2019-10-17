@@ -13,11 +13,6 @@ import (
 	"sync"
 )
 
-type Bucket interface {
-	Get() *bytes.Buffer
-	Put(buf *bytes.Buffer)
-}
-
 type StdPoolBucket struct {
 	core *sync.Pool
 }

@@ -17,16 +17,26 @@ import (
 
 func TestBufferPool(t *testing.T) {
 	// TODO chef: assert result
-	bp := NewBufferPool()
-	buf := &bytes.Buffer{}
-	bp.Get(128)
-	bp.Put(buf)
-	buf = bp.Get(128)
-	buf.Grow(4096)
-	bp.Put(buf)
-	buf = bp.Get(4096)
-	bp.Put(buf)
-	bp.RetrieveStatus()
+
+	strategyList := []Strategy{
+		StrategySingleStdPoolBucket,
+		StrategySingleSlicePoolBucket,
+		StategyMultiStdPoolBucket,
+		StategyMultiSlicePoolBucket,
+	}
+
+	for _, s := range strategyList {
+		bp := NewBufferPool(s)
+		buf := &bytes.Buffer{}
+		bp.Get(128)
+		bp.Put(buf)
+		buf = bp.Get(128)
+		buf.Grow(4096)
+		bp.Put(buf)
+		buf = bp.Get(4096)
+		bp.Put(buf)
+		bp.RetrieveStatus()
+	}
 }
 
 func TestGlobal(t *testing.T) {

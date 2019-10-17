@@ -120,7 +120,6 @@ func TestInt64(t *testing.T) {
 	assert.Equal(t, int64(210), v.Load())
 }
 
-
 func TestUint64(t *testing.T) {
 	var v Uint64
 	assert.Equal(t, uint64(0), v.Load())

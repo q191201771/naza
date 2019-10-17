@@ -13,7 +13,6 @@ package taskpool
 
 import (
 	"errors"
-	"sync/atomic"
 )
 
 var ErrTaskPool = errors.New("naza.taskpool: fxxk")
@@ -58,7 +57,7 @@ func NewPool(modOptions ...ModOption) (Pool, error) {
 		w.Start()
 		p.idleWorkerList = append(p.idleWorkerList, w)
 	}
-	atomic.AddInt32(&p.idleWorkerNum, int32(option.InitWorkerNum))
+	p.idleWorkerNum.Add(uint32(option.InitWorkerNum))
 	return &p, nil
 }
 

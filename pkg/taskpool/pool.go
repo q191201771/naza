@@ -10,12 +10,13 @@ package taskpool
 
 import (
 	"sync"
-	"sync/atomic"
+
+	"github.com/q191201771/naza/pkg/nazaatomic"
 )
 
 type pool struct {
-	idleWorkerNum int32
-	busyWorkerNum int32
+	idleWorkerNum nazaatomic.Uint32
+	busyWorkerNum nazaatomic.Uint32
 
 	m              sync.Mutex
 	idleWorkerList []*Worker
@@ -27,14 +28,14 @@ func (p *pool) Go(task Task) {
 	if len(p.idleWorkerList) != 0 {
 		w = p.idleWorkerList[len(p.idleWorkerList)-1]
 		p.idleWorkerList = p.idleWorkerList[0 : len(p.idleWorkerList)-1]
-		atomic.AddInt32(&p.idleWorkerNum, -1)
-		atomic.AddInt32(&p.busyWorkerNum, 1)
+		p.idleWorkerNum.Decrement()
+		p.busyWorkerNum.Increment()
 	}
 	p.m.Unlock()
 	if w == nil {
 		w = NewWorker(p)
 		w.Start()
-		atomic.AddInt32(&p.busyWorkerNum, 1)
+		p.busyWorkerNum.Increment()
 	}
 	w.Go(task)
 }
@@ -44,21 +45,19 @@ func (p *pool) KillIdleWorkers() {
 	for i := range p.idleWorkerList {
 		p.idleWorkerList[i].Stop()
 	}
-	atomic.AddInt32(&p.idleWorkerNum, int32(-len(p.idleWorkerList)))
+	p.idleWorkerNum.Sub(uint32(len(p.idleWorkerList)))
 	p.idleWorkerList = p.idleWorkerList[0:0]
 	p.m.Unlock()
 }
 
 func (p *pool) Status() (idleWorkerNum int, busyWorkerNum int) {
-	idleWorkerNum = int(atomic.LoadInt32(&p.idleWorkerNum))
-	busyWorkerNum = int(atomic.LoadInt32(&p.busyWorkerNum))
-	return
+	return int(p.idleWorkerNum.Load()), int(p.busyWorkerNum.Load())
 }
 
 func (p *pool) markIdle(w *Worker) {
 	p.m.Lock()
-	atomic.AddInt32(&p.idleWorkerNum, 1)
-	atomic.AddInt32(&p.busyWorkerNum, -1)
+	p.idleWorkerNum.Increment()
+	p.busyWorkerNum.Decrement()
 	p.idleWorkerList = append(p.idleWorkerList, w)
 	p.m.Unlock()
 }

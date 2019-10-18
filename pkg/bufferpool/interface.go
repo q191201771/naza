@@ -38,10 +38,10 @@ const (
 	StrategySingleSlicePoolBucket
 
 	// 按Buffer对象的容量哈希到不同的桶中，每个桶是一个sync.Pool
-	StategyMultiStdPoolBucket
+	StrategyMultiStdPoolBucket
 
 	// 按Buffer对象的容量哈希到不同的桶中，每个桶是一个切片
-	StategyMultiSlicePoolBucket
+	StrategyMultiSlicePoolBucket
 )
 
 type Bucket interface {
@@ -62,12 +62,12 @@ func NewBufferPool(strategy Strategy) BufferPool {
 		singleBucket = NewStdPoolBucket()
 	case StrategySingleSlicePoolBucket:
 		singleBucket = NewSliceBucket()
-	case StategyMultiStdPoolBucket:
+	case StrategyMultiStdPoolBucket:
 		capToFreeBucket = make(map[int]Bucket)
 		for i := minSize; i <= maxSize; i <<= 1 {
 			capToFreeBucket[i] = NewStdPoolBucket()
 		}
-	case StategyMultiSlicePoolBucket:
+	case StrategyMultiSlicePoolBucket:
 		capToFreeBucket = make(map[int]Bucket)
 		for i := minSize; i <= maxSize; i <<= 1 {
 			capToFreeBucket[i] = NewSliceBucket()

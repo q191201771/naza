@@ -59,7 +59,7 @@ func BenchmarkOrigin(b *testing.B) {
 }
 
 func BenchmarkBufferPool(b *testing.B) {
-	bp = NewBufferPool(StategyMultiStdPoolBucket)
+	bp = NewBufferPool(StrategyMultiStdPoolBucket)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		bufferPoolFunc()

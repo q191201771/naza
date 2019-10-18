@@ -21,8 +21,8 @@ func TestBufferPool(t *testing.T) {
 	strategyList := []Strategy{
 		StrategySingleStdPoolBucket,
 		StrategySingleSlicePoolBucket,
-		StategyMultiStdPoolBucket,
-		StategyMultiSlicePoolBucket,
+		StrategyMultiStdPoolBucket,
+		StrategyMultiSlicePoolBucket,
 	}
 
 	for _, s := range strategyList {

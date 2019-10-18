@@ -29,5 +29,5 @@ func Init(strategy Strategy) {
 }
 
 func init() {
-	Init(StategyMultiStdPoolBucket)
+	Init(StrategyMultiStdPoolBucket)
 }

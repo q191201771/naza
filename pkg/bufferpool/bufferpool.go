@@ -29,7 +29,7 @@ func (bp *bufferPool) Get(size int) *bytes.Buffer {
 	atomic.AddInt64(&bp.status.getCount, 1)
 
 	var bucket Bucket
-	if bp.strategy == StategyMultiStdPoolBucket || bp.strategy == StategyMultiSlicePoolBucket {
+	if bp.strategy == StrategyMultiStdPoolBucket || bp.strategy == StrategyMultiSlicePoolBucket {
 		ss := up2power(size)
 		if ss < minSize {
 			ss = minSize
@@ -55,7 +55,7 @@ func (bp *bufferPool) Put(buf *bytes.Buffer) {
 	atomic.AddInt64(&bp.status.sizeBytes, int64(c))
 
 	var bucket Bucket
-	if bp.strategy == StategyMultiStdPoolBucket || bp.strategy == StategyMultiSlicePoolBucket {
+	if bp.strategy == StrategyMultiStdPoolBucket || bp.strategy == StrategyMultiSlicePoolBucket {
 		size := down2power(c)
 		if size < minSize {
 			size = minSize

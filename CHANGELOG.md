@@ -1,3 +1,19 @@
+#### v0.4.3
+
+- package bufferpool
+    - 新增的包，bytes.Buffer 池
+- package nazaatomic
+    - 新增的包，对 sync.atomic 的再封装
+- package taskpool
+    - 新增的包，协程池
+- test.sh
+    - 做更多的 go tools 检查
+- `demo/add_blog_license`
+    - 修改许可证样式
+    - 检查许可证是否存在时，只检查声明两个字
+- `demo/add_go_license`
+    - 用户名和邮箱由命令行参数传入
+
 #### v0.4.2
 
 - package filebatch:

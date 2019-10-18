@@ -31,9 +31,10 @@ pkg/                  ......源码包
     |-- nazalog/      ......日志库
     |-- bufferpool/   ......bytes.Buffer 内存池
     |-- assert/       ......提供了单元测试时的断言功能，减少一些模板代码
-    |-- nazastring/   ......string和[]byte相关的操作
+    |-- nazastring/   ......string 和 []byte 相关的操作
     |-- bininfo/      ......将编译时的 git 版本号，时间，Go 编译器信息打入程序中
     |-- bele/         ......提供了大小端的转换操作
+    |-- nazaatomic/   ......原子操作
     |-- nazajson/     ......json 操作
     |-- taskpool/     ......协程池
     |-- connection/   ......对 net.Conn 接口的二次封装

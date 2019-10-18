@@ -9,10 +9,11 @@
 package mockserver
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 var addr = ":10027"

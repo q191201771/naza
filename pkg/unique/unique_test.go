@@ -9,9 +9,10 @@
 package unique
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
 	"sync"
 	"testing"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 func TestGenUniqueKey(t *testing.T) {

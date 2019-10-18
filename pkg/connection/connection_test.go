@@ -9,10 +9,11 @@
 package connection
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"net"
 	"testing"
+
+	"github.com/q191201771/naza/pkg/assert"
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 // TODO chef: 补充单元测试

@@ -12,30 +12,31 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/q191201771/naza/pkg/filebatch"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/q191201771/naza/pkg/filebatch"
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-var licenseTmpl = `// Copyright %d, Chef.  All rights reserved.
+var licenseTmpl = `// Copyright %d, %s.  All rights reserved.
 // https://%s
 //
 // Use of this source code is governed by a MIT-style license
 // that can be found in the License file.
 //
-// Author: Chef (191201771@qq.com)
+// Author: %s (%s)
 
 `
 
 func main() {
-	dir := parseFlag()
+	dir, name, email := parseFlag()
 
 	year := time.Now().Year()
 	repo := achieveRepo(dir)
-	license := fmt.Sprintf(licenseTmpl, year, repo)
+	license := fmt.Sprintf(licenseTmpl, year, name, repo, name, email)
 	nazalog.Debug(license)
 
 	var (
@@ -66,12 +67,14 @@ func achieveRepo(root string) string {
 	return string(bytes.TrimSpace(repo))
 }
 
-func parseFlag() string {
+func parseFlag() (string, string, string) {
 	dir := flag.String("d", "", "dir of repo")
+	name := flag.String("n", "", "user name")
+	email := flag.String("e", "", "user email")
 	flag.Parse()
-	if *dir == "" {
+	if *dir == "" || *name == "" || *email == "" {
 		flag.Usage()
 		os.Exit(1)
 	}
-	return *dir
+	return *dir, *name, *email
 }

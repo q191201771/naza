@@ -9,9 +9,10 @@
 package mockserver
 
 import (
-	"github.com/q191201771/naza/pkg/nazalog"
 	"net"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 // 建立一个server端的监听，在内部创建n个连接快速消耗掉listen队列，达到对外模拟不处理连接的情况

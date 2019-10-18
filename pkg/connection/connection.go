@@ -16,11 +16,12 @@ package connection
 import (
 	"bufio"
 	"errors"
-	"github.com/q191201771/naza/pkg/nazalog"
 	"io"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazalog"
 )
 
 var connectionErr = errors.New("naza.connection: fxxk")

@@ -10,8 +10,9 @@ package nazastring
 
 import (
 	"bytes"
-	"github.com/q191201771/naza/pkg/assert"
 	"testing"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 var inbuf = bytes.Repeat([]byte{'1', '2', '3', '4'}, 5678)

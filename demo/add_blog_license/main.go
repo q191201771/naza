@@ -12,21 +12,21 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/q191201771/naza/pkg/filebatch"
 	"github.com/q191201771/naza/pkg/nazalog"
-	"os"
-	"strings"
 )
 
 var licenseTmpl = `
-> **本文原始地址：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)
+> **本文原始地址：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)  
 > **声明：** 本文后续所有修改都会第一时间在原始地址更新。本文欢迎任何形式转载，转载时注明原始出处即可。`
 
 func main() {
 	dir := parseFlag()
 
-	linesOfLicense := strings.Split(licenseTmpl, "\n")
-	lastLineOfLicense := linesOfLicense[len(linesOfLicense)-1]
+	//linesOfLicense := strings.Split(licenseTmpl, "\n")
+	//lastLineOfLicense := linesOfLicense[len(linesOfLicense)-1]
 
 	var (
 		skipCount int
@@ -34,7 +34,8 @@ func main() {
 	)
 	err := filebatch.Walk(dir, true, ".md", func(path string, info os.FileInfo, content []byte) []byte {
 		lines := bytes.Split(content, []byte{'\n'})
-		if bytes.Index(lines[len(lines)-1], []byte(lastLineOfLicense)) != -1 {
+		if bytes.Index(lines[len(lines)-1], []byte("声明")) != -1 ||
+			bytes.Index(lines[len(lines)-2], []byte("声明")) != -1 {
 			skipCount++
 			return nil
 

@@ -10,22 +10,22 @@ package bufferpool
 
 import "bytes"
 
-var global BufferPool
+var defaultPool BufferPool
 
 func Get(size int) *bytes.Buffer {
-	return global.Get(size)
+	return defaultPool.Get(size)
 }
 
 func Put(buf *bytes.Buffer) {
-	global.Put(buf)
+	defaultPool.Put(buf)
 }
 
 func RetrieveStatus() Status {
-	return global.RetrieveStatus()
+	return defaultPool.RetrieveStatus()
 }
 
 func Init(strategy Strategy) {
-	global = NewBufferPool(strategy)
+	defaultPool = NewBufferPool(strategy)
 }
 
 func init() {

@@ -28,5 +28,6 @@ cd ${ROOT_DIR}/demo/add_go_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR
 cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool &&
 cd ${ROOT_DIR}/demo/bufferpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/bufferpool &&
 cd ${ROOT_DIR}/demo/samefile && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/samefile &&
+cd ${ROOT_DIR}/demo/slicebytepool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/slicebytepool &&
 ls -lrt ${ROOT_DIR}/bin &&
 echo 'build done.'

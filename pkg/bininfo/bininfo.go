@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// Package bininfo 将编译时的 git commit ID，时间，Go 编译器信息打入程序中
+// Package bininfo 将编译时的 git commit 日志，时间，Go 编译器信息打入程序中
 package bininfo
 
 import (

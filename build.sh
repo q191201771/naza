@@ -27,5 +27,6 @@ cd ${ROOT_DIR}/demo/add_blog_license && go build -ldflags "$LDFlags" -o ${ROOT_D
 cd ${ROOT_DIR}/demo/add_go_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_go_license &&
 cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool &&
 cd ${ROOT_DIR}/demo/bufferpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/bufferpool &&
+cd ${ROOT_DIR}/demo/samefile && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/samefile &&
 ls -lrt ${ROOT_DIR}/bin &&
 echo 'build done.'

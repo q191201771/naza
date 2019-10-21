@@ -184,24 +184,6 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	}
 }
 
-// @NOTICE 该函数拷贝自 Go 标准库
-// Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
-func itoa(buf *bytes.Buffer, i int, wid int) {
-	// Assemble decimal in reverse order.
-	var b [20]byte
-	bp := len(b) - 1
-	for i >= 10 || wid > 1 {
-		wid--
-		q := i / 10
-		b[bp] = byte('0' + i - q*10)
-		bp--
-		i = q
-	}
-	// i < 10
-	b[bp] = byte('0' + i)
-	buf.Write(b[bp:])
-}
-
 func writeTime(buf *bytes.Buffer, t time.Time) {
 	year, month, day := t.Date()
 	itoa(buf, year, 4)
@@ -242,4 +224,26 @@ func writeShortFile(buf *bytes.Buffer, calldepth int) {
 	buf.WriteString(file)
 	buf.WriteByte(':')
 	itoa(buf, line, -1)
+}
+
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// @NOTICE 该函数拷贝自 Go 标准库 /src/log/log.go: func itoa(buf *[]byte, i int, wid int)
+// Cheap integer to fixed-width decimal ASCII. Give a negative width to avoid zero-padding.
+func itoa(buf *bytes.Buffer, i int, wid int) {
+	// Assemble decimal in reverse order.
+	var b [20]byte
+	bp := len(b) - 1
+	for i >= 10 || wid > 1 {
+		wid--
+		q := i / 10
+		b[bp] = byte('0' + i - q*10)
+		bp--
+		i = q
+	}
+	// i < 10
+	b[bp] = byte('0' + i)
+	buf.Write(b[bp:])
 }

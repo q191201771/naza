@@ -9,6 +9,7 @@
 package slicebytepool
 
 type SliceBytePool interface {
+	// 功能类似于 make([]byte, <size>)
 	Get(size int) []byte
 
 	Put(buf []byte)
@@ -26,12 +27,15 @@ type Status struct {
 type Strategy int
 
 const (
+	// 底层桶使用sync.Pool，内部的[]byte由sync.Pool决定何时释放
 	StrategyMultiStdPoolBucket = iota + 1
 
+	// 底层桶使用切片，内部的[]byte永远不会释放
 	StrategyMultiSlicePoolBucket
 )
 
 type Bucket interface {
+	// 桶内无满足条件的[]byte时，返回nil
 	Get(size int) []byte
 
 	Put(buf []byte)

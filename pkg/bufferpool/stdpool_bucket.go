@@ -28,8 +28,9 @@ func (b *StdPoolBucket) Get() *bytes.Buffer {
 	if v == nil {
 		return nil
 	}
-	return v.(*bytes.Buffer)
-
+	vv := v.(*bytes.Buffer)
+	vv.Reset()
+	return vv
 }
 
 func (b *StdPoolBucket) Put(buf *bytes.Buffer) {

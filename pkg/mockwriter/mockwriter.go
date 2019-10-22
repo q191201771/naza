@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	mockWriterErr = errors.New("mockwriter: a mock error")
+	ErrMockWriter = errors.New("naza.mockwriter: a mock error")
 )
 
 type MockWriter struct {
@@ -55,7 +55,7 @@ func (w *MockWriter) Write(b []byte) (int, error) {
 	case WriterTypeDoNothing:
 		return len(b), nil
 	case WriterTypeReturnError:
-		return 0, mockWriterErr
+		return 0, ErrMockWriter
 		//case WriterTypeIntoBuffer:
 		//	return w.b.Write(b)
 	}

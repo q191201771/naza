@@ -26,7 +26,6 @@ LDFlags=" \
 cd ${ROOT_DIR}/demo/add_blog_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_blog_license &&
 cd ${ROOT_DIR}/demo/add_go_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_go_license &&
 cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool &&
-cd ${ROOT_DIR}/demo/samefile && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/samefile &&
 cd ${ROOT_DIR}/demo/slicebytepool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/slicebytepool &&
 cd ${ROOT_DIR}/demo/myapp && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/myapp &&
 ls -lrt ${ROOT_DIR}/bin &&

@@ -12,9 +12,10 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/q191201771/naza/pkg/filebatch"
 	"github.com/q191201771/naza/pkg/nazalog"
-	"os"
 )
 
 //var licenseTmpl = `
@@ -26,7 +27,6 @@ var licenseTmpl = `
 > **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)
 > **原文作者：** yoko
 > **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。`
-
 
 func main() {
 	dir := parseFlag()

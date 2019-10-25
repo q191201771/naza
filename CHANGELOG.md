@@ -1,3 +1,24 @@
+#### v0.5.0
+
+- package filebatch:
+    - 遍历读取文件发生错误时，不退出遍历，而是将错误在回调中返回给上层
+- package connection:
+    - bugfix，初始化 write chan 相关的信息是通过 write chan 的配置，而不是 write buf 的配置
+- package slicebytepool:
+    - 新增的包，一个 []byte 内存池
+- package nazamd5:
+    - 新增的包，md5 操作
+- package consistenthash:
+    - 新增的包，一致性hash
+- package bufferpool:
+    - 删除 bufferpool 包
+- demo/myapp:
+    - 用于演示 package bininfo 的使用
+- `demo/add_blog_license`:
+    - 修改 license 内容
+- 其他：
+    - 统一error变量的命名方式及内容格式，涉及到的 package：filebatch, connection, taskpool, nazalog
+
 #### v0.4.3
 
 - package bufferpool

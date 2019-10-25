@@ -6,23 +6,22 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package bufferpool
+package slicebytepool
 
 import (
-	"bytes"
 	"sync"
 )
 
 type SliceBucket struct {
 	m    sync.Mutex
-	core []*bytes.Buffer
+	core [][]byte
 }
 
 func NewSliceBucket() *SliceBucket {
 	return new(SliceBucket)
 }
 
-func (b *SliceBucket) Get() *bytes.Buffer {
+func (b *SliceBucket) Get(size int) []byte {
 	b.m.Lock()
 	defer b.m.Unlock()
 	if len(b.core) == 0 {
@@ -30,11 +29,10 @@ func (b *SliceBucket) Get() *bytes.Buffer {
 	}
 	buf := b.core[len(b.core)-1]
 	b.core = b.core[:len(b.core)-1]
-	buf.Reset()
-	return buf
+	return buf[0:size]
 }
 
-func (b *SliceBucket) Put(buf *bytes.Buffer) {
+func (b *SliceBucket) Put(buf []byte) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	b.core = append(b.core, buf)

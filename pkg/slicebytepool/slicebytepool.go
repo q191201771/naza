@@ -6,10 +6,9 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package bufferpool
+package slicebytepool
 
 import (
-	"bytes"
 	"sync/atomic"
 )
 
@@ -18,58 +17,48 @@ var (
 	maxSize = 1073741824
 )
 
-type bufferPool struct {
+type sliceBytePool struct {
 	strategy        Strategy
-	singleBucket    Bucket
 	capToFreeBucket map[int]Bucket
 	status          Status
 }
 
-func (bp *bufferPool) Get(size int) *bytes.Buffer {
+func (bp *sliceBytePool) Get(size int) []byte {
 	atomic.AddInt64(&bp.status.getCount, 1)
 
-	var bucket Bucket
-	if bp.strategy == StrategyMultiStdPoolBucket || bp.strategy == StrategyMultiSlicePoolBucket {
-		ss := up2power(size)
-		if ss < minSize {
-			ss = minSize
-		}
-		bucket = bp.capToFreeBucket[ss]
-	} else {
-		bucket = bp.singleBucket
+	ss := up2power(size)
+	if ss < minSize {
+		ss = minSize
 	}
+	bucket := bp.capToFreeBucket[ss]
 
-	buf := bucket.Get()
+	buf := bucket.Get(size)
 	if buf == nil {
-		return &bytes.Buffer{}
+		buf = make([]byte, size, ss)
+		return buf
 	}
 
 	atomic.AddInt64(&bp.status.hitCount, 1)
-	atomic.AddInt64(&bp.status.sizeBytes, int64(-buf.Cap()))
+	atomic.AddInt64(&bp.status.sizeBytes, int64(-cap(buf)))
 	return buf
 }
 
-func (bp *bufferPool) Put(buf *bytes.Buffer) {
-	c := buf.Cap()
+func (bp *sliceBytePool) Put(buf []byte) {
+	c := cap(buf)
 	atomic.AddInt64(&bp.status.putCount, 1)
 	atomic.AddInt64(&bp.status.sizeBytes, int64(c))
 
-	var bucket Bucket
-	if bp.strategy == StrategyMultiStdPoolBucket || bp.strategy == StrategyMultiSlicePoolBucket {
-		size := down2power(c)
-		if size < minSize {
-			size = minSize
-		}
-
-		bucket = bp.capToFreeBucket[size]
-	} else {
-		bucket = bp.singleBucket
+	size := down2power(c)
+	if size < minSize {
+		size = minSize
 	}
+
+	bucket := bp.capToFreeBucket[size]
 
 	bucket.Put(buf)
 }
 
-func (bp *bufferPool) RetrieveStatus() Status {
+func (bp *sliceBytePool) RetrieveStatus() Status {
 	return Status{
 		getCount:  atomic.LoadInt64(&bp.status.getCount),
 		putCount:  atomic.LoadInt64(&bp.status.putCount),

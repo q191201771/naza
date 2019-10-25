@@ -43,7 +43,11 @@ func main() {
 		skipCount int
 		modCount  int
 	)
-	err := filebatch.Walk(dir, true, ".go", func(path string, info os.FileInfo, content []byte) []byte {
+	err2 := filebatch.Walk(dir, true, ".go", func(path string, info os.FileInfo, content []byte, err error) []byte {
+		if err != nil {
+			nazalog.Warnf("read file failed. file=%s, err=%+v", path, err)
+			return nil
+		}
 		lines := bytes.Split(content, []byte{'\n'})
 		if bytes.Index(lines[0], []byte("Copyright")) != -1 {
 			skipCount++
@@ -55,7 +59,7 @@ func main() {
 		modCount++
 		return filebatch.AddHeadContent(content, []byte(license))
 	})
-	nazalog.FatalIfErrorNotNil(err)
+	nazalog.FatalIfErrorNotNil(err2)
 	nazalog.Infof("count. mod=%d, skip=%d", modCount, skipCount)
 }
 

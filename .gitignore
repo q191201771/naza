@@ -12,4 +12,4 @@ profile*.pdf
 /TODO.md
 
 /pkg/tag
-/pkg/taskpool/spinlock.go
+/demo/samefile

@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// Package bininfo 将编译时的git版本号，时间，Go编译器信息打入程序中
+// Package bininfo 将编译时的 git commit 日志，时间，Go 编译器信息打入程序中
 package bininfo
 
 import (
@@ -17,18 +17,22 @@ import (
 
 // 编译时通过如下方式传入编译时信息
 //
-// #GitCommitID=`git log --pretty=format:'%h' -n 1`
 // GitCommitLog=`git log --pretty=oneline -n 1`
+// # 将 log 原始字符串中的单引号替换成双引号
+// GitCommitLog=${GitCommitLog//\'/\"}
+//
 // GitStatus=`git status -s`
 // BuildTime=`date +'%Y.%m.%d.%H%M%S'`
 // BuildGoVersion=`go version`
 //
-// go build -ldflags " \
-// -X 'github.com/q191201771/naza/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
-// -X 'github.com/q191201771/naza/pkg/bininfo.GitStatus=${GitStatus}' \
-// -X 'github.com/q191201771/naza/pkg/bininfo.BuildTime=${BuildTime}' \
-// -X 'github.com/q191201771/naza/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
+// LDFlags=" \
+//     -X 'github.com/q191201771/naza/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
+//     -X 'github.com/q191201771/naza/pkg/bininfo.GitStatus=${GitStatus}' \
+//     -X 'github.com/q191201771/naza/pkg/bininfo.BuildTime=${BuildTime}' \
+//     -X 'github.com/q191201771/naza/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
 // "
+//
+// go build -ldflags "$LDFlags"
 
 var (
 	GitCommitLog   = "unknown"

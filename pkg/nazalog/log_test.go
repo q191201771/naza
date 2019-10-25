@@ -82,7 +82,7 @@ func TestNew(t *testing.T) {
 		option.Level = LevelPanic + 1
 	})
 	assert.Equal(t, nil, l)
-	assert.Equal(t, LogErr, err)
+	assert.Equal(t, ErrLog, err)
 
 	l, err = New(func(option *Option) {
 		option.Filename = "/tmp"

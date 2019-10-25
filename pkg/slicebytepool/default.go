@@ -6,28 +6,26 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package bufferpool
+package slicebytepool
 
-import "bytes"
+var defaultPool SliceBytePool
 
-var global BufferPool
-
-func Get(size int) *bytes.Buffer {
-	return global.Get(size)
+func Get(size int) []byte {
+	return defaultPool.Get(size)
 }
 
-func Put(buf *bytes.Buffer) {
-	global.Put(buf)
+func Put(buf []byte) {
+	defaultPool.Put(buf)
 }
 
 func RetrieveStatus() Status {
-	return global.RetrieveStatus()
+	return defaultPool.RetrieveStatus()
 }
 
 func Init(strategy Strategy) {
-	global = NewBufferPool(strategy)
+	defaultPool = NewSliceBytePool(strategy)
 }
 
 func init() {
-	Init(StrategyMultiStdPoolBucket)
+	Init(StrategyMultiSlicePoolBucket)
 }

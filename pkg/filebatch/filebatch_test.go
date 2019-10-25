@@ -88,7 +88,7 @@ func testWalk(t *testing.T, recursive bool, suffix string) {
 	assert.Equal(t, nil, err)
 	defer os.RemoveAll(root)
 
-	err = Walk(root, recursive, suffix, func(path string, info os.FileInfo, content []byte) []byte {
+	err2 := Walk(root, recursive, suffix, func(path string, info os.FileInfo, content []byte, err error) []byte {
 		nazalog.Debugf("%+v %+v %s", path, info.Name(), string(content))
 
 		v := filenameToContent[path]
@@ -97,7 +97,7 @@ func testWalk(t *testing.T, recursive bool, suffix string) {
 
 		return content
 	})
-	assert.Equal(t, nil, err)
+	assert.Equal(t, nil, err2)
 }
 
 func TestWalk(t *testing.T) {
@@ -122,7 +122,7 @@ func TestAddContent(t *testing.T) {
 	assert.Equal(t, nil, err)
 	defer os.RemoveAll(root)
 
-	err = Walk(root, true, ".txt", func(path string, info os.FileInfo, content []byte) []byte {
+	err2 := Walk(root, true, ".txt", func(path string, info os.FileInfo, content []byte, err error) []byte {
 		lines := bytes.Split(content, []byte{'\n'})
 		nazalog.Debugf("%+v %d", path, len(lines))
 
@@ -132,12 +132,13 @@ func TestAddContent(t *testing.T) {
 
 		return AddHeadContent(AddTailContent(content, []byte(tail)), []byte(head))
 	})
-	assert.Equal(t, nil, err)
+	assert.Equal(t, nil, err2)
 
-	err = Walk(root, true, "", func(path string, info os.FileInfo, content []byte) []byte {
+	err2 = Walk(root, true, "", func(path string, info os.FileInfo, content []byte, err error) []byte {
 		nazalog.Debugf("%+v %+v %s", path, info.Name(), string(content))
 		return nil
 	})
+	assert.Equal(t, nil, err2)
 }
 
 func TestDeleteLines(t *testing.T) {

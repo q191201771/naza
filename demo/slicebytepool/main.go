@@ -9,7 +9,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -20,14 +19,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/q191201771/naza/pkg/bufferpool"
+	"github.com/q191201771/naza/pkg/slicebytepool"
+
 	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-var bp bufferpool.BufferPool
+var bp slicebytepool.SliceBytePool
 
 //var count int32
 var doneCount uint32
+var tmpSliceByte []byte
 
 var gorutineNum = 1000
 var loopNum = 1000
@@ -55,9 +56,9 @@ func random(l, r int) int {
 }
 
 func originFunc() {
-	var buf bytes.Buffer
 	size := size()
-	buf.Grow(size)
+	buf := make([]byte, size)
+	tmpSliceByte = buf
 	atomic.AddUint32(&doneCount, 1)
 	time.Sleep(sleepMSec)
 }
@@ -65,7 +66,7 @@ func originFunc() {
 func bufferPoolFunc() {
 	size := size()
 	buf := bp.Get(size)
-	buf.Grow(size)
+	tmpSliceByte = buf
 	time.Sleep(sleepMSec)
 	bp.Put(buf)
 	atomic.AddUint32(&doneCount, 1)
@@ -82,13 +83,13 @@ func main() {
 
 	rand.Seed(time.Now().Unix())
 
-	if strategy != 5 {
-		bp = bufferpool.NewBufferPool(bufferpool.Strategy(strategy))
+	if strategy != 3 {
+		bp = slicebytepool.NewSliceBytePool(slicebytepool.Strategy(strategy))
 	}
 
 	go func() {
 		for {
-			if strategy != 5 {
+			if strategy != 3 {
 				nazalog.Debugf("time. done=%d, pool=%+v", atomic.LoadUint32(&doneCount), bp.RetrieveStatus())
 				time.Sleep(1 * time.Second)
 			} else {
@@ -103,7 +104,7 @@ func main() {
 	nazalog.Debug("> loop.")
 	for i := 0; i < gorutineNum; i++ {
 		go func() {
-			if strategy != 5 {
+			if strategy != 3 {
 				for j := 0; j < loopNum; j++ {
 					bufferPoolFunc()
 					wg.Done()
@@ -119,8 +120,8 @@ func main() {
 	wg.Wait()
 	memfd, err := os.Create(fmt.Sprintf("/tmp/mem%d.prof", strategy))
 	nazalog.FatalIfErrorNotNil(err)
-	pprof.WriteHeapProfile(memfd)
-	memfd.Close()
+	_ = pprof.WriteHeapProfile(memfd)
+	_ = memfd.Close()
 	nazalog.Debug("> GC.")
 	runtime.GC()
 	nazalog.Debug("< GC.")
@@ -131,9 +132,9 @@ func main() {
 }
 
 func parseFlag() int {
-	strategy := flag.Int("t", 0, "type: 1. single std pool 2. single slice pool 3. multi std pool 4. multi slice pool 5. origin")
+	strategy := flag.Int("t", 0, "type: 1. multi std pool 2. multi slice pool 3. origin")
 	flag.Parse()
-	if *strategy < 1 || *strategy > 5 {
+	if *strategy < 1 || *strategy > 3 {
 		flag.Usage()
 		os.Exit(1)
 	}

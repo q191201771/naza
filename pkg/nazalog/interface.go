@@ -22,7 +22,7 @@ import (
 //
 // 目前性能和标准库log相当
 
-var LogErr = errors.New("log:fxxk")
+var ErrLog = errors.New("naza.log:fxxk")
 
 type Logger interface {
 	Debugf(format string, v ...interface{})
@@ -115,7 +115,7 @@ func New(modOptions ...ModOption) (Logger, error) {
 
 func validate(option Option) error {
 	if option.Level < LevelDebug || option.Level > LevelPanic {
-		return LogErr
+		return ErrLog
 	}
 	return nil
 }

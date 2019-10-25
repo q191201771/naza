@@ -21,7 +21,7 @@ import (
 // @param info 文件的 os.FileInfo 信息
 // @param content 文件内容
 // @return 返回nil或者content原始内容，则不修改文件内容，返回其他内容，则会覆盖重写文件
-type WalkFunc func(path string, info os.FileInfo, content []byte) []byte
+type WalkFunc func(path string, info os.FileInfo, content []byte, err error) []byte
 
 // 遍历访问指定文件夹下的文件
 // @param root 需要遍历访问的文件夹
@@ -30,7 +30,8 @@ type WalkFunc func(path string, info os.FileInfo, content []byte) []byte
 func Walk(root string, recursive bool, suffix string, walkFn WalkFunc) error {
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			walkFn(path, info, nil, err)
+			return nil
 		}
 		if !recursive && info.IsDir() && path != root {
 			return filepath.SkipDir
@@ -44,9 +45,10 @@ func Walk(root string, recursive bool, suffix string, walkFn WalkFunc) error {
 
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
-			return err
+			walkFn(path, info, content, err)
+			return nil
 		}
-		newContent := walkFn(path, info, content)
+		newContent := walkFn(path, info, content, nil)
 		if newContent != nil && bytes.Compare(content, newContent) != 0 {
 			if err = ioutil.WriteFile(path, newContent, 0755); err != nil {
 				return err

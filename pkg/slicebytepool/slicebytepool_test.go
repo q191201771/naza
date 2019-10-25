@@ -6,52 +6,54 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package bufferpool
+package slicebytepool
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/q191201771/naza/pkg/assert"
 )
 
-func TestBufferPool(t *testing.T) {
-	// TODO chef: assert result
+// benchmark 参见 naza/demo/slicebytepool
 
-	strategyList := []Strategy{
-		StrategySingleStdPoolBucket,
-		StrategySingleSlicePoolBucket,
-		StrategyMultiStdPoolBucket,
-		StrategyMultiSlicePoolBucket,
-	}
-
-	for _, s := range strategyList {
-		bp := NewBufferPool(s)
-		buf := &bytes.Buffer{}
-		bp.Get(128)
-		bp.Put(buf)
-		buf = bp.Get(128)
-		buf.Grow(4096)
-		bp.Put(buf)
-		buf = bp.Get(4096)
-		bp.Put(buf)
-		bp.RetrieveStatus()
-	}
-}
-
-func TestGlobal(t *testing.T) {
-	buf := Get(128)
+func TestDefault(t *testing.T) {
+	Init(StrategyMultiSlicePoolBucket)
+	buf := Get(1000)
+	assert.Equal(t, 1000, len(buf))
 	Put(buf)
-	RetrieveStatus()
+	status := RetrieveStatus()
+	e := Status{
+		getCount:  1,
+		putCount:  1,
+		hitCount:  0,
+		sizeBytes: 1024,
+	}
+	assert.Equal(t, e, status)
 }
 
-func TestSliceBucket(t *testing.T) {
-	sb := NewSliceBucket()
-	buf := sb.Get()
-	assert.Equal(t, nil, buf)
-	sb.Put(&bytes.Buffer{})
-	buf = sb.Get()
-	assert.IsNotNil(t, buf)
+func TestMultiSlicePool(t *testing.T) {
+	p := NewSliceBytePool(StrategyMultiSlicePoolBucket)
+	assert.IsNotNil(t, p)
+	buf := p.Get(1)
+	assert.Equal(t, 1, len(buf))
+	buf = make([]byte, 1)
+	p.Put(buf)
+	buf = p.Get(1)
+	assert.Equal(t, 1, len(buf))
+}
+
+func TestMultiStdPool(t *testing.T) {
+	p := NewSliceBytePool(StrategyMultiStdPoolBucket)
+	assert.IsNotNil(t, p)
+	buf := p.Get(1000)
+	assert.Equal(t, 1000, len(buf))
+	p.Put(buf)
+	buf = p.Get(1000)
+	assert.Equal(t, 1000, len(buf))
+	for i := 0; i < 1000; i++ {
+		buf = p.Get(1000)
+		p.Put(buf)
+	}
 }
 
 func TestUp2power(t *testing.T) {

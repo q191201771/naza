@@ -6,10 +6,9 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package bufferpool
+package slicebytepool
 
 import (
-	"bytes"
 	"sync"
 )
 
@@ -23,15 +22,15 @@ func NewStdPoolBucket() *StdPoolBucket {
 	}
 }
 
-func (b *StdPoolBucket) Get() *bytes.Buffer {
+func (b *StdPoolBucket) Get(size int) []byte {
 	v := b.core.Get()
 	if v == nil {
 		return nil
 	}
-	return v.(*bytes.Buffer)
-
+	vv := v.([]byte)
+	return vv[0:size]
 }
 
-func (b *StdPoolBucket) Put(buf *bytes.Buffer) {
+func (b *StdPoolBucket) Put(buf []byte) {
 	b.core.Put(buf)
 }

@@ -24,7 +24,7 @@ import (
 	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-var connectionErr = errors.New("naza.connection: fxxk")
+var ErrConnection = errors.New("naza.connection: fxxk")
 
 type Connection interface {
 	// 包含 interface net.Conn 的所有方法
@@ -105,7 +105,7 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 		c.w = conn
 	}
 
-	if c.option.WriteBufSize > 0 {
+	if c.option.WriteChanSize > 0 {
 		c.wChan = make(chan wMsg, c.option.WriteBufSize)
 		c.flushDoneChan = make(chan struct{}, 1)
 		c.exitChan = make(chan struct{}, 1)
@@ -142,7 +142,7 @@ type connection struct {
 
 func (c *connection) ModWriteChanSize(n int) {
 	if c.option.WriteChanSize > 0 {
-		panic(connectionErr)
+		panic(ErrConnection)
 	}
 	c.option.WriteChanSize = n
 	c.wChan = make(chan wMsg, n)
@@ -155,7 +155,7 @@ func (c *connection) ModWriteBufSize(n int) {
 	if c.option.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
 		// 这里改成 flush 后替换成新缓冲也行，暂时没这个必要
-		panic(connectionErr)
+		panic(ErrConnection)
 	}
 	c.option.WriteBufSize = n
 	c.w = bufio.NewWriterSize(c.Conn, n)
@@ -163,14 +163,14 @@ func (c *connection) ModWriteBufSize(n int) {
 
 func (c *connection) ModReadTimeoutMS(n int) {
 	if c.option.ReadTimeoutMS > 0 {
-		panic(connectionErr)
+		panic(ErrConnection)
 	}
 	c.option.ReadTimeoutMS = n
 }
 
 func (c *connection) ModWriteTimeoutMS(n int) {
 	if c.option.WriteTimeoutMS > 0 {
-		panic(connectionErr)
+		panic(ErrConnection)
 	}
 	c.option.WriteTimeoutMS = n
 }
@@ -196,7 +196,7 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	bufioReader, ok := c.r.(*bufio.Reader)
 	if !ok {
 		// 目前只有使用了 bufio.Reader 时才能执行 ReadLine 操作
-		panic(connectionErr)
+		panic(ErrConnection)
 	}
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))

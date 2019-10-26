@@ -6,7 +6,9 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// Package bininfo 将编译时的 git commit 日志，时间，Go 编译器信息打入程序中
+// Package bininfo
+// 将编译时源码的 git 版本信息（当前 commit log 的 sha 值和 commit message），编译时间，Go 版本，平台打入程序中
+// 编译时传入这些信息的方式见 naza 的编译脚本： https://github.com/q191201771/naza/blob/master/build.sh
 package bininfo
 
 import (
@@ -15,46 +17,34 @@ import (
 	"strings"
 )
 
-// 编译时通过如下方式传入编译时信息
-//
-// GitCommitLog=`git log --pretty=oneline -n 1`
-// # 将 log 原始字符串中的单引号替换成双引号
-// GitCommitLog=${GitCommitLog//\'/\"}
-//
-// GitStatus=`git status -s`
-// BuildTime=`date +'%Y.%m.%d.%H%M%S'`
-// BuildGoVersion=`go version`
-//
-// LDFlags=" \
-//     -X 'github.com/q191201771/naza/pkg/bininfo.GitCommitLog=${GitCommitLog}' \
-//     -X 'github.com/q191201771/naza/pkg/bininfo.GitStatus=${GitStatus}' \
-//     -X 'github.com/q191201771/naza/pkg/bininfo.BuildTime=${BuildTime}' \
-//     -X 'github.com/q191201771/naza/pkg/bininfo.BuildGoVersion=${BuildGoVersion}' \
-// "
-//
-// go build -ldflags "$LDFlags"
-
 var (
+	// 初始化为 unknown，如果编译时没有传入这些值，则为 unknown
 	GitCommitLog   = "unknown"
 	GitStatus      = "unknown"
 	BuildTime      = "unknown"
 	BuildGoVersion = "unknown"
 )
 
+// 返回多行格式
 func StringifySingleLine() string {
 	return fmt.Sprintf("GitCommitLog=%s. GitStatus=%s. BuildTime=%s. GoVersion=%s. runtime=%s/%s.",
 		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
+// 返回单行格式
 func StringifyMultiLine() string {
 	return fmt.Sprintf("GitCommitLog=%s\nGitStatus=%s\nBuildTime=%s\nGoVersion=%s\nruntime=%s/%s\n",
 		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
+// 对一些值做美化处理
 func beauty() {
 	if GitStatus == "" {
+		// GitStatus 为空时，说明本地源码与最近的 commit 记录一致，无修改
+		// 为它赋一个特殊值
 		GitStatus = "cleanly"
 	} else {
+		// 将多行结果合并为一行
 		GitStatus = strings.Replace(strings.Replace(GitStatus, "\r\n", " |", -1), "\n", " |", -1)
 	}
 }

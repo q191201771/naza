@@ -25,13 +25,13 @@ var (
 	BuildGoVersion = "unknown"
 )
 
-// 返回多行格式
+// 返回单行格式
 func StringifySingleLine() string {
 	return fmt.Sprintf("GitCommitLog=%s. GitStatus=%s. BuildTime=%s. GoVersion=%s. runtime=%s/%s.",
 		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)
 }
 
-// 返回单行格式
+// 返回多行格式
 func StringifyMultiLine() string {
 	return fmt.Sprintf("GitCommitLog=%s\nGitStatus=%s\nBuildTime=%s\nGoVersion=%s\nruntime=%s/%s\n",
 		GitCommitLog, GitStatus, BuildTime, BuildGoVersion, runtime.GOOS, runtime.GOARCH)

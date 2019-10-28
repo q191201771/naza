@@ -22,6 +22,10 @@ type SharedSliceByteOption struct {
 	pool SliceBytePool
 }
 
+var defaultSharedSliceByteOption = SharedSliceByteOption{
+	pool: defaultPool,
+}
+
 type ModSharedSliceByteOption func(option *SharedSliceByteOption)
 
 func WithPool(pool SliceBytePool) ModSharedSliceByteOption {
@@ -31,9 +35,7 @@ func WithPool(pool SliceBytePool) ModSharedSliceByteOption {
 }
 
 func NewSharedSliceByte(size int, modOptions ...ModSharedSliceByteOption) *SharedSliceByte {
-	option := SharedSliceByteOption{
-		pool: defaultPool,
-	}
+	option := defaultSharedSliceByteOption
 	for _, fn := range modOptions {
 		fn(&option)
 	}

@@ -65,7 +65,6 @@ func main() {
 			bytes.Index(lines[len(lines)-2], []byte("版权声明")) != -1 {
 			skipCount++
 			return nil
-
 		}
 
 		// 获取该文章的url的地址
@@ -76,6 +75,10 @@ func main() {
 				nazalog.Debug(abbrlink)
 				break
 			}
+		}
+		if abbrlink == "" {
+			nazalog.Errorf("abbrlink not exist. path=%s", path)
+			os.Exit(1)
 		}
 
 		// 构造好license信息，并添加在文章末尾

@@ -1,3 +1,12 @@
+#### v0.5.1
+
+- package ic:
+  - 新增的包，将整型切片压缩序列化成二进制字符切片
+- package bininfo:
+  - 增加注释
+- package assert:
+  - 增加注释
+
 #### v0.5.0
 
 - package filebatch:

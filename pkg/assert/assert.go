@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// Package assert 提供了单元测试时的断言功能，减少一些模板代码
+// package assert 提供了单元测试时的断言功能，减少一些模板代码
 package assert
 
 import (
@@ -33,6 +33,7 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msg ...string) 
 	return
 }
 
+// 比如有时我们需要对 error 类型不等于 nil 做断言，但是我们并不关心 error 的具体值是什么
 func IsNotNil(t TestingT, actual interface{}, msg ...string) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()

@@ -6,10 +6,12 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package assert
+package assert_test
 
 import (
+	"errors"
 	"fmt"
+	"github.com/q191201771/naza/pkg/assert"
 	"testing"
 )
 
@@ -23,39 +25,35 @@ func (mtt MockTestingT) Errorf(format string, args ...interface{}) {
 }
 func TestEqual(t *testing.T) {
 	// 测试Equal
-	Equal(t, nil, nil)
-	Equal(t, nil, nil, "fxxk.")
-	Equal(t, 1, 1)
-	Equal(t, "aaa", "aaa")
+	assert.Equal(t, nil, nil)
+	assert.Equal(t, nil, nil, "fxxk.")
+	assert.Equal(t, 1, 1)
+	assert.Equal(t, "aaa", "aaa")
 	var ch chan struct{}
-	Equal(t, nil, ch)
+	assert.Equal(t, nil, ch)
 	var m map[string]string
-	Equal(t, nil, m)
+	assert.Equal(t, nil, m)
 	var p *int
-	Equal(t, nil, p)
+	assert.Equal(t, nil, p)
 	var i interface{}
-	Equal(t, nil, i)
+	assert.Equal(t, nil, i)
 	var b []byte
-	Equal(t, nil, b)
-	//Equal(t, nil, errors.New("mock error"))
+	assert.Equal(t, nil, b)
 
-	// 测试isNil
-	Equal(t, true, isNil(nil))
-	Equal(t, false, isNil("aaa"))
-	// 测试equal
-	Equal(t, false, equal([]byte{}, "aaa"))
-	Equal(t, true, equal([]byte{}, []byte{}))
-	Equal(t, true, equal([]byte{0, 1, 2}, []byte{0, 1, 2}))
+	assert.Equal(t, []byte{}, []byte{})
+	assert.Equal(t, []byte{0, 1, 2}, []byte{0, 1, 2})
 
 	// 测试Equal失败
 	var mtt MockTestingT
-	Equal(mtt, false, isNil(nil))
+	assert.Equal(mtt, nil, 1)
+	assert.Equal(mtt, []byte{}, "aaa")
+	assert.Equal(mtt, nil, errors.New("mock error"))
 }
 
 func TestIsNotNil(t *testing.T) {
-	IsNotNil(t, 1)
+	assert.IsNotNil(t, 1)
 
 	// 测试IsNotNil失败
 	var mtt MockTestingT
-	IsNotNil(mtt, nil)
+	assert.IsNotNil(mtt, nil)
 }

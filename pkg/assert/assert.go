@@ -6,10 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// package assert 提供了单元测试时的断言功能，减少一些模板代码
-//
-// 代码参考了 https://github.com/stretchr/testify
-//
+// Package assert 提供了单元测试时的断言功能，减少一些模板代码
 package assert
 
 import (
@@ -17,6 +14,7 @@ import (
 	"reflect"
 )
 
+// 单元测试中的 *testing.T 和 *testing.B 都满足该接口
 type TestingT interface {
 	Errorf(format string, args ...interface{})
 }

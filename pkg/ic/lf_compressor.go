@@ -5,13 +5,20 @@ import (
 )
 
 type LFCompressor struct {
-	FB uint32           // 用几个字节的 bit 表示跟随的数据
+	FB      uint32 // 用几个字节的 bit 表示跟随的数据
+	ZlibExt bool   // 压缩之后，是否再用 zlib 进一步压缩
+
 	oc OriginCompressor // FB 为0时，退化成使用 OriginCompressor
 }
 
-func (lfc *LFCompressor) Marshal(ids IDSlice) (ret []byte) {
+// 传入的整型切片必须是从小到大有序排列
+func (lfc *LFCompressor) Marshal(ids []uint32) (ret []byte) {
 	if lfc.FB == 0 {
-		return lfc.oc.Marshal(ids)
+		ret = lfc.oc.Marshal(ids)
+		if lfc.ZlibExt {
+			ret = zlibWrite(ret)
+		}
+		return ret
 	}
 
 	lBuf := make([]byte, 4)
@@ -62,10 +69,16 @@ func (lfc *LFCompressor) Marshal(ids IDSlice) (ret []byte) {
 		ret = append(ret, lBuf...)
 		ret = append(ret, fBuf...)
 	}
+	if lfc.ZlibExt {
+		ret = zlibWrite(ret)
+	}
 	return
 }
 
-func (lfc *LFCompressor) Unmarshal(b []byte) (ids IDSlice) {
+func (lfc *LFCompressor) Unmarshal(b []byte) (ids []uint32) {
+	if lfc.ZlibExt {
+		b = zlibRead(b)
+	}
 	if lfc.FB == 0 {
 		return lfc.oc.Unmarshal(b)
 	}

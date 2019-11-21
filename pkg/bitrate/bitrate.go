@@ -20,10 +20,18 @@ import (
 // - 不需要存储Time结构体，存毫秒级的 unix 时间戳
 
 type Bitrate struct {
-	windowMS int
+	option Option
 
 	mu          sync.Mutex
 	bucketSlice []bucket
+}
+
+type Option struct {
+	WindowMS int
+}
+
+var defaultOption = Option{
+	WindowMS: 1000,
 }
 
 type bucket struct {
@@ -31,9 +39,15 @@ type bucket struct {
 	t time.Time
 }
 
-func NewBitrate(windowMS int) *Bitrate {
+type ModOption func(option *Option)
+
+func NewBitrate(modOptions ...ModOption) *Bitrate {
+	option := defaultOption
+	for _, fn := range modOptions {
+		fn(&option)
+	}
 	return &Bitrate{
-		windowMS: windowMS,
+		option: option,
 	}
 }
 
@@ -63,12 +77,12 @@ func (b *Bitrate) Rate() int {
 	}
 
 	// total * 8 / 1000 * 1000 / b.windowMS
-	return total * 8 / b.windowMS
+	return total * 8 / b.option.WindowMS
 }
 
 func (b *Bitrate) sweepStale(now time.Time) {
 	for i := range b.bucketSlice {
-		if now.Sub(b.bucketSlice[i].t) > time.Duration(b.windowMS)*time.Millisecond {
+		if now.Sub(b.bucketSlice[i].t) > time.Duration(b.option.WindowMS)*time.Millisecond {
 			b.bucketSlice = b.bucketSlice[1:]
 		} else {
 			break

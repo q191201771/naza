@@ -18,7 +18,9 @@ import (
 
 func TestBitrate(t *testing.T) {
 	var b *bitrate.Bitrate
-	b = bitrate.NewBitrate(10)
+	b = bitrate.NewBitrate(func(option *bitrate.Option) {
+		option.WindowMS = 10
+	})
 	b.Add(1000)
 	r := b.Rate()
 	assert.Equal(t, 800, r)

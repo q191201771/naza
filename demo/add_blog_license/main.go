@@ -23,9 +23,9 @@ import (
 //> **声明：** 本文后续所有修改都会第一时间在原始地址更新。本文欢迎任何形式转载，转载时注明原始出处即可。`
 
 var licenseTmpl = `
-> **原文链接：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)
-> **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)
-> **原文作者：** yoko
+> **原文链接：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)  
+> **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)  
+> **原文作者：** yoko  
 > **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。`
 
 func main() {

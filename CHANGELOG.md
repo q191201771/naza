@@ -1,3 +1,12 @@
+#### v0.6.0
+
+- 新增 package ratelimit：限速器，令牌桶
+- 新增 package bitrate：计算带宽
+- 新增 package fake
+- 删除 package mockwriter
+- 删除 package mockserver
+- `demo/add_blog_license`：行尾增加两个空格，便于部分 markdown 解析器解析为为换行
+
 #### v0.5.1
 
 - package ic:

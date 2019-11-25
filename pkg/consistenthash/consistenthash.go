@@ -27,14 +27,14 @@ var ErrIsEmpty = errors.New("naza.consistenthash: is empty")
 // @param dups: 每个实际的 node 转变成多少个环上的节点，必须大于等于1
 func New(dups int) ConsistentHash {
 	return &consistentHash{
-		point2node: make(map[int]string),
+		point2node: make(map[uint32]string),
 		dups:       dups,
 	}
 }
 
 type consistentHash struct {
-	point2node map[int]string
-	points     []int
+	point2node map[uint32]string
+	points     []uint32
 	dups       int
 }
 
@@ -46,7 +46,7 @@ func (ch *consistentHash) Add(nodes ...string) {
 			ch.points = append(ch.points, point)
 		}
 	}
-	sort.Ints(ch.points)
+	sortSlice(ch.points)
 }
 
 func (ch *consistentHash) Del(nodes ...string) {
@@ -61,7 +61,7 @@ func (ch *consistentHash) Del(nodes ...string) {
 	for k := range ch.point2node {
 		ch.points = append(ch.points, k)
 	}
-	sort.Ints(ch.points)
+	sortSlice(ch.points)
 }
 
 func (ch *consistentHash) Get(key string) (node string, err error) {
@@ -94,6 +94,12 @@ func virtualKey(node string, index int) string {
 	return node + strconv.Itoa(index)
 }
 
-func hash2point(key string) int {
-	return int(crc32.ChecksumIEEE([]byte(key)))
+func hash2point(key string) uint32 {
+	return crc32.ChecksumIEEE([]byte(key))
+}
+
+func sortSlice(a []uint32) {
+	sort.Slice(a, func(i, j int) bool {
+		return a[i] < a[j]
+	})
 }

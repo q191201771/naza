@@ -11,6 +11,7 @@ package consistenthash
 import (
 	"errors"
 	"hash/crc32"
+	"math"
 	"sort"
 	"strconv"
 )
@@ -19,7 +20,11 @@ type ConsistentHash interface {
 	Add(nodes ...string)
 	Del(nodes ...string)
 	Get(key string) (node string, err error)
-	Nodes() map[string]struct{}
+
+	// @return: 返回的 map 的 key 为添加到内部的 node，value 为该 node 在环上所占的 point 个数。
+	//          我们可以通过各个 node 对应的 point 个数是否接近，来观察各 node 在环上的是否分布均衡。
+	//          map 的所有 value 加起来应该等于 math.MaxUint32 + 1
+	Nodes() map[string]uint64
 }
 
 var ErrIsEmpty = errors.New("naza.consistenthash: is empty")
@@ -82,11 +87,22 @@ func (ch *consistentHash) Get(key string) (node string, err error) {
 	return ch.point2node[ch.points[index]], nil
 }
 
-func (ch *consistentHash) Nodes() map[string]struct{} {
-	ret := make(map[string]struct{})
-	for _, v := range ch.point2node {
-		ret[v] = struct{}{}
+func (ch *consistentHash) Nodes() map[string]uint64 {
+	if len(ch.points) == 0 {
+		return nil
 	}
+	ret := make(map[string]uint64)
+	prev := uint64(0)
+	for _, point := range ch.points {
+		node := ch.point2node[point]
+		ret[node] = ret[node] + uint64(point) - prev
+		prev = uint64(point)
+	}
+
+	// 最后一个 node 到终点位置的 point 都归入第一个 node
+	point := ch.points[len(ch.points)-1]
+	node := ch.point2node[point]
+	ret[node] = ret[node] + uint64(math.MaxUint32-point+1)
 	return ret
 }
 

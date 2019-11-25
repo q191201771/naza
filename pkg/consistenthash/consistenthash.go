@@ -24,6 +24,7 @@ type ConsistentHash interface {
 
 var ErrIsEmpty = errors.New("naza.consistenthash: is empty")
 
+// @param dups: 每个实际的 node 转变成多少个环上的节点，必须大于等于1
 func New(dups int) ConsistentHash {
 	return &consistentHash{
 		point2node: make(map[int]string),
@@ -69,6 +70,7 @@ func (ch *consistentHash) Get(key string) (node string, err error) {
 	}
 
 	point := hash2point(key)
+	// 从数组中找出满足 point 值 >= key 所对应 point 值的最小的元素
 	index := sort.Search(len(ch.points), func(i int) bool {
 		return ch.points[i] >= point
 	})

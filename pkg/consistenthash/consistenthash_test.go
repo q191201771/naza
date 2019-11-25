@@ -20,20 +20,22 @@ func TestConsistentHash(t *testing.T) {
 	ch := New(1024)
 	_, err := ch.Get("aaa")
 	assert.Equal(t, ErrIsEmpty, err)
+
 	ch.Add("127.0.0.1")
 	ch.Add("0.0.0.0", "8.8.8.8")
 	ch.Del("127.0.0.1", "8.8.8.8")
 	ch.Add("114.114.114.114", "255.255.255.255", "1.1.1.1", "2.2.2.2", "3.3.3.3")
 	exptectedNodes := map[string]struct{}{
-		"0.0.0.0":         struct{}{},
-		"114.114.114.114": struct{}{},
-		"255.255.255.255": struct{}{},
-		"1.1.1.1":         struct{}{},
-		"2.2.2.2":         struct{}{},
-		"3.3.3.3":         struct{}{},
+		"0.0.0.0":         {},
+		"114.114.114.114": {},
+		"255.255.255.255": {},
+		"1.1.1.1":         {},
+		"2.2.2.2":         {},
+		"3.3.3.3":         {},
 	}
 	actualNodes := ch.Nodes()
 	assert.Equal(t, exptectedNodes, actualNodes)
+
 	counts := make(map[string]int)
 	for i := 0; i < 16384; i++ {
 		node, err := ch.Get(strconv.Itoa(i))

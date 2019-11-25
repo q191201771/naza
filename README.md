@@ -41,6 +41,7 @@ pkg/                    ...... 源码包
     |-- connection/     ...... 对 net.Conn 接口的二次封装
     |-- filebatch/      ...... 文件批处理操作
     |-- nazamd5/        ...... md5 操作
+    |-- bitrate/        ...... 计算带宽
     |-- ratelimit/      ...... 限流器，令牌桶
     |-- ic/             ...... 将整型切片压缩成二进制字节切片
     |-- unique/         ...... 对象唯一 ID

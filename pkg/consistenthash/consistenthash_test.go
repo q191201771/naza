@@ -9,6 +9,7 @@
 package consistenthash
 
 import (
+	"hash/crc32"
 	"math"
 	"strconv"
 	"testing"
@@ -76,7 +77,11 @@ func TestConsistentHash_Nodes(t *testing.T) {
 }
 
 func TestCorner(t *testing.T) {
-	ch := New(1)
+	ch := New(1, func(option *Option) {
+		option.hfn = crc32.ChecksumIEEE
+	})
+
+	ch = New(1)
 	nodes := ch.Nodes()
 	assert.Equal(t, nil, nodes)
 

@@ -17,8 +17,8 @@ import (
 )
 
 func TestBitrate(t *testing.T) {
-	var b *bitrate.Bitrate
-	b = bitrate.NewBitrate(func(option *bitrate.Option) {
+	var b bitrate.Bitrate
+	b = bitrate.New(func(option *bitrate.Option) {
 		option.WindowMS = 10
 	})
 	b.Add(1000)
@@ -36,7 +36,7 @@ func TestUnit(t *testing.T) {
 		bitrate.UnitKBytePerSec: 100,
 	}
 	for k, v := range golden {
-		b := bitrate.NewBitrate(func(option *bitrate.Option) {
+		b := bitrate.New(func(option *bitrate.Option) {
 			option.WindowMS = 10
 			option.Unit = k
 		})
@@ -47,8 +47,8 @@ func TestUnit(t *testing.T) {
 }
 
 func TestOutsizeNow(t *testing.T) {
-	var b *bitrate.Bitrate
-	b = bitrate.NewBitrate(func(option *bitrate.Option) {
+	var b bitrate.Bitrate
+	b = bitrate.New(func(option *bitrate.Option) {
 		option.WindowMS = 10
 	})
 	now := time.Now().UnixNano() / 1e6

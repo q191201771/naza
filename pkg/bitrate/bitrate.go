@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-type Bitrate struct {
-	option Option
+type Bitrate interface {
+	// @param nowUnixMSec: 变参，可选择从外部传入当前 unix 时间戳，单位毫秒
+	Add(bytes int, nowUnixMSec ...int64)
 
-	mu          sync.Mutex
-	bucketSlice []bucket
+	Rate(nowUnixMSec ...int64) float32
 }
 
 type Unit uint8
@@ -40,25 +40,31 @@ var defaultOption = Option{
 	Unit:     UnitKBitPerSec,
 }
 
+type ModOption func(option *Option)
+
+func New(modOptions ...ModOption) Bitrate {
+	option := defaultOption
+	for _, fn := range modOptions {
+		fn(&option)
+	}
+	return &bitrate{
+		option: option,
+	}
+}
+
+type bitrate struct {
+	option Option
+
+	mu          sync.Mutex
+	bucketSlice []bucket
+}
+
 type bucket struct {
 	n int
 	t int64 // unix 时间戳，单位毫秒
 }
 
-type ModOption func(option *Option)
-
-func NewBitrate(modOptions ...ModOption) *Bitrate {
-	option := defaultOption
-	for _, fn := range modOptions {
-		fn(&option)
-	}
-	return &Bitrate{
-		option: option,
-	}
-}
-
-// @param nowUnixMSec 可选择从外部传入当前 unix 时间戳，单位毫秒
-func (b *Bitrate) Add(bytes int, nowUnixMSec ...int64) {
+func (b *bitrate) Add(bytes int, nowUnixMSec ...int64) {
 	var now int64
 	if len(nowUnixMSec) == 0 {
 		now = time.Now().UnixNano() / 1e6
@@ -76,7 +82,7 @@ func (b *Bitrate) Add(bytes int, nowUnixMSec ...int64) {
 	})
 }
 
-func (b *Bitrate) Rate(nowUnixMSec ...int64) float32 {
+func (b *bitrate) Rate(nowUnixMSec ...int64) float32 {
 	var now int64
 	if len(nowUnixMSec) == 0 {
 		now = time.Now().UnixNano() / 1e6
@@ -107,7 +113,7 @@ func (b *Bitrate) Rate(nowUnixMSec ...int64) float32 {
 	return ret
 }
 
-func (b *Bitrate) sweepStale(now int64) {
+func (b *bitrate) sweepStale(now int64) {
 	for i := range b.bucketSlice {
 		if now-b.bucketSlice[i].t > int64(b.option.WindowMS) {
 			b.bucketSlice = b.bucketSlice[1:]

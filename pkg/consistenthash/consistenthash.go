@@ -26,8 +26,8 @@ type ConsistentHash interface {
 	// @return: 返回的 map 的
 	//          key 为添加到内部的 node，
 	//          value 为该 node 在环上所占的 point 个数。
-	//          我们可以通过各个 node 对应的 point 个数是否接近，来观察各 node 在环上的分布是否均衡。
-	//          map 的所有 value 加起来应该等于 math.MaxUint32 + 1
+	//          我们可以通过各个 node 对应的 point 个数是否接近，来判断各 node 在环上的分布是否均衡。
+	//          map 的所有 value 加起来应该等于 (math.MaxUint32 + 1)
 	Nodes() map[string]uint64
 }
 
@@ -35,6 +35,10 @@ type HashFunc func([]byte) uint32
 
 type Option struct {
 	hfn HashFunc
+}
+
+var defaultOption = Option{
+	hfn: crc32.ChecksumIEEE,
 }
 
 type ModOption func(option *Option)
@@ -51,10 +55,6 @@ func New(dups int, modOptions ...ModOption) ConsistentHash {
 		dups:       dups,
 		option:     option,
 	}
-}
-
-var defaultOption = Option{
-	hfn: crc32.ChecksumIEEE,
 }
 
 type consistentHash struct {

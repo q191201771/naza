@@ -13,60 +13,83 @@ import (
 	"time"
 )
 
-// 先来个最简单的，后续再精细化配置：
-//
-// - 收包时间目前只能由内部获取当前时间，应提供接口支持外部传入
-// - 返回的rate单位固定为 kbit/s
-// - 不需要存储Time结构体，存毫秒级的 unix 时间戳
+type Bitrate interface {
+	// @param nowUnixMSec: 变参，可选择从外部传入当前 unix 时间戳，单位毫秒
+	Add(bytes int, nowUnixMSec ...int64)
 
-type Bitrate struct {
+	Rate(nowUnixMSec ...int64) float32
+}
+
+type Unit uint8
+
+const (
+	UnitBitPerSec Unit = iota + 1
+	UnitBytePerSec
+	UnitKBitPerSec
+	UnitKBytePerSec
+)
+
+// TODO chef: 考虑支持配置是否在内部使用锁
+type Option struct {
+	WindowMS int
+	Unit     Unit
+}
+
+var defaultOption = Option{
+	WindowMS: 1000,
+	Unit:     UnitKBitPerSec,
+}
+
+type ModOption func(option *Option)
+
+func New(modOptions ...ModOption) Bitrate {
+	option := defaultOption
+	for _, fn := range modOptions {
+		fn(&option)
+	}
+	return &bitrate{
+		option: option,
+	}
+}
+
+type bitrate struct {
 	option Option
 
 	mu          sync.Mutex
 	bucketSlice []bucket
 }
 
-type Option struct {
-	WindowMS int
-}
-
-var defaultOption = Option{
-	WindowMS: 1000,
-}
-
 type bucket struct {
 	n int
-	t time.Time
+	t int64 // unix 时间戳，单位毫秒
 }
 
-type ModOption func(option *Option)
-
-func NewBitrate(modOptions ...ModOption) *Bitrate {
-	option := defaultOption
-	for _, fn := range modOptions {
-		fn(&option)
+func (b *bitrate) Add(bytes int, nowUnixMSec ...int64) {
+	var now int64
+	if len(nowUnixMSec) == 0 {
+		now = time.Now().UnixNano() / 1e6
+	} else {
+		now = nowUnixMSec[0]
 	}
-	return &Bitrate{
-		option: option,
-	}
-}
 
-func (b *Bitrate) Add(bytes int) {
-	now := time.Now()
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
 	b.sweepStale(now)
-
 	b.bucketSlice = append(b.bucketSlice, bucket{
 		n: bytes,
 		t: now,
 	})
 }
 
-// @return 返回值单位 kbit/s
-func (b *Bitrate) Rate() int {
-	now := time.Now()
+func (b *bitrate) Rate(nowUnixMSec ...int64) float32 {
+	var now int64
+	if len(nowUnixMSec) == 0 {
+		now = time.Now().UnixNano() / 1e6
+	} else {
+		now = nowUnixMSec[0]
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -76,13 +99,23 @@ func (b *Bitrate) Rate() int {
 		total += b.bucketSlice[i].n
 	}
 
-	// total * 8 / 1000 * 1000 / b.windowMS
-	return total * 8 / b.option.WindowMS
+	var ret float32
+	switch b.option.Unit {
+	case UnitBitPerSec:
+		ret = float32(total*8*1000) / float32(b.option.WindowMS)
+	case UnitBytePerSec:
+		ret = float32(total*1000) / float32(b.option.WindowMS)
+	case UnitKBitPerSec:
+		ret = float32(total*8) / float32(b.option.WindowMS)
+	case UnitKBytePerSec:
+		ret = float32(total) / float32(b.option.WindowMS)
+	}
+	return ret
 }
 
-func (b *Bitrate) sweepStale(now time.Time) {
+func (b *bitrate) sweepStale(now int64) {
 	for i := range b.bucketSlice {
-		if now.Sub(b.bucketSlice[i].t) > time.Duration(b.option.WindowMS)*time.Millisecond {
+		if now-b.bucketSlice[i].t > int64(b.option.WindowMS) {
 			b.bucketSlice = b.bucketSlice[1:]
 		} else {
 			break

@@ -16,6 +16,8 @@ import (
 	"strconv"
 )
 
+var ErrIsEmpty = errors.New("naza.consistenthash: is empty")
+
 type ConsistentHash interface {
 	Add(nodes ...string)
 	Del(nodes ...string)
@@ -28,8 +30,6 @@ type ConsistentHash interface {
 	//          map 的所有 value 加起来应该等于 math.MaxUint32 + 1
 	Nodes() map[string]uint64
 }
-
-var ErrIsEmpty = errors.New("naza.consistenthash: is empty")
 
 type HashFunc func([]byte) uint32
 

@@ -114,11 +114,16 @@ func (b *bitrate) Rate(nowUnixMSec ...int64) float32 {
 }
 
 func (b *bitrate) sweepStale(now int64) {
-	for i := range b.bucketSlice {
-		if now-b.bucketSlice[i].t > int64(b.option.WindowMS) {
-			b.bucketSlice = b.bucketSlice[1:]
-		} else {
+	i := 0
+	l := len(b.bucketSlice)
+	for ; i < l; i++ {
+		if now-b.bucketSlice[i].t <= int64(b.option.WindowMS) {
 			break
 		}
+	}
+	if i == l {
+		b.bucketSlice = nil
+	} else {
+		b.bucketSlice = b.bucketSlice[i:]
 	}
 }

@@ -62,6 +62,8 @@ naza 即哪吒（正确拼音为 nezha，我女儿发音读作 naza，少一个�
 
 #### 相关文档
 
+* [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
+
 * pkg/bininfo [给Go程序加入编译版本时间等信息](https://https://pengrl.com/p/37397/)
 
 #### 联系我

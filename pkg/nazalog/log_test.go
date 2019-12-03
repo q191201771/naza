@@ -15,6 +15,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/q191201771/naza/pkg/fake"
+
 	"github.com/q191201771/naza/pkg/assert"
 )
 
@@ -148,6 +150,42 @@ func TestPanic(t *testing.T) {
 		assert.Equal(t, nil, err)
 		l.PanicIfErrorNotNil(errors.New("mock error"))
 	})
+}
+
+func TestFatal(t *testing.T) {
+	var er fake.ExitResult
+	er = fake.WithFakeExit(func() {
+		FatalIfErrorNotNil(errors.New("fxxk"))
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+	er = fake.WithFakeExit(func() {
+		Fatal("Fatal")
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+	er = fake.WithFakeExit(func() {
+		Fatalf("Fatalf%s", ".")
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+
+	logger, _ := New()
+	er = fake.WithFakeExit(func() {
+		logger.FatalIfErrorNotNil(errors.New("fxxk"))
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+	er = fake.WithFakeExit(func() {
+		logger.Fatal("Fatal")
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+	er = fake.WithFakeExit(func() {
+		logger.Fatalf("Fatalf%s", ".")
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
 }
 
 func BenchmarkStdout(b *testing.B) {

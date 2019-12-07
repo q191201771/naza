@@ -10,7 +10,8 @@ package nazalog
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/q191201771/naza/pkg/fake"
 )
 
 var global Logger
@@ -37,6 +38,7 @@ func Errorf(format string, v ...interface{}) {
 
 func Fatalf(format string, v ...interface{}) {
 	global.Out(LevelFatal, 3, fmt.Sprintf(format, v...))
+	fake.Exit(1)
 }
 
 func Panicf(format string, v ...interface{}) {
@@ -65,6 +67,7 @@ func Error(v ...interface{}) {
 
 func Fatal(v ...interface{}) {
 	global.Out(LevelFatal, 3, fmt.Sprint(v...))
+	fake.Exit(1)
 }
 
 func Panic(v ...interface{}) {
@@ -74,7 +77,7 @@ func Panic(v ...interface{}) {
 func FatalIfErrorNotNil(err error) {
 	if err != nil {
 		global.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
-		os.Exit(1)
+		fake.Exit(1)
 	}
 }
 

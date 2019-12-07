@@ -16,6 +16,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/q191201771/naza/pkg/fake"
 )
 
 const (
@@ -87,7 +89,7 @@ func (l *logger) Errorf(format string, v ...interface{}) {
 
 func (l *logger) Fatalf(format string, v ...interface{}) {
 	l.Out(LevelFatal, 3, fmt.Sprintf(format, v...))
-	os.Exit(1)
+	fake.Exit(1)
 }
 
 func (l *logger) Panicf(format string, v ...interface{}) {
@@ -117,7 +119,7 @@ func (l *logger) Error(v ...interface{}) {
 
 func (l *logger) Fatal(v ...interface{}) {
 	l.Out(LevelFatal, 3, fmt.Sprint(v...))
-	os.Exit(1)
+	fake.Exit(1)
 }
 
 func (l *logger) Panic(v ...interface{}) {
@@ -128,7 +130,7 @@ func (l *logger) Panic(v ...interface{}) {
 func (l *logger) FatalIfErrorNotNil(err error) {
 	if err != nil {
 		l.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
-		os.Exit(1)
+		fake.Exit(1)
 	}
 }
 

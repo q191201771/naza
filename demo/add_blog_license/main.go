@@ -25,7 +25,7 @@ import (
 var licenseTmpl = `
 > **原文链接：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)  
 > **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)  
-> **原文作者：** yoko  
+> **原文作者：** [yoko](https://github.com/q191201771) (https://github.com/q191201771)  
 > **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。`
 
 func main() {
@@ -46,13 +46,13 @@ func main() {
 		lines := bytes.Split(content, []byte{'\n'})
 
 		//if bytes.Index(lines[len(lines)-1], []byte("声明")) != -1 {
-		//	res, err := filebatch.DeleteLines(content, filebatch.LineRange{From: -2, To: -1})
+		//	res, err := filebatch.DeleteLines(content, filebatch.LineRange{From: -4, To: -1})
 		//	nazalog.Debugf("%s -2", info.Name())
 		//	nazalog.FatalIfErrorNotNil(err)
 		//	return res
 		//}
 		//if bytes.Index(lines[len(lines)-2], []byte("声明")) != -1 {
-		//	res, err := filebatch.DeleteLines(content, filebatch.LineRange{From: -3, To: -1})
+		//	res, err := filebatch.DeleteLines(content, filebatch.LineRange{From: -5, To: -1})
 		//	nazalog.Debugf("%s -3", info.Name())
 		//	nazalog.FatalIfErrorNotNil(err)
 		//	return res

@@ -11,6 +11,7 @@ profile*.pdf
 /pre-commit.sh
 /TODO.md
 
+/pkg/snowflake
 /pkg/tag
 /pkg/nazatime
 /demo/samefile

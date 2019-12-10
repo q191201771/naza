@@ -1,3 +1,20 @@
+#### v0.7.0
+
+- package consistenthash:
+    - [feat] Nodes 接口返回 node 对应的 point 范围，供调用方判断 hash 是否均匀
+    - [feat] hash 函数可由外部配置
+    - [refactor] 增加 struct Option
+    - [refactor] 内部 point 类型 int -> uint32
+- package bitrate:
+    - [feat]可配置 bitrate 返回时的单位
+    - [feat] unix 时间戳可选择由外部传入
+    - [refactor] struct Bitrate -> interface Bitrate
+    - [fix] 遍历切片时删除了元素导致崩溃
+- package fake:
+    - [feat] 添加 func Exit，它是对 os.Exit 的封装，便于其他代码做单元测试
+- package log:
+    - [test] 使用 fake.Exit
+
 #### v0.6.0
 
 - 新增 package ratelimit：限速器，令牌桶

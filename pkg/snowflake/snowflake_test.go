@@ -144,3 +144,21 @@ func TestMT(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, ii*jj, len(m))
 }
+
+func BenchmarkNode_Gen(b *testing.B) {
+	var (
+		n   *snowflake.Node
+		err error
+	)
+
+	n, err = snowflake.New(0, 0)
+	assert.Equal(b, nil, err)
+	assert.IsNotNil(b, n)
+
+	var dummy int64
+	for i := 0; i < b.N; i++ {
+		id, _ := n.Gen()
+		dummy += id
+	}
+	nazalog.Debug(dummy)
+}

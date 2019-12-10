@@ -96,6 +96,7 @@ func (n *Node) Gen(nowUnixMSec ...int64) (int64, error) {
 	// 时间戳相同时，使用递增序号解决冲突
 	if now == n.lastTs {
 		n.seq = (n.seq + 1) & n.seqMask
+		// 递增序号翻转为 0，表示该时间戳下的序号已经全部用完，阻塞等待系统时间增长
 		if n.seq == 0 {
 			for now <= n.lastTs {
 				now = time.Now().UnixNano() / 1e6

@@ -1,3 +1,8 @@
+#### v0.7.1
+
+- package snowflake
+    - [feat] 新增的包，分布式唯一性64位ID生成器
+
 #### v0.7.0
 
 - package consistenthash:

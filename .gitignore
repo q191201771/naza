@@ -10,6 +10,7 @@ profile*.pdf
 /bin
 /pre-commit.sh
 /TODO.md
+/playground
 
 /pkg/tag
 /pkg/nazatime

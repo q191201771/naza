@@ -18,15 +18,14 @@ import (
 	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-//var licenseTmpl = `
-//> **本文原始地址：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)
-//> **声明：** 本文后续所有修改都会第一时间在原始地址更新。本文欢迎任何形式转载，转载时注明原始出处即可。`
-
 var licenseTmpl = `
-> **原文链接：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)  
-> **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)  
-> **原文作者：** [yoko](https://github.com/q191201771) (https://github.com/q191201771)  
-> **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。`
+> **原文链接：** [https://pengrl.com/p/%s/](https://pengrl.com/p/%s/)
+> **原文出处：** [yoko blog](https://pengrl.com) (https://pengrl.com)
+> **原文作者：** [yoko](https://github.com/q191201771) (https://github.com/q191201771)
+> **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。
+
+
+![fccxy](https://pengrl.com/images/fccxy_qccode_and_sys.png)`
 
 func main() {
 	dir := parseFlag()
@@ -61,8 +60,8 @@ func main() {
 		//return content
 
 		// 已添加过声明，不用再添加了
-		if bytes.Index(lines[len(lines)-1], []byte("版权声明")) != -1 ||
-			bytes.Index(lines[len(lines)-2], []byte("版权声明")) != -1 {
+		if bytes.Index(lines[len(lines)-1], []byte("fccxy_qccode_and_sys")) != -1 ||
+			bytes.Index(lines[len(lines)-2], []byte("fccxy_qccode_and_sys")) != -1 {
 			skipCount++
 			return nil
 		}

@@ -47,6 +47,7 @@ pkg/                    ...... 源码包
     |-- ic/             ...... 将整型切片压缩成二进制字节切片
     |-- unique/         ...... 对象唯一 ID
     |-- fake/           ...... stub和mock相关，实现一些常用的接口，辅助测试其它代码
+playground/             ...... Go实验代码片段
 demo/                   ...... 示例相关的代码
 bin/                    ...... 可执行文件编译输出目录
 ```
@@ -63,10 +64,12 @@ naza 即哪吒（正确拼音为 nezha，我女儿发音读作 naza，少一个�
 
 #### 相关文档
 
-* [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
+* pkg/snowflake [分布式ID生成算法snowflake介绍及Go语言实现](https://pengrl.com/p/20041/)
+* pkg/bininfo [给Go程序加入编译版本时间等信息](https://pengrl.com/p/37397/)
+* pkg/nazastring [`Go语言中[]byte和string类型相互转换时的性能分析和优化`](https://www.pengrl.com/p/31544/)
 
-* pkg/snowflake [https://pengrl.com/p/20041/](分布式ID生成算法snowflake介绍及Go语言实现)
-* pkg/bininfo [给Go程序加入编译版本时间等信息](https://https://pengrl.com/p/37397/)
+* [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
+* playground/p3 [利用CPU cache特性优化Go程序](https://pengrl.com/p/9125)
 
 #### 联系我
 

@@ -32,13 +32,13 @@ func SearchWithLog(n int, f func(int) bool) int {
 
 func main() {
 	const key = 3
+	//const key = 0
+	//const key = 2
+	//const key = 9
 	arr := []int{1, 3, 5, 7}
 	index := SearchWithLog(len(arr), func(i int) bool {
 		//return arr[i] == 3
-		//return arr[i] >= 3
 		return arr[i] >= key
-		//return arr[i] >= 9
-		//return arr[i] >= 2
 	})
 	fmt.Printf("index=%d\n", index)
 	if index < len(arr) && arr[index] == key {

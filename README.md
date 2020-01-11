@@ -69,7 +69,8 @@ naza 即哪吒（正确拼音为 nezha，我女儿发音读作 naza，少一个�
 * pkg/nazastring [`Go语言中[]byte和string类型相互转换时的性能分析和优化`](https://www.pengrl.com/p/31544/)
 
 * [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
-* playground/p3 [利用CPU cache特性优化Go程序](https://pengrl.com/p/9125)
+* playground/p3 [利用CPU cache特性优化Go程序](https://pengrl.com/p/9125/)
+* playground/p4 [老弟在吗，我的Go标准库中的二分查找有bug！](https://pengrl.com/p/20011/)
 
 #### 联系我
 

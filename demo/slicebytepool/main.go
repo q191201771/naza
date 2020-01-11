@@ -35,7 +35,7 @@ var loopNum = 1000
 var sleepMSec = time.Duration(10) * time.Millisecond
 
 func size() int {
-	return random(1, 256*1024)
+	return random(1, 128*1024)
 
 	//return 128 * 1024
 
@@ -125,7 +125,7 @@ func main() {
 	nazalog.Debug("> GC.")
 	runtime.GC()
 	nazalog.Debug("< GC.")
-	if strategy != 5 {
+	if strategy != 3 {
 		nazalog.Debugf("%+v", bp.RetrieveStatus())
 	}
 	nazalog.Debug("< loop.")

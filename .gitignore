@@ -14,5 +14,7 @@ profile*.pdf
 
 /pkg/tag
 /pkg/nazatime
+
 /demo/samefile
 /demo/time
+/demo/temp

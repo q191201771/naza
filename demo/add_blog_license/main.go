@@ -25,7 +25,7 @@ var licenseTmpl = `
 > **版权声明：** 本文欢迎任何形式转载，转载时完整保留本声明信息（包含原文链接、原文出处、原文作者、版权声明）即可。本文后续所有修改都会第一时间在原始地址更新。
 
 
-![fccxy](https://pengrl.com/images/fccxy_qccode_and_sys.png)`
+![fccxy](https://pengrl.com/images/fccxy_qccode_and_sys.jpg)`
 
 func main() {
 	dir := parseFlag()

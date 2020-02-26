@@ -31,24 +31,27 @@ func TestLeakyBucket(t *testing.T) {
 				if err == nil {
 					nazalog.Debugf("TryAquire succ. goroutine=%d, index=%d", j, k)
 				} else {
-					//nazalog.Debugf("TryAquire fail. goroutine=%d, index=%d, err=%v", j, k, err)
-					time.Sleep(time.Duration(j*k) * time.Millisecond)
+					time.Sleep(time.Duration(lb.MaybeAvailableIntervalMSec()) * time.Millisecond)
 				}
-				//time.Sleep(time.Duration(j * k) * time.Millisecond)
 			}
 		}(i)
 	}
 	time.Sleep(2 * time.Second)
-	//2020/02/25 23:39:13.896802 DEBUG TryAquire succ. goroutine=10, index=5 - example_test.go:23
-	//2020/02/25 23:39:13.999801 DEBUG TryAquire succ. goroutine=7, index=8 - example_test.go:23
-	//2020/02/25 23:39:14.113313 DEBUG TryAquire succ. goroutine=11, index=8 - example_test.go:23
-	//2020/02/25 23:39:14.216280 DEBUG TryAquire succ. goroutine=11, index=10 - example_test.go:23
-	//2020/02/25 23:39:14.334289 DEBUG TryAquire succ. goroutine=8, index=12 - example_test.go:23
-	//2020/02/25 23:39:14.439413 DEBUG TryAquire succ. goroutine=8, index=14 - example_test.go:23
-	//2020/02/25 23:39:14.574673 DEBUG TryAquire succ. goroutine=14, index=11 - example_test.go:23
-	//2020/02/25 23:39:14.742899 DEBUG TryAquire succ. goroutine=14, index=13 - example_test.go:23
-	//2020/02/25 23:39:14.914085 DEBUG TryAquire succ. goroutine=12, index=14 - example_test.go:23
-	//2020/02/25 23:39:15.172121 DEBUG TryAquire succ. goroutine=15, index=14 - example_test.go:23
+	// 21:47:36.279549 DEBUG TryAquire succ. goroutine=2, index=1 - example_test.go:32
+	// 21:47:36.382028 DEBUG TryAquire succ. goroutine=9, index=2 - example_test.go:32
+	// 21:47:36.484601 DEBUG TryAquire succ. goroutine=4, index=3 - example_test.go:32
+	// 21:47:36.587709 DEBUG TryAquire succ. goroutine=12, index=4 - example_test.go:32
+	// 21:47:36.690933 DEBUG TryAquire succ. goroutine=6, index=5 - example_test.go:32
+	// 21:47:36.795354 DEBUG TryAquire succ. goroutine=1, index=6 - example_test.go:32
+	// 21:47:36.899944 DEBUG TryAquire succ. goroutine=2, index=8 - example_test.go:32
+	// 21:47:37.002998 DEBUG TryAquire succ. goroutine=4, index=9 - example_test.go:32
+	// 21:47:37.107235 DEBUG TryAquire succ. goroutine=10, index=9 - example_test.go:32
+	// 21:47:37.210299 DEBUG TryAquire succ. goroutine=11, index=10 - example_test.go:32
+	// 21:47:37.315191 DEBUG TryAquire succ. goroutine=8, index=11 - example_test.go:32
+	// 21:47:37.419453 DEBUG TryAquire succ. goroutine=8, index=13 - example_test.go:32
+	// 21:47:37.520077 DEBUG TryAquire succ. goroutine=15, index=14 - example_test.go:32
+	// 21:47:37.625341 DEBUG TryAquire succ. goroutine=9, index=15 - example_test.go:32
+	// 21:47:37.730427 DEBUG TryAquire succ. goroutine=0, index=15 - example_test.go:32
 
 	lb2 := ratelimit.NewLeakyBucket(100)
 	for i := 0; i < 4; i++ {
@@ -60,22 +63,22 @@ func TestLeakyBucket(t *testing.T) {
 		}(i)
 	}
 	time.Sleep(2 * time.Second)
-	//2020/02/25 23:40:11.275685 DEBUG < lb.WaitUntilAquire. goroutine=3, index=0 - example_test.go:49
-	//2020/02/25 23:40:11.374789 DEBUG < lb.WaitUntilAquire. goroutine=0, index=0 - example_test.go:49
-	//2020/02/25 23:40:11.473445 DEBUG < lb.WaitUntilAquire. goroutine=1, index=0 - example_test.go:49
-	//2020/02/25 23:40:11.571714 DEBUG < lb.WaitUntilAquire. goroutine=2, index=0 - example_test.go:49
-	//2020/02/25 23:40:11.670913 DEBUG < lb.WaitUntilAquire. goroutine=3, index=1 - example_test.go:49
-	//2020/02/25 23:40:11.772003 DEBUG < lb.WaitUntilAquire. goroutine=0, index=1 - example_test.go:49
-	//2020/02/25 23:40:11.871239 DEBUG < lb.WaitUntilAquire. goroutine=1, index=1 - example_test.go:49
-	//2020/02/25 23:40:11.973307 DEBUG < lb.WaitUntilAquire. goroutine=2, index=1 - example_test.go:49
-	//2020/02/25 23:40:12.075015 DEBUG < lb.WaitUntilAquire. goroutine=3, index=2 - example_test.go:49
-	//2020/02/25 23:40:12.173357 DEBUG < lb.WaitUntilAquire. goroutine=0, index=2 - example_test.go:49
-	//2020/02/25 23:40:12.270387 DEBUG < lb.WaitUntilAquire. goroutine=1, index=2 - example_test.go:49
-	//2020/02/25 23:40:12.370509 DEBUG < lb.WaitUntilAquire. goroutine=2, index=2 - example_test.go:49
-	//2020/02/25 23:40:12.475001 DEBUG < lb.WaitUntilAquire. goroutine=3, index=3 - example_test.go:49
-	//2020/02/25 23:40:12.571062 DEBUG < lb.WaitUntilAquire. goroutine=0, index=3 - example_test.go:49
-	//2020/02/25 18:40:12.672385 DEBUG < lb.WaitUntilAquire. goroutine=1, index=3 - example_test.go:49
-	//2020/02/25 18:40:12.770939 DEBUG < lb.WaitUntilAquire. goroutine=2, index=3 - example_test.go:49
+	// 23:40:11.275685 DEBUG < lb.WaitUntilAquire. goroutine=3, index=0 - example_test.go:49
+	// 23:40:11.374789 DEBUG < lb.WaitUntilAquire. goroutine=0, index=0 - example_test.go:49
+	// 23:40:11.473445 DEBUG < lb.WaitUntilAquire. goroutine=1, index=0 - example_test.go:49
+	// 23:40:11.571714 DEBUG < lb.WaitUntilAquire. goroutine=2, index=0 - example_test.go:49
+	// 23:40:11.670913 DEBUG < lb.WaitUntilAquire. goroutine=3, index=1 - example_test.go:49
+	// 23:40:11.772003 DEBUG < lb.WaitUntilAquire. goroutine=0, index=1 - example_test.go:49
+	// 23:40:11.871239 DEBUG < lb.WaitUntilAquire. goroutine=1, index=1 - example_test.go:49
+	// 23:40:11.973307 DEBUG < lb.WaitUntilAquire. goroutine=2, index=1 - example_test.go:49
+	// 23:40:12.075015 DEBUG < lb.WaitUntilAquire. goroutine=3, index=2 - example_test.go:49
+	// 23:40:12.173357 DEBUG < lb.WaitUntilAquire. goroutine=0, index=2 - example_test.go:49
+	// 23:40:12.270387 DEBUG < lb.WaitUntilAquire. goroutine=1, index=2 - example_test.go:49
+	// 23:40:12.370509 DEBUG < lb.WaitUntilAquire. goroutine=2, index=2 - example_test.go:49
+	// 23:40:12.475001 DEBUG < lb.WaitUntilAquire. goroutine=3, index=3 - example_test.go:49
+	// 23:40:12.571062 DEBUG < lb.WaitUntilAquire. goroutine=0, index=3 - example_test.go:49
+	// 23:40:12.672385 DEBUG < lb.WaitUntilAquire. goroutine=1, index=3 - example_test.go:49
+	// 23:40:12.770939 DEBUG < lb.WaitUntilAquire. goroutine=2, index=3 - example_test.go:49
 }
 
 func TestTokenBucket(t *testing.T) {
@@ -94,22 +97,22 @@ func TestTokenBucket(t *testing.T) {
 		}(i)
 	}
 	time.Sleep(2 * time.Second)
-	//2020/02/25 19:02:33.453207 DEBUG < tb.WaitUntilAquire. goroutine=2, index=0 - example_test.go:82
-	//2020/02/25 19:02:33.453302 DEBUG < tb.WaitUntilAquire. goroutine=1, index=0 - example_test.go:82
-	//2020/02/25 19:02:33.453414 DEBUG < tb.WaitUntilAquire. goroutine=0, index=0 - example_test.go:82
-	//2020/02/25 19:02:33.453535 DEBUG < tb.WaitUntilAquire. goroutine=3, index=0 - example_test.go:82
-	//2020/02/25 19:02:33.557602 DEBUG < tb.WaitUntilAquire. goroutine=2, index=1 - example_test.go:82
-	//2020/02/25 19:02:33.557881 DEBUG < tb.WaitUntilAquire. goroutine=0, index=1 - example_test.go:82
-	//2020/02/25 19:02:33.557968 DEBUG < tb.WaitUntilAquire. goroutine=1, index=1 - example_test.go:82
-	//2020/02/25 19:02:33.558043 DEBUG < tb.WaitUntilAquire. goroutine=3, index=1 - example_test.go:82
-	//2020/02/25 19:02:33.661411 DEBUG < tb.WaitUntilAquire. goroutine=0, index=2 - example_test.go:82
-	//2020/02/25 19:02:33.661495 DEBUG < tb.WaitUntilAquire. goroutine=2, index=2 - example_test.go:82
-	//2020/02/25 19:02:34.451624 DEBUG < tb.WaitUntilAquire. goroutine=2, index=3 - example_test.go:82
-	//2020/02/25 19:02:34.451715 DEBUG < tb.WaitUntilAquire. goroutine=0, index=3 - example_test.go:82
-	//2020/02/25 19:02:34.451787 DEBUG < tb.WaitUntilAquire. goroutine=3, index=2 - example_test.go:82
-	//2020/02/25 19:02:34.451841 DEBUG < tb.WaitUntilAquire. goroutine=1, index=2 - example_test.go:82
-	//2020/02/25 19:02:34.551910 DEBUG < tb.WaitUntilAquire. goroutine=3, index=3 - example_test.go:82
-	//2020/02/25 19:02:34.556604 DEBUG < tb.WaitUntilAquire. goroutine=1, index=3 - example_test.go:82
+	// 21:02:33.453207 DEBUG < tb.WaitUntilAquire. goroutine=2, index=0 - example_test.go:82
+	// 21:02:33.453302 DEBUG < tb.WaitUntilAquire. goroutine=1, index=0 - example_test.go:82
+	// 21:02:33.453414 DEBUG < tb.WaitUntilAquire. goroutine=0, index=0 - example_test.go:82
+	// 21:02:33.453535 DEBUG < tb.WaitUntilAquire. goroutine=3, index=0 - example_test.go:82
+	// 21:02:33.557602 DEBUG < tb.WaitUntilAquire. goroutine=2, index=1 - example_test.go:82
+	// 21:02:33.557881 DEBUG < tb.WaitUntilAquire. goroutine=0, index=1 - example_test.go:82
+	// 21:02:33.557968 DEBUG < tb.WaitUntilAquire. goroutine=1, index=1 - example_test.go:82
+	// 21:02:33.558043 DEBUG < tb.WaitUntilAquire. goroutine=3, index=1 - example_test.go:82
+	// 21:02:33.661411 DEBUG < tb.WaitUntilAquire. goroutine=0, index=2 - example_test.go:82
+	// 21:02:33.661495 DEBUG < tb.WaitUntilAquire. goroutine=2, index=2 - example_test.go:82
+	// 21:02:34.451624 DEBUG < tb.WaitUntilAquire. goroutine=2, index=3 - example_test.go:82
+	// 21:02:34.451715 DEBUG < tb.WaitUntilAquire. goroutine=0, index=3 - example_test.go:82
+	// 21:02:34.451787 DEBUG < tb.WaitUntilAquire. goroutine=3, index=2 - example_test.go:82
+	// 21:02:34.451841 DEBUG < tb.WaitUntilAquire. goroutine=1, index=2 - example_test.go:82
+	// 21:02:34.551910 DEBUG < tb.WaitUntilAquire. goroutine=3, index=3 - example_test.go:82
+	// 21:02:34.556604 DEBUG < tb.WaitUntilAquire. goroutine=1, index=3 - example_test.go:82
 
 }
 

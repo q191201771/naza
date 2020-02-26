@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-// TODO chef: 漏桶可以考虑增加一个接口，获取当前已排队的任务数或者说当下想获取资源，最快可获取到资源的时间点
-
 var ErrResourceNotAvailable = errors.New("naza.ratelimit: resource not available")
 
 // 漏桶
@@ -71,4 +69,18 @@ func (lb *LeakyBucket) WaitUntilAquire() {
 	// 注意，diff是根据更新前的lastTick计算得到的
 	time.Sleep(time.Duration(lb.intervalMSec-diff) * time.Millisecond)
 	return
+}
+
+// 最快可获取到资源距离当前的时长， 但是不保证获取时一定能抢到
+// 返回0，说明可以获取，返回非0，则是对应的时长，单位毫秒
+func (lb *LeakyBucket) MaybeAvailableIntervalMSec() int64 {
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+	nowMSec := time.Now().UnixNano() / 1e6
+
+	if nowMSec-lb.lastTick > lb.intervalMSec {
+		return 0
+	}
+
+	return lb.lastTick + lb.intervalMSec - nowMSec
 }

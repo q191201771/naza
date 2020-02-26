@@ -14,24 +14,24 @@ import (
 	"time"
 )
 
-// TODO chef: 漏桶可以考虑增加一个接口，获取当前已排队的任务数或者说有可能获取到资源的时间点
+// TODO chef: 漏桶可以考虑增加一个接口，获取当前已排队的任务数或者说当下想获取资源，最快可获取到资源的时间点
 
 var ErrResourceNotAvailable = errors.New("naza.ratelimit: resource not available")
 
 // 漏桶
 type LeakyBucket struct {
-	intervalMSec int
+	intervalMSec int64
 
 	mu       sync.Mutex
-	lastTick int
+	lastTick int64
 }
 
 // @param intervalMSec 多长时间以上，允许获取到一个资源，单位毫秒
 func NewLeakyBucket(intervalMSec int) *LeakyBucket {
 	return &LeakyBucket{
-		intervalMSec: intervalMSec,
+		intervalMSec: int64(intervalMSec),
 		// 注意，第一次获取资源，需要与创建对象时的时间点做比较
-		lastTick: int(time.Now().UnixNano() / 1e6),
+		lastTick: time.Now().UnixNano() / 1e6,
 	}
 }
 
@@ -40,7 +40,7 @@ func NewLeakyBucket(intervalMSec int) *LeakyBucket {
 func (lb *LeakyBucket) TryAquire() error {
 	lb.mu.Lock()
 	defer lb.mu.Unlock()
-	nowMSec := int(time.Now().UnixNano() / 1e6)
+	nowMSec := time.Now().UnixNano() / 1e6
 
 	// 距离上次获取成功时间超过了间隔阈值，返回成功
 	if nowMSec-lb.lastTick > lb.intervalMSec {
@@ -54,7 +54,7 @@ func (lb *LeakyBucket) TryAquire() error {
 // 阻塞直到获取到资源
 func (lb *LeakyBucket) WaitUntilAquire() {
 	lb.mu.Lock()
-	nowMSec := int(time.Now().UnixNano() / 1e6)
+	nowMSec := time.Now().UnixNano() / 1e6
 
 	diff := nowMSec - lb.lastTick
 	if diff > lb.intervalMSec {

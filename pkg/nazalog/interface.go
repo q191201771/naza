@@ -45,6 +45,8 @@ type Logger interface {
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
 	Out(level Level, calldepth int, s string)
+
+	Sync()
 }
 
 type Option struct {

@@ -73,6 +73,7 @@ func TestGlobal(t *testing.T) {
 	Outputf(LevelInfo, 3, "gc test msg by Output%s", "f")
 	Output(LevelInfo, 3, "gc test msg by Output")
 	Out(LevelInfo, 3, "gc test msg by Out")
+	Sync()
 }
 
 func TestNew(t *testing.T) {

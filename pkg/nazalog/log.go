@@ -11,7 +11,6 @@ package nazalog
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"runtime"
 	"sync"
@@ -62,7 +61,7 @@ type logger struct {
 
 	m             sync.Mutex
 	fp            *os.File
-	console       io.Writer
+	console       *os.File
 	buf           bytes.Buffer
 	currRoundTime time.Time
 }
@@ -170,6 +169,9 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	// 输出至控制台
 	if l.console != nil {
 		_, _ = l.console.Write(l.buf.Bytes())
+		if level == LevelFatal || level == LevelPanic {
+			_ = l.console.Sync()
+		}
 	}
 
 	// 输出至日志文件
@@ -183,6 +185,21 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 			l.currRoundTime = now
 		}
 		_, _ = l.fp.Write(l.buf.Bytes())
+		if level == LevelFatal || level == LevelPanic {
+			_ = l.fp.Sync()
+		}
+	}
+}
+
+func (l *logger) Sync() {
+	l.m.Lock()
+	defer l.m.Unlock()
+
+	if l.console != nil {
+		_ = l.console.Sync()
+	}
+	if l.fp != nil {
+		_ = l.fp.Sync()
 	}
 }
 

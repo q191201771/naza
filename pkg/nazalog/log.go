@@ -176,7 +176,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 
 	// 输出至日志文件
 	if l.fp != nil {
-		if now.Day() != l.currRoundTime.Day() {
+		if l.option.IsRotateDaily && now.Day() != l.currRoundTime.Day() {
 			backupName := l.option.Filename + "." + l.currRoundTime.Format("20060102")
 			if err := os.Rename(l.option.Filename, backupName); err == nil {
 				_ = l.fp.Close()

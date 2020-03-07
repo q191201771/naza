@@ -1,3 +1,15 @@
+#### v0.8.0
+
+- package ratelimit:
+    - [feat] 新增漏桶LeakyBucket和令牌桶TokenBucket，把以前的RateLimit删了
+- package nazalog:
+    - [feat] 新增Sync函数，将日志刷盘
+    - [feat] panic和fatal前调用Sync
+    - [fix] 全局的Panic和Panicf忘记调用标准库中的panic
+    - [fix] 使用IsRotateDaily控制日志是否按天翻转，直接没有判断这个标志，导致总是按天翻转
+- package nazahttp:
+    - [feat] 新增DownloadHttpFile函数，下载http保持为本地文件
+
 #### v0.7.1
 
 - package snowflake

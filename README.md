@@ -37,16 +37,17 @@ pkg/                    ...... 源码包
     |-- assert/         ...... 提供了单元测试时的断言功能，减少一些模板代码
     |-- nazastring/     ...... string 和 []byte 相关的操作
     |-- bele/           ...... 提供了大小端的转换操作
+    |-- ratelimit/      ...... 限流器，令牌桶，漏桶
     |-- nazaatomic/     ...... 原子操作
     |-- nazajson/       ...... json 操作
+    |-- fake/           ...... stub和mock相关，实现一些常用的接口，辅助测试其它代码
     |-- taskpool/       ...... 协程池
-    |-- connection/     ...... 对 net.Conn 接口的二次封装
     |-- filebatch/      ...... 文件批处理操作
     |-- nazamd5/        ...... md5 操作
-    |-- ratelimit/      ...... 限流器，令牌桶，漏桶
+    |-- nazahttp/       ...... http操作
+    |-- connection/     ...... 对 net.Conn 接口的二次封装
     |-- ic/             ...... 将整型切片压缩成二进制字节切片
     |-- unique/         ...... 对象唯一 ID
-    |-- fake/           ...... stub和mock相关，实现一些常用的接口，辅助测试其它代码
 playground/             ...... Go实验代码片段
 demo/                   ...... 示例相关的代码
 bin/                    ...... 可执行文件编译输出目录

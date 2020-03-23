@@ -40,7 +40,7 @@ func TestLogger(t *testing.T) {
 	l.Error("l test msg by Error")
 	l.Outputf(LevelInfo, 3, "l test msg by Output%s", "f")
 	l.Output(LevelInfo, 3, "l test msg by Output")
-	l.Out(LevelInfo, 3, "l test msg by Out")
+	l.Out(LevelInfo, 2, "l test msg by Out")
 }
 
 func TestGlobal(t *testing.T) {
@@ -187,6 +187,53 @@ func TestFatal(t *testing.T) {
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
+}
+
+func TestAssert(t *testing.T) {
+	// 成功
+	Assert(nil, nil)
+	FatalAssert(nil, nil)
+	PanicAssert(nil, nil)
+	PanicAssert(1, 1)
+	PanicAssert("aaa", "aaa")
+	var ch chan struct{}
+	PanicAssert(nil, ch)
+	var m map[string]string
+	PanicAssert(nil, m)
+	var p *int
+	PanicAssert(nil, p)
+	var i interface{}
+	PanicAssert(nil, i)
+	var b []byte
+	PanicAssert(nil, b)
+
+	PanicAssert([]byte{}, []byte{})
+	PanicAssert([]byte{0, 1, 2}, []byte{0, 1, 2})
+
+	// 失败
+	Assert(nil, 1)
+
+	err := fake.WithFakeExit(func() {
+		FatalAssert(nil, 1)
+	})
+	assert.Equal(t, true, err.HasExit)
+	assert.Equal(t, 1, err.ExitCode)
+
+	withRecover(func() {
+		PanicAssert([]byte{}, "aaa")
+	})
+
+	l, _ := New()
+	l.Assert(nil, 1)
+	err = fake.WithFakeExit(func() {
+		l.FatalAssert(nil, 1)
+	})
+	assert.Equal(t, true, err.HasExit)
+	assert.Equal(t, 1, err.ExitCode)
+
+	withRecover(func() {
+		l.PanicAssert([]byte{}, "aaa")
+	})
 }
 
 func BenchmarkStdout(b *testing.B) {

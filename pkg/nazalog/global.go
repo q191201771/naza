@@ -85,7 +85,28 @@ func FatalIfErrorNotNil(err error) {
 
 func PanicIfErrorNotNil(err error) {
 	if err != nil {
-		global.Out(LevelPanic, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
+		global.Out(LevelPanic, 3, fmt.Sprintf("panic since error not nil. err=%+v", err))
+		panic(err)
+	}
+}
+
+func Assert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		global.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
+	}
+}
+
+func FatalAssert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		global.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
+		fake.Exit(1)
+	}
+}
+
+func PanicAssert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		err := fmt.Sprintf("panic since excepted=%+v, but actual=%+v", expected, actual)
+		global.Out(LevelPanic, 3, err)
 		panic(err)
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
 	"runtime"
 	"sync"
 	"time"
@@ -140,6 +141,27 @@ func (l *logger) PanicIfErrorNotNil(err error) {
 	}
 }
 
+func (l *logger) Assert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		l.Out(LevelError, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
+	}
+}
+
+func (l *logger) FatalAssert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		l.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
+		fake.Exit(1)
+	}
+}
+
+func (l *logger) PanicAssert(expected interface{}, actual interface{}) {
+	if !equal(expected, actual) {
+		err := fmt.Sprintf("panic since excepted=%+v, but actual=%+v", expected, actual)
+		l.Out(LevelPanic, 3, err)
+		panic(err)
+	}
+}
+
 func (l *logger) Out(level Level, calldepth int, s string) {
 	if l.option.Level > level {
 		return
@@ -201,6 +223,35 @@ func (l *logger) Sync() {
 	if l.fp != nil {
 		_ = l.fp.Sync()
 	}
+}
+
+func isNil(actual interface{}) bool {
+	if actual == nil {
+		return true
+	}
+	v := reflect.ValueOf(actual)
+	k := v.Kind()
+	if k == reflect.Chan || k == reflect.Map || k == reflect.Ptr || k == reflect.Interface || k == reflect.Slice {
+		return v.IsNil()
+	}
+	return false
+}
+
+func equal(expected, actual interface{}) bool {
+	if expected == nil {
+		return isNil(actual)
+	}
+
+	exp, ok := expected.([]byte)
+	if !ok {
+		return reflect.DeepEqual(expected, actual)
+	}
+
+	act, ok := actual.([]byte)
+	if !ok {
+		return false
+	}
+	return bytes.Equal(exp, act)
 }
 
 func writeTime(buf *bytes.Buffer, t time.Time) {

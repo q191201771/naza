@@ -42,6 +42,10 @@ type Logger interface {
 	FatalIfErrorNotNil(err error)
 	PanicIfErrorNotNil(err error)
 
+	Assert(expected interface{}, actual interface{}) // 不相等时打印error级别日志
+	FatalAssert(expected interface{}, actual interface{})
+	PanicAssert(expected interface{}, actual interface{})
+
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
 	Out(level Level, calldepth int, s string)

@@ -68,6 +68,22 @@ func TestBEUint32(t *testing.T) {
 	}
 }
 
+func TestBEUint64(t *testing.T) {
+	vector := []struct {
+		input  []byte
+		output uint64
+	}{
+		{input: []byte{0, 0, 0, 0, 0, 0, 0, 0}, output: 0},
+		{input: []byte{0, 0, 0, 0, 1, 0, 0, 0}, output: 1 * 256 * 256 * 256},
+		{input: []byte{0, 0, 0, 0, 12, 34, 56, 78}, output: 12*256*256*256 + 34*256*256 + 56*256 + 78},
+		{input: []byte{0, 12, 34, 56, 78, 0, 0, 0}, output: 12*256*256*256*256*256*256 + 34*256*256*256*256*256 + 56*256*256*256*256 + 78*256*256*256},
+	}
+
+	for i := 0; i < len(vector); i++ {
+		assert.Equal(t, vector[i].output, BEUint64(vector[i].input))
+	}
+}
+
 func TestBEFloat64(t *testing.T) {
 	vector := []int{
 		1,

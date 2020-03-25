@@ -21,6 +21,8 @@ import (
 	"math"
 )
 
+// 反序列化
+
 func BEUint16(p []byte) uint16 {
 	return binary.BigEndian.Uint16(p)
 }
@@ -33,6 +35,10 @@ func BEUint32(p []byte) (ret uint32) {
 	return binary.BigEndian.Uint32(p)
 }
 
+func BEUint64(p []byte) (ret uint64) {
+	return binary.BigEndian.Uint64(p)
+}
+
 func BEFloat64(p []byte) (ret float64) {
 	a := binary.BigEndian.Uint64(p)
 	return math.Float64frombits(a)
@@ -41,6 +47,8 @@ func BEFloat64(p []byte) (ret float64) {
 func LEUint32(p []byte) (ret uint32) {
 	return binary.LittleEndian.Uint32(p)
 }
+
+// 序列化
 
 func BEPutUint24(out []byte, in uint32) {
 	out[0] = byte(in >> 16)

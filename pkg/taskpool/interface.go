@@ -18,7 +18,7 @@ import (
 
 var ErrTaskPool = errors.New("naza.taskpool: fxxk")
 
-type Task func()
+type TaskFn func(param ...interface{})
 
 type Status struct {
 	TotalWorkerNum int // 总协程数量
@@ -29,7 +29,7 @@ type Status struct {
 type Pool interface {
 	// 向池内放入任务
 	// 非阻塞函数，不会等待task执行
-	Go(task Task)
+	Go(task TaskFn, param ...interface{})
 
 	// 获取当前的状态，注意，只是一个瞬时值
 	GetCurrentStatus() Status

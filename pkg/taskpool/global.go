@@ -10,8 +10,8 @@ package taskpool
 
 var global Pool
 
-func Go(task Task) {
-	global.Go(task)
+func Go(task TaskFn, param ...interface{}) {
+	global.Go(task, param)
 }
 
 func GetCurrentStatus() Status {

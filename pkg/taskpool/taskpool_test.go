@@ -10,6 +10,7 @@ package taskpool_test
 
 import (
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -52,7 +53,7 @@ func BenchmarkTaskPool(b *testing.B) {
 		//b.StartTimer()
 		wg.Add(taskNum)
 		for i := 0; i < taskNum; i++ {
-			p.Go(func() {
+			p.Go(func(param ...interface{}) {
 				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 			})
@@ -79,7 +80,7 @@ func TestTaskPool(t *testing.T) {
 	wg.Add(n)
 	nazalog.Debug("start.")
 	for i := 0; i < n; i++ {
-		p.Go(func() {
+		p.Go(func(param ...interface{}) {
 			time.Sleep(10 * time.Millisecond)
 			wg.Done()
 		})
@@ -93,7 +94,7 @@ func TestTaskPool(t *testing.T) {
 
 	wg.Add(n)
 	for i := 0; i < n; i++ {
-		p.Go(func() {
+		p.Go(func(param ...interface{}) {
 			time.Sleep(10 * time.Millisecond)
 			wg.Done()
 		})
@@ -121,11 +122,14 @@ func TestMaxWorker(t *testing.T) {
 	wg.Add(n)
 	nazalog.Debugf("start.")
 	for i := 0; i < n; i++ {
-		p.Go(func() {
-			//atomic.AddInt32(&sum, int32(i))
+		p.Go(func(param ...interface{}) {
+			a := param[0].(int)
+			b := param[1].(int)
+			atomic.AddInt32(&sum, int32(a))
+			atomic.AddInt32(&sum, int32(b))
 			time.Sleep(10 * time.Millisecond)
 			wg.Done()
-		})
+		}, i, i)
 	}
 	wg.Wait()
 	nazalog.Debugf("end. sum=%d", sum)
@@ -138,7 +142,7 @@ func TestGlobal(t *testing.T) {
 	assert.Equal(t, 0, s.TotalWorkerNum)
 	assert.Equal(t, 0, s.IdleWorkerNum)
 	assert.Equal(t, 0, s.BlockTaskNum)
-	taskpool.Go(func() {
+	taskpool.Go(func(param ...interface{}) {
 	})
 	taskpool.KillIdleWorkers()
 }

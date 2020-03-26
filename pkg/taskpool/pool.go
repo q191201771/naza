@@ -12,13 +12,18 @@ import (
 	"sync"
 )
 
+type taskWrapper struct {
+	taskFn TaskFn
+	param  []interface{}
+}
+
 type pool struct {
 	maxWorkerNum int
 
 	m              sync.Mutex
 	totalWorkerNum int
 	idleWorkerList []*worker
-	blockTaskList  []Task
+	blockTaskList  []taskWrapper
 }
 
 func newPool(option Option) *pool {
@@ -31,7 +36,11 @@ func newPool(option Option) *pool {
 	return &p
 }
 
-func (p *pool) Go(task Task) {
+func (p *pool) Go(task TaskFn, param ...interface{}) {
+	tw := taskWrapper{
+		taskFn: task,
+		param:  param,
+	}
 	var w *worker
 	p.m.Lock()
 	if len(p.idleWorkerList) != 0 {
@@ -39,7 +48,7 @@ func (p *pool) Go(task Task) {
 
 		w = p.idleWorkerList[len(p.idleWorkerList)-1]
 		p.idleWorkerList = p.idleWorkerList[0 : len(p.idleWorkerList)-1]
-		w.Go(task)
+		w.Go(tw)
 	} else {
 		// 无空闲worker
 
@@ -47,11 +56,11 @@ func (p *pool) Go(task Task) {
 			(p.maxWorkerNum > 0 && p.totalWorkerNum < p.maxWorkerNum) {
 			// 无最大worker限制，或还未达到限制
 
-			p.newWorkerWithTask(task)
+			p.newWorkerWithTask(tw)
 		} else {
 			// 已达到限制
 
-			p.blockTaskList = append(p.blockTaskList, task)
+			p.blockTaskList = append(p.blockTaskList, tw)
 		}
 	}
 	p.m.Unlock()
@@ -85,7 +94,7 @@ func (p *pool) newWorker() *worker {
 	return w
 }
 
-func (p *pool) newWorkerWithTask(task Task) {
+func (p *pool) newWorkerWithTask(task taskWrapper) {
 	w := NewWorker(p)
 	w.Start()
 	w.Go(task)

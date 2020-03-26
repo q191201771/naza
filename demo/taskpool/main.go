@@ -54,7 +54,7 @@ func taskPool() {
 		//b.StartTimer()
 		wg.Add(taskNum)
 		for i := 0; i < taskNum; i++ {
-			ps[i%poolNum].Go(func() {
+			ps[i%poolNum].Go(func(param ...interface{}) {
 				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 			})
@@ -68,8 +68,7 @@ func taskPool() {
 		//nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
 	}
 	nazalog.Debug("< BenchmarkTaskPool")
-	idle, busy := ps[0].Status()
-	nazalog.Debugf("killed, worker num. idle=%d, busy=%d", idle, busy)
+	nazalog.Debugf("killed, worker num. status=%+v", ps[0].GetCurrentStatus())
 }
 
 func main() {

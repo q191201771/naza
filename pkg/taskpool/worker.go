@@ -8,19 +8,19 @@
 
 package taskpool
 
-type Worker struct {
+type worker struct {
 	taskChan chan Task
 	p        *pool
 }
 
-func NewWorker(p *pool) *Worker {
-	return &Worker{
+func NewWorker(p *pool) *worker {
+	return &worker{
 		taskChan: make(chan Task, 1),
 		p:        p,
 	}
 }
 
-func (w *Worker) Start() {
+func (w *worker) Start() {
 	go func() {
 		for {
 			task, ok := <-w.taskChan
@@ -28,15 +28,15 @@ func (w *Worker) Start() {
 				break
 			}
 			task()
-			w.p.markIdle(w)
+			w.p.onIdle(w)
 		}
 	}()
 }
 
-func (w *Worker) Stop() {
+func (w *worker) Stop() {
 	close(w.taskChan)
 }
 
-func (w *Worker) Go(task Task) {
+func (w *worker) Go(task Task) {
 	w.taskChan <- task
 }

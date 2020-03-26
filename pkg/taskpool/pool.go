@@ -10,54 +10,98 @@ package taskpool
 
 import (
 	"sync"
-
-	"github.com/q191201771/naza/pkg/nazaatomic"
 )
 
 type pool struct {
-	idleWorkerNum nazaatomic.Uint32
-	busyWorkerNum nazaatomic.Uint32
+	maxWorkerNum int
 
 	m              sync.Mutex
-	idleWorkerList []*Worker
+	totalWorkerNum int
+	idleWorkerList []*worker
+	blockTaskList  []Task
+}
+
+func newPool(option Option) *pool {
+	p := pool{
+		maxWorkerNum: option.MaxWorkerNum,
+	}
+	for i := 0; i < option.InitWorkerNum; i++ {
+		p.newWorker()
+	}
+	return &p
 }
 
 func (p *pool) Go(task Task) {
-	var w *Worker
+	var w *worker
 	p.m.Lock()
 	if len(p.idleWorkerList) != 0 {
+		// 还有空闲worker
+
 		w = p.idleWorkerList[len(p.idleWorkerList)-1]
 		p.idleWorkerList = p.idleWorkerList[0 : len(p.idleWorkerList)-1]
-		p.idleWorkerNum.Decrement()
-		p.busyWorkerNum.Increment()
+		w.Go(task)
+	} else {
+		// 无空闲worker
+
+		if p.maxWorkerNum == 0 ||
+			(p.maxWorkerNum > 0 && p.totalWorkerNum < p.maxWorkerNum) {
+			// 无最大worker限制，或还未达到限制
+
+			p.newWorkerWithTask(task)
+		} else {
+			// 已达到限制
+
+			p.blockTaskList = append(p.blockTaskList, task)
+		}
 	}
 	p.m.Unlock()
-	if w == nil {
-		w = NewWorker(p)
-		w.Start()
-		p.busyWorkerNum.Increment()
-	}
-	w.Go(task)
 }
 
 func (p *pool) KillIdleWorkers() {
 	p.m.Lock()
+	p.totalWorkerNum = p.totalWorkerNum - len(p.idleWorkerList)
 	for i := range p.idleWorkerList {
 		p.idleWorkerList[i].Stop()
 	}
-	p.idleWorkerNum.Sub(uint32(len(p.idleWorkerList)))
 	p.idleWorkerList = p.idleWorkerList[0:0]
 	p.m.Unlock()
 }
 
-func (p *pool) Status() (idleWorkerNum int, busyWorkerNum int) {
-	return int(p.idleWorkerNum.Load()), int(p.busyWorkerNum.Load())
+func (p *pool) GetCurrentStatus() Status {
+	p.m.Lock()
+	defer p.m.Unlock()
+	return Status{
+		TotalWorkerNum: p.totalWorkerNum,
+		IdleWorkerNum:  len(p.idleWorkerList),
+		BlockTaskNum:   len(p.blockTaskList),
+	}
 }
 
-func (p *pool) markIdle(w *Worker) {
-	p.m.Lock()
-	p.idleWorkerNum.Increment()
-	p.busyWorkerNum.Decrement()
+func (p *pool) newWorker() *worker {
+	w := NewWorker(p)
+	w.Start()
 	p.idleWorkerList = append(p.idleWorkerList, w)
+	p.totalWorkerNum++
+	return w
+}
+
+func (p *pool) newWorkerWithTask(task Task) {
+	w := NewWorker(p)
+	w.Start()
+	w.Go(task)
+	p.totalWorkerNum++
+}
+
+func (p *pool) onIdle(w *worker) {
+	p.m.Lock()
+	if len(p.blockTaskList) == 0 {
+		// 没有等待执行的任务
+
+		p.idleWorkerList = append(p.idleWorkerList, w)
+	} else {
+		t := p.blockTaskList[0]
+		p.blockTaskList = p.blockTaskList[1:]
+		w.Go(t)
+	}
 	p.m.Unlock()
 }

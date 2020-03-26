@@ -14,8 +14,8 @@ func Go(task Task) {
 	global.Go(task)
 }
 
-func Status() (idleWorkerNum int, busyWorkerNum int) {
-	return global.Status()
+func GetCurrentStatus() Status {
+	return global.GetCurrentStatus()
 }
 
 func KillIdleWorkers() {

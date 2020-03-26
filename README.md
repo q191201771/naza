@@ -29,19 +29,19 @@ Go语言基础库
 ```
 pkg/                    ...... 源码包
     |-- bininfo/        ...... 将编译时源码的 git 版本信息（当前 commit log 的 sha 值和 commit message），编译时间，Go 版本，平台打入程序中
+    |-- nazalog/        ...... 日志库
+    |-- bele/           ...... 提供了大小端的转换操作
+    |-- nazaatomic/     ...... 原子操作
+    |-- taskpool/       ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程数量，可手动释放空闲的协程
     |-- snowflake/      ...... 分布式唯一性 ID 生成器
     |-- bitrate/        ...... 计算带宽
     |-- consistenthash/ ...... 一致性哈希
-    |-- nazalog/        ...... 日志库
     |-- slicebytepool/  ...... []byte 内存池
     |-- assert/         ...... 提供了单元测试时的断言功能，减少一些模板代码
     |-- nazastring/     ...... string 和 []byte 相关的操作
-    |-- bele/           ...... 提供了大小端的转换操作
     |-- ratelimit/      ...... 限流器，令牌桶，漏桶
-    |-- nazaatomic/     ...... 原子操作
     |-- nazajson/       ...... json 操作
     |-- fake/           ...... stub和mock相关，实现一些常用的接口，辅助测试其它代码
-    |-- taskpool/       ...... 协程池
     |-- filebatch/      ...... 文件批处理操作
     |-- nazamd5/        ...... md5 操作
     |-- nazahttp/       ...... http操作

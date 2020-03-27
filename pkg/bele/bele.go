@@ -21,7 +21,7 @@ import (
 	"math"
 )
 
-// 反序列化
+// ----- 反序列化 -----
 
 func BEUint16(p []byte) uint16 {
 	return binary.BigEndian.Uint16(p)
@@ -48,7 +48,67 @@ func LEUint32(p []byte) (ret uint32) {
 	return binary.LittleEndian.Uint32(p)
 }
 
-// 序列化
+func ReadBytes(r io.Reader, n int) ([]byte, error) {
+	b := make([]byte, n)
+	// 原生Read函数，读不够时，会在第一次调用时读入剩余的数据，并返回读入数据的真实长度，以及nil值的error
+	// 在下一次Read时，才返回EOF
+	// 这里我们在第一次读不够时，就直接返回EOF。（但是也会把剩余的数据读取到）
+	nn, err := r.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	if nn != n {
+		return b, io.EOF
+	}
+	return b, nil
+}
+
+func ReadString(r io.Reader, n int) (string, error) {
+	b, err := ReadBytes(r, n)
+	return string(b), err
+}
+
+func ReadUint8(r io.Reader) (uint8, error) {
+	b, err := ReadBytes(r, 1)
+	if err != nil {
+		return 0, err
+	}
+	return b[0], nil
+}
+
+func ReadBEUint16(r io.Reader) (uint16, error) {
+	b, err := ReadBytes(r, 2)
+	if err != nil {
+		return 0, err
+	}
+	return BEUint16(b), nil
+}
+
+func ReadBEUint24(r io.Reader) (uint32, error) {
+	b, err := ReadBytes(r, 3)
+	if err != nil {
+		return 0, err
+	}
+	return BEUint24(b), nil
+}
+
+func ReadBEUint32(r io.Reader) (uint32, error) {
+	b, err := ReadBytes(r, 4)
+	if err != nil {
+		return 0, err
+	}
+	return BEUint32(b), nil
+}
+
+func ReadBEUint64(r io.Reader) (uint64, error) {
+	b, err := ReadBytes(r, 8)
+	if err != nil {
+		return 0, err
+	}
+	return BEUint64(b), nil
+}
+
+// ----- 序列化 -----
 
 func BEPutUint24(out []byte, in uint32) {
 	out[0] = byte(in >> 16)

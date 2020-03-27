@@ -42,6 +42,7 @@ type Logger interface {
 	FatalIfErrorNotNil(err error)
 	PanicIfErrorNotNil(err error)
 
+	// 注意，expected和actual的类型必须相同，比如int(1)和int32(1)是不相等的
 	Assert(expected interface{}, actual interface{}) // 不相等时打印error级别日志
 	FatalAssert(expected interface{}, actual interface{})
 	PanicAssert(expected interface{}, actual interface{})

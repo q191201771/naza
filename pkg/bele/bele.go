@@ -108,6 +108,14 @@ func ReadBEUint64(r io.Reader) (uint64, error) {
 	return BEUint64(b), nil
 }
 
+func ReadLEUint32(r io.Reader) (uint32, error) {
+	b, err := ReadBytes(r, 4)
+	if err != nil {
+		return 0, err
+	}
+	return LEUint32(b), nil
+}
+
 // ----- 序列化 -----
 
 func BEPutUint24(out []byte, in uint32) {

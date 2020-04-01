@@ -252,6 +252,8 @@ func TestRead(t *testing.T) {
 	assert.IsNotNil(t, err)
 	_, err = ReadBEUint64(b)
 	assert.IsNotNil(t, err)
+	_, err = ReadLEUint32(b)
+	assert.IsNotNil(t, err)
 
 	b.Write([]byte{1})
 	i8, err := ReadUint8(b)
@@ -272,6 +274,11 @@ func TestRead(t *testing.T) {
 	b.Write([]byte{1, 2, 3, 4, 5, 6, 7, 8})
 	i64, err := ReadBEUint64(b)
 	assert.Equal(t, BEUint64([]byte{1, 2, 3, 4, 5, 6, 7, 8}), i64)
+	assert.Equal(t, nil, err)
+
+	b.Write([]byte{1, 0, 0, 0})
+	i32, err = ReadLEUint32(b)
+	assert.Equal(t, uint32(1), i32)
 	assert.Equal(t, nil, err)
 }
 

@@ -39,18 +39,18 @@ type Logger interface {
 	Fatal(v ...interface{})
 	Panic(v ...interface{})
 
-	FatalIfErrorNotNil(err error)
-	PanicIfErrorNotNil(err error)
-
-	// 注意，expected和actual的类型必须相同，比如int(1)和int32(1)是不相等的
-	Assert(expected interface{}, actual interface{}) // 不相等时打印error级别日志
-	FatalAssert(expected interface{}, actual interface{})
-	PanicAssert(expected interface{}, actual interface{})
-
 	Outputf(level Level, calldepth int, format string, v ...interface{})
 	Output(level Level, calldepth int, v ...interface{})
 	Out(level Level, calldepth int, s string)
 
+	// 断言失败后的行为由配置项Option.AssertBehavior决定
+	// 注意，expected和actual的类型必须相同，比如int(1)和int32(1)是不相等的
+	Assert(expected interface{}, actual interface{})
+
+	FatalIfErrorNotNil(err error)
+	PanicIfErrorNotNil(err error)
+
+	// flush to disk, typically
 	Sync()
 }
 
@@ -65,15 +65,18 @@ type Option struct {
 	IsRotateDaily bool `json:"is_rotate_daily"` // 日志按天翻转
 
 	ShortFileFlag bool `json:"short_file_flag"` // 是否在每行日志尾部添加源码文件及行号的信息
+
+	AssertBehavior AssertBehavior `json:"assert_behavior"` // 断言失败时的行为
 }
 
 // 没有配置的属性，将按如下配置
 var defaultOption = Option{
-	Level:         LevelDebug,
-	Filename:      "",
-	IsToStdout:    true,
-	IsRotateDaily: false,
-	ShortFileFlag: true,
+	Level:          LevelDebug,
+	Filename:       "",
+	IsToStdout:     true,
+	IsRotateDaily:  false,
+	ShortFileFlag:  true,
+	AssertBehavior: AssertError,
 }
 
 type Level uint8
@@ -88,9 +91,22 @@ const (
 	LevelPanic
 )
 
+type AssertBehavior uint8
+
+const (
+	_           AssertBehavior = iota
+	AssertError                // 1
+	AssertFatal
+	AssertPanic
+)
+
 type ModOption func(option *Option)
 
 func New(modOptions ...ModOption) (Logger, error) {
+	return newLogger(modOptions...)
+}
+
+func newLogger(modOptions ...ModOption) (*logger, error) {
 	var err error
 
 	l := new(logger)
@@ -122,6 +138,9 @@ func New(modOptions ...ModOption) (Logger, error) {
 
 func validate(option Option) error {
 	if option.Level < LevelDebug || option.Level > LevelPanic {
+		return ErrLog
+	}
+	if option.AssertBehavior < AssertError || option.AssertBehavior > AssertPanic {
 		return ErrLog
 	}
 	return nil

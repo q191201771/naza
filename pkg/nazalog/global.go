@@ -14,7 +14,7 @@ import (
 	"github.com/q191201771/naza/pkg/fake"
 )
 
-var global Logger
+var global *logger
 
 func Outputf(level Level, calldepth int, format string, v ...interface{}) {
 	global.Out(level, 3, fmt.Sprintf(format, v...))
@@ -92,22 +92,17 @@ func PanicIfErrorNotNil(err error) {
 
 func Assert(expected interface{}, actual interface{}) {
 	if !equal(expected, actual) {
-		global.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
-	}
-}
-
-func FatalAssert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
-		global.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
-		fake.Exit(1)
-	}
-}
-
-func PanicAssert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
-		err := fmt.Sprintf("panic since excepted=%+v, but actual=%+v", expected, actual)
-		global.Out(LevelPanic, 3, err)
-		panic(err)
+		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
+		switch global.option.AssertBehavior {
+		case AssertError:
+			global.Out(LevelError, 3, err)
+		case AssertFatal:
+			global.Out(LevelFatal, 3, err)
+			fake.Exit(1)
+		case AssertPanic:
+			global.Out(LevelPanic, 3, err)
+			panic(err)
+		}
 	}
 }
 
@@ -122,7 +117,7 @@ func Sync() {
 // 这里不加锁保护，如果要调用Init函数初始化全局的Logger，那么由调用方保证调用Init函数时不会并发调用全局Logger的其他方法
 func Init(modOptions ...ModOption) error {
 	var err error
-	global, err = New(modOptions...)
+	global, err = newLogger(modOptions...)
 	return err
 }
 

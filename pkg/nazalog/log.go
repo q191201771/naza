@@ -20,6 +20,8 @@ import (
 	"github.com/q191201771/naza/pkg/fake"
 )
 
+var _ Logger = new(logger)
+
 const (
 	levelDebugString = "DEBUG "
 	levelInfoString  = " INFO "
@@ -143,22 +145,17 @@ func (l *logger) PanicIfErrorNotNil(err error) {
 
 func (l *logger) Assert(expected interface{}, actual interface{}) {
 	if !equal(expected, actual) {
-		l.Out(LevelError, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
-	}
-}
-
-func (l *logger) FatalAssert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
-		l.Out(LevelFatal, 3, fmt.Sprintf("fatal since excepted=%+v, but actual=%+v", expected, actual))
-		fake.Exit(1)
-	}
-}
-
-func (l *logger) PanicAssert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
-		err := fmt.Sprintf("panic since excepted=%+v, but actual=%+v", expected, actual)
-		l.Out(LevelPanic, 3, err)
-		panic(err)
+		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
+		switch l.option.AssertBehavior {
+		case AssertError:
+			l.Out(LevelError, 3, err)
+		case AssertFatal:
+			l.Out(LevelFatal, 3, err)
+			fake.Exit(1)
+		case AssertPanic:
+			l.Out(LevelPanic, 3, err)
+			panic(err)
+		}
 	}
 }
 

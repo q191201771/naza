@@ -1,3 +1,14 @@
+#### v0.9.0
+
+- package taskpool:
+    - [feat] 增加Option.MaxWorkerNum，可配置最大协程并发数量
+    - [feat] task任务函数可携带参数
+- package nazalog:
+    - [feat] 新增Assert函数，并可配置断言失败后的行为
+- package bele:
+    - [feat] 增加一些ReadXXX函数，从io.Reader中读取数据
+    - [feat] 新增BEUint64函数
+
 #### v0.8.0
 
 - package ratelimit:

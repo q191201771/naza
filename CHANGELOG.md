@@ -1,7 +1,7 @@
 #### v0.9.1
 
 - package nazabits:
-    - [feat] 新增ackage，提供一些位运算函数
+    - [feat] 新增package，提供一些位运算函数
 
 #### v0.9.0
 

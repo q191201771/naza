@@ -5,6 +5,7 @@ Go语言基础库
 <a title="TravisCI" target="_blank" href="https://www.travis-ci.org/q191201771/naza"><img src="https://www.travis-ci.org/q191201771/naza.svg?branch=master"></a>
 <a title="codecov" target="_blank" href="https://codecov.io/gh/q191201771/naza"><img src="https://codecov.io/gh/q191201771/naza/branch/master/graph/badge.svg?style=flat-square"></a>
 <a title="goreportcard" target="_blank" href="https://goreportcard.com/report/github.com/q191201771/naza"><img src="https://goreportcard.com/badge/github.com/q191201771/naza?style=flat-square"></a>
+<a title="sourcegraph" target="_blank" href="https://sourcegraph.com/github.com/q191201771/naza"><img src="https://sourcegraph.com/github.com/q191201771/naza/-/badge.svg"></a>
 <br>
 <a title="codeline" target="_blank" href="https://github.com/q191201771/naza"><img src="https://sloc.xyz/github/q191201771/naza/?category=code"></a>
 <a title="license" target="_blank" href="https://github.com/q191201771/naza/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>
@@ -33,6 +34,7 @@ pkg/                    ...... 源码包
     |-- taskpool/       ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
     |-- bele/           ...... 大小端转换操作
     |-- nazabits/       ...... 位操作
+    |-- fake/           ...... 实现一些常用的接口，hook一些不方便测试的代码
     |-- nazaatomic/     ...... 原子操作
     |-- snowflake/      ...... 分布式唯一性ID生成器
     |-- bitrate/        ...... 计算带宽
@@ -42,7 +44,6 @@ pkg/                    ...... 源码包
     |-- nazastring/     ...... string和[]byte相关的操作
     |-- ratelimit/      ...... 限流器，令牌桶，漏桶
     |-- nazajson/       ...... json操作
-    |-- fake/           ...... stub和mock相关，实现一些常用的接口，辅助测试其它代码
     |-- filebatch/      ...... 文件批处理操作
     |-- nazamd5/        ...... md5操作
     |-- nazahttp/       ...... http操作

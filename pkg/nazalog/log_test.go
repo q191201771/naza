@@ -10,10 +10,12 @@ package nazalog_test
 
 import (
 	"encoding/hex"
-	"errors"
+	"fmt"
 	originLog "log"
 	"os"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/q191201771/naza/pkg/nazalog"
 
@@ -40,9 +42,11 @@ func TestLogger(t *testing.T) {
 	l.Info("l test msg by Info")
 	l.Warn("l test msg by Warn")
 	l.Error("l test msg by Error")
-	l.Outputf(nazalog.LevelInfo, 3, "l test msg by Output%s", "f")
-	l.Output(nazalog.LevelInfo, 3, "l test msg by Output")
-	l.Out(nazalog.LevelInfo, 2, "l test msg by Out")
+	l.Output(2, "l test msg by Output")
+	l.Out(nazalog.LevelInfo, 1, "l test msg by Out")
+	l.Print("l test msg by Print")
+	l.Printf("l test msg by Print%s", "f")
+	l.Println("l test msg by Print")
 }
 
 func TestGlobal(t *testing.T) {
@@ -72,9 +76,11 @@ func TestGlobal(t *testing.T) {
 	nazalog.Info("gc test msg by Info")
 	nazalog.Warn("gc test msg by Warn")
 	nazalog.Error("gc test msg by Error")
-	nazalog.Outputf(nazalog.LevelInfo, 3, "gc test msg by Output%s", "f")
-	nazalog.Output(nazalog.LevelInfo, 3, "gc test msg by Output")
-	nazalog.Out(nazalog.LevelInfo, 3, "gc test msg by Out")
+	nazalog.Output(2, "gc test msg by Output")
+	nazalog.Out(nazalog.LevelInfo, 2, "gc test msg by Out")
+	nazalog.Print("gc test msg by Print")
+	nazalog.Printf("gc test msg by Print%s", "f")
+	nazalog.Println("gc test msg by Print")
 	nazalog.Sync()
 }
 
@@ -117,81 +123,81 @@ func TestRotate(t *testing.T) {
 
 	})
 	assert.Equal(t, nil, err)
-	b := make([]byte, 1024)
-	for i := 0; i < 2*1024; i++ {
-		nazalog.Info(b)
-	}
-	for i := 0; i < 2*1024; i++ {
-		nazalog.Infof("%+v", b)
-	}
-}
-
-func withRecover(f func()) {
-	defer func() {
-		recover()
-	}()
-	f()
+	nazalog.Info("aaa")
+	fake.WithFakeTimeNow(func() time.Time {
+		return time.Now().Add(48 * time.Hour)
+	}, func() {
+		nazalog.Info("bbb")
+	})
 }
 
 func TestPanic(t *testing.T) {
-	withRecover(func() {
-		nazalog.Debug("ddd")
+	fake.WithRecover(func() {
 		nazalog.Panic("aaa")
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		nazalog.Panicf("%s", "bbb")
 	})
-	withRecover(func() {
-		nazalog.PanicIfErrorNotNil(errors.New("mock error"))
+	fake.WithRecover(func() {
+		nazalog.Panicln("aaa")
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		l, err := nazalog.New()
 		assert.Equal(t, nil, err)
 		l.Panic("aaa")
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		l, err := nazalog.New()
 		assert.Equal(t, nil, err)
 		l.Panicf("%s", "bbb")
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		l, err := nazalog.New()
 		assert.Equal(t, nil, err)
-		l.PanicIfErrorNotNil(errors.New("mock error"))
+		l.Panicln("aaa")
 	})
 }
 
 func TestFatal(t *testing.T) {
 	var er fake.ExitResult
-	er = fake.WithFakeExit(func() {
-		nazalog.FatalIfErrorNotNil(errors.New("fxxk"))
-	})
-	assert.Equal(t, true, er.HasExit)
-	assert.Equal(t, 1, er.ExitCode)
-	er = fake.WithFakeExit(func() {
+
+	er = fake.WithFakeOSExit(func() {
 		nazalog.Fatal("Fatal")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
-	er = fake.WithFakeExit(func() {
+
+	er = fake.WithFakeOSExit(func() {
 		nazalog.Fatalf("Fatalf%s", ".")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	logger, _ := nazalog.New()
-	er = fake.WithFakeExit(func() {
-		logger.FatalIfErrorNotNil(errors.New("fxxk"))
+	er = fake.WithFakeOSExit(func() {
+		nazalog.Fatalln("Fatalln")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
-	er = fake.WithFakeExit(func() {
+
+	logger, err := nazalog.New(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelInfo
+	})
+	assert.IsNotNil(t, logger)
+	assert.Equal(t, nil, err)
+	er = fake.WithFakeOSExit(func() {
 		logger.Fatal("Fatal")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
-	er = fake.WithFakeExit(func() {
+
+	er = fake.WithFakeOSExit(func() {
 		logger.Fatalf("Fatalf%s", ".")
+	})
+	assert.Equal(t, true, er.HasExit)
+	assert.Equal(t, 1, er.ExitCode)
+
+	er = fake.WithFakeOSExit(func() {
+		logger.Fatalln("Fatalln")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
@@ -227,7 +233,7 @@ func TestAssert(t *testing.T) {
 	_ = nazalog.Init(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal
 	})
-	err := fake.WithFakeExit(func() {
+	err := fake.WithFakeOSExit(func() {
 		nazalog.Assert(nil, 1)
 	})
 	assert.Equal(t, true, err.HasExit)
@@ -236,7 +242,7 @@ func TestAssert(t *testing.T) {
 	_ = nazalog.Init(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertPanic
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		nazalog.Assert([]byte{}, "aaa")
 	})
 
@@ -246,7 +252,7 @@ func TestAssert(t *testing.T) {
 	l, _ = nazalog.New(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal
 	})
-	err = fake.WithFakeExit(func() {
+	err = fake.WithFakeOSExit(func() {
 		l.Assert(nil, 1)
 	})
 	assert.Equal(t, true, err.HasExit)
@@ -255,19 +261,46 @@ func TestAssert(t *testing.T) {
 	l, _ = nazalog.New(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertPanic
 	})
-	withRecover(func() {
+	fake.WithRecover(func() {
 		l.Assert([]byte{}, "aaa")
 	})
 }
 
-func BenchmarkStdout(b *testing.B) {
+func TestLogger_WithPrefix(t *testing.T) {
+	im := 4
+	jm := 4
+	var wg sync.WaitGroup
+	wg.Add(im * jm)
+	nazalog.Debug(">")
+	for i := 0; i != im; i++ {
+		go func(ii int) {
+			for j := 0; j != jm; j++ {
+				s := fmt.Sprintf("%d", ii)
+				l := nazalog.WithPrefix("log_test")
+				l.Info(j)
+				ll := l.WithPrefix("TestLogger_WithPrefix")
+				ll.Info(j)
+				lll := ll.WithPrefix(s)
+				lll.Info(j)
+				wg.Done()
+			}
+		}(i)
+	}
+	nazalog.Debug("<")
+	wg.Wait()
+}
+
+func BenchmarkNazaLog(b *testing.B) {
 	b.ReportAllocs()
 
 	err := nazalog.Init(func(option *nazalog.Option) {
 		option.Level = nazalog.LevelInfo
 		option.Filename = "/dev/null"
+		option.IsToStdout = false
+		option.IsRotateDaily = false
 	})
 	assert.Equal(b, nil, err)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		nazalog.Infof("hello %s %d", "world", i)
 		nazalog.Info("Info")
@@ -276,10 +309,12 @@ func BenchmarkStdout(b *testing.B) {
 
 func BenchmarkOriginLog(b *testing.B) {
 	b.ReportAllocs()
+
 	fp, err := os.Create("/dev/null")
 	assert.Equal(b, nil, err)
 	originLog.SetOutput(fp)
 	originLog.SetFlags(originLog.Ldate | originLog.Ltime | originLog.Lmicroseconds | originLog.Lshortfile)
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		originLog.Printf("hello %s %d\n", "world", i)
 		originLog.Println("Info")

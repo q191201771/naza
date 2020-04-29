@@ -59,13 +59,13 @@ func main() {
 		modCount++
 		return filebatch.AddHeadContent(content, []byte(license))
 	})
-	nazalog.FatalIfErrorNotNil(err2)
+	nazalog.Assert(nil, err2)
 	nazalog.Infof("count. mod=%d, skip=%d", modCount, skipCount)
 }
 
 func achieveRepo(root string) string {
 	content, err := ioutil.ReadFile(filepath.Join(root, "go.mod"))
-	nazalog.FatalIfErrorNotNil(err)
+	nazalog.Assert(nil, err)
 	lines := bytes.Split(content, []byte{'\n'})
 	repo := bytes.TrimPrefix(lines[0], []byte("module "))
 	return string(bytes.TrimSpace(repo))

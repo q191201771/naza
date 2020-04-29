@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"sync"
@@ -58,9 +59,12 @@ var (
 )
 
 type logger struct {
-	option Option
+	prefixs []string
+	core    *core
+}
 
-	dir string
+type core struct {
+	option Option
 
 	m             sync.Mutex
 	fp            *os.File
@@ -69,159 +73,253 @@ type logger struct {
 	currRoundTime time.Time
 }
 
-func (l *logger) Outputf(level Level, calldepth int, format string, v ...interface{}) {
-	l.Out(level, 3, fmt.Sprintf(format, v...))
-}
-
 func (l *logger) Debugf(format string, v ...interface{}) {
-	l.Out(LevelDebug, 3, fmt.Sprintf(format, v...))
+	l.Out(LevelDebug, 2, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Infof(format string, v ...interface{}) {
-	l.Out(LevelInfo, 3, fmt.Sprintf(format, v...))
+	l.Out(LevelInfo, 2, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Warnf(format string, v ...interface{}) {
-	l.Out(LevelWarn, 3, fmt.Sprintf(format, v...))
+	l.Out(LevelWarn, 2, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Errorf(format string, v ...interface{}) {
-	l.Out(LevelError, 3, fmt.Sprintf(format, v...))
+	l.Out(LevelError, 2, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Fatalf(format string, v ...interface{}) {
-	l.Out(LevelFatal, 3, fmt.Sprintf(format, v...))
-	fake.Exit(1)
+	l.Out(LevelFatal, 2, fmt.Sprintf(format, v...))
+	fake.OS_Exit(1)
 }
 
 func (l *logger) Panicf(format string, v ...interface{}) {
-	l.Out(LevelPanic, 3, fmt.Sprintf(format, v...))
+	l.Out(LevelPanic, 2, fmt.Sprintf(format, v...))
 	panic(fmt.Sprintf(format, v...))
 }
 
-func (l *logger) Output(level Level, calldepth int, v ...interface{}) {
-	l.Out(level, 3, fmt.Sprint(v...))
-}
-
 func (l *logger) Debug(v ...interface{}) {
-	l.Out(LevelDebug, 3, fmt.Sprint(v...))
+	l.Out(LevelDebug, 2, fmt.Sprint(v...))
 }
 
 func (l *logger) Info(v ...interface{}) {
-	l.Out(LevelInfo, 3, fmt.Sprint(v...))
+	l.Out(LevelInfo, 2, fmt.Sprint(v...))
 }
 
 func (l *logger) Warn(v ...interface{}) {
-	l.Out(LevelWarn, 3, fmt.Sprint(v...))
+	l.Out(LevelWarn, 2, fmt.Sprint(v...))
 }
 
 func (l *logger) Error(v ...interface{}) {
-	l.Out(LevelError, 3, fmt.Sprint(v...))
+	l.Out(LevelError, 2, fmt.Sprint(v...))
 }
 
 func (l *logger) Fatal(v ...interface{}) {
-	l.Out(LevelFatal, 3, fmt.Sprint(v...))
-	fake.Exit(1)
+	l.Out(LevelFatal, 2, fmt.Sprint(v...))
+	fake.OS_Exit(1)
 }
 
 func (l *logger) Panic(v ...interface{}) {
-	l.Out(LevelPanic, 3, fmt.Sprint(v...))
+	l.Out(LevelPanic, 2, fmt.Sprint(v...))
 	panic(fmt.Sprint(v...))
 }
 
-func (l *logger) FatalIfErrorNotNil(err error) {
-	if err != nil {
-		l.Out(LevelError, 3, fmt.Sprintf("fatal since error not nil. err=%+v", err))
-		fake.Exit(1)
-	}
+func (l *logger) Output(calldepth int, s string) error {
+	l.Out(LevelInfo, calldepth, s)
+	return nil
 }
 
-func (l *logger) PanicIfErrorNotNil(err error) {
-	if err != nil {
-		l.Out(LevelPanic, 3, fmt.Sprintf("panic since error not nil. err=%+v", err))
-		panic(err)
-	}
+func (l *logger) Print(v ...interface{}) {
+	l.Out(LevelInfo, 2, fmt.Sprint(v...))
+}
+
+func (l *logger) Printf(format string, v ...interface{}) {
+	l.Out(LevelInfo, 2, fmt.Sprintf(format, v...))
+}
+
+func (l *logger) Println(v ...interface{}) {
+	l.Out(LevelInfo, 2, fmt.Sprint(v...))
+}
+
+func (l *logger) Fatalln(v ...interface{}) {
+	l.Out(LevelInfo, 2, fmt.Sprint(v...))
+	fake.OS_Exit(1)
+}
+
+func (l *logger) Panicln(v ...interface{}) {
+	l.Out(LevelInfo, 2, fmt.Sprint(v...))
+	panic(fmt.Sprint(v...))
 }
 
 func (l *logger) Assert(expected interface{}, actual interface{}) {
 	if !equal(expected, actual) {
 		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
-		switch l.option.AssertBehavior {
+		switch l.core.option.AssertBehavior {
 		case AssertError:
-			l.Out(LevelError, 3, err)
+			l.Out(LevelError, 2, err)
 		case AssertFatal:
-			l.Out(LevelFatal, 3, err)
-			fake.Exit(1)
+			l.Out(LevelFatal, 2, err)
+			fake.OS_Exit(1)
 		case AssertPanic:
-			l.Out(LevelPanic, 3, err)
+			l.Out(LevelPanic, 2, err)
 			panic(err)
 		}
 	}
 }
 
 func (l *logger) Out(level Level, calldepth int, s string) {
-	if l.option.Level > level {
+	if l.core.option.Level > level {
 		return
 	}
 
-	l.m.Lock()
-	defer l.m.Unlock()
+	now := fake.Time_Now()
 
-	now := time.Now()
+	var file string
+	var line int
+	if l.core.option.ShortFileFlag {
+		_, file, line, _ = runtime.Caller(calldepth)
 
-	// 格式化日志内容
-	l.buf.Reset()
-	writeTime(&l.buf, now)
-	if l.console != nil {
-		l.buf.WriteString(levelToColorString[level])
+	}
+
+	l.core.m.Lock()
+
+	l.core.buf.Reset()
+
+	writeTime(&l.core.buf, now)
+
+	if l.core.console != nil {
+		l.core.buf.WriteString(levelToColorString[level])
 	} else {
-		l.buf.WriteString(levelToString[level])
+		l.core.buf.WriteString(levelToString[level])
 	}
-	l.buf.WriteString(s)
-	if l.option.ShortFileFlag {
-		writeShortFile(&l.buf, calldepth)
+
+	if l.prefixs != nil {
+		for _, s := range l.prefixs {
+			l.core.buf.WriteString("[")
+			l.core.buf.WriteString(s)
+			l.core.buf.WriteString("] ")
+		}
 	}
-	if l.buf.Len() == 0 || l.buf.Bytes()[l.buf.Len()-1] != '\n' {
-		l.buf.WriteByte('\n')
+
+	l.core.buf.WriteString(s)
+
+	if file != "" && line > 0 {
+		l.core.buf.WriteString(" - ")
+
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+
+		l.core.buf.WriteString(file)
+		l.core.buf.WriteByte(':')
+		itoa(&l.core.buf, line, -1)
+	}
+
+	if l.core.buf.Len() == 0 || l.core.buf.Bytes()[l.core.buf.Len()-1] != '\n' {
+		l.core.buf.WriteByte('\n')
 	}
 
 	// 输出至控制台
-	if l.console != nil {
-		_, _ = l.console.Write(l.buf.Bytes())
+	if l.core.console != nil {
+		_, _ = l.core.console.Write(l.core.buf.Bytes())
 		if level == LevelFatal || level == LevelPanic {
-			_ = l.console.Sync()
+			_ = l.core.console.Sync()
 		}
 	}
 
 	// 输出至日志文件
-	if l.fp != nil {
-		if l.option.IsRotateDaily && now.Day() != l.currRoundTime.Day() {
-			backupName := l.option.Filename + "." + l.currRoundTime.Format("20060102")
-			if err := os.Rename(l.option.Filename, backupName); err == nil {
-				_ = l.fp.Close()
-				l.fp, _ = os.Create(l.option.Filename)
+	if l.core.fp != nil {
+		if l.core.option.IsRotateDaily && now.Day() != l.core.currRoundTime.Day() {
+			backupName := l.core.option.Filename + "." + l.core.currRoundTime.Format("20060102")
+			if err := os.Rename(l.core.option.Filename, backupName); err == nil {
+				_ = l.core.fp.Close()
+				l.core.fp, _ = os.Create(l.core.option.Filename)
 			}
-			l.currRoundTime = now
+			l.core.currRoundTime = now
 		}
-		_, _ = l.fp.Write(l.buf.Bytes())
+		_, _ = l.core.fp.Write(l.core.buf.Bytes())
 		if level == LevelFatal || level == LevelPanic {
-			_ = l.fp.Sync()
+			_ = l.core.fp.Sync()
 		}
 	}
+
+	l.core.m.Unlock()
 }
 
 func (l *logger) Sync() {
-	l.m.Lock()
-	defer l.m.Unlock()
+	l.core.m.Lock()
+	defer l.core.m.Unlock()
 
-	if l.console != nil {
-		_ = l.console.Sync()
+	if l.core.console != nil {
+		_ = l.core.console.Sync()
 	}
-	if l.fp != nil {
-		_ = l.fp.Sync()
+	if l.core.fp != nil {
+		_ = l.core.fp.Sync()
 	}
 }
 
+func (l *logger) WithPrefix(s string) Logger {
+	var prefixs []string
+	if l.prefixs != nil {
+		prefixs = make([]string, len(l.prefixs))
+		copy(prefixs, l.prefixs)
+	}
+	prefixs = append(prefixs, s)
+	ll := &logger{
+		prefixs: prefixs,
+		core:    l.core,
+	}
+	return ll
+}
+
+func newLogger(modOptions ...ModOption) (*logger, error) {
+	var err error
+
+	l := &logger{
+		core: &core{
+			currRoundTime: time.Now(),
+		},
+	}
+	l.core.option = defaultOption
+
+	for _, fn := range modOptions {
+		fn(&l.core.option)
+	}
+
+	if err := validate(l.core.option); err != nil {
+		return nil, err
+	}
+	if l.core.option.Filename != "" {
+		dir := filepath.Dir(l.core.option.Filename)
+		if err = os.MkdirAll(dir, 0777); err != nil {
+			return nil, err
+		}
+		if l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
+			return nil, err
+		}
+	}
+	if l.core.option.IsToStdout {
+		l.core.console = os.Stdout
+	}
+
+	return l, nil
+}
+
+func validate(option Option) error {
+	if option.Level < LevelDebug || option.Level > LevelPanic {
+		return ErrLog
+	}
+	if option.AssertBehavior < AssertError || option.AssertBehavior > AssertPanic {
+		return ErrLog
+	}
+	return nil
+}
 func isNil(actual interface{}) bool {
 	if actual == nil {
 		return true
@@ -269,28 +367,6 @@ func writeTime(buf *bytes.Buffer, t time.Time) {
 	buf.WriteByte('.')
 	itoa(buf, t.Nanosecond()/1e3, 6)
 	buf.WriteByte(' ')
-}
-
-func writeShortFile(buf *bytes.Buffer, calldepth int) {
-	buf.Write([]byte{' ', '-', ' '})
-
-	_, file, line, ok := runtime.Caller(calldepth)
-	if !ok {
-		file = "???"
-		line = 0
-	}
-	short := file
-	for i := len(file) - 1; i > 0; i-- {
-		if file[i] == '/' {
-			short = file[i+1:]
-			break
-		}
-	}
-	file = short
-
-	buf.WriteString(file)
-	buf.WriteByte(':')
-	itoa(buf, line, -1)
 }
 
 // Copyright 2009 The Go Authors. All rights reserved.

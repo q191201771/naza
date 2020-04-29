@@ -9,16 +9,20 @@
 // package nazalog 日志库
 package nazalog
 
-import (
-	"errors"
-	"os"
-	"path/filepath"
-	"time"
-)
+import "errors"
 
-// 1. 带日志级别
-// 2. 可选输出至控制台或文件，也可以同时输出
-// 3. 日志文件支持按天翻转
+// 这是一个以使用方便为主要目标的日志库，特性：
+//
+// * 带日志级别
+// * 可选输出至控制台或文件，也可以同时输出
+// * 日志文件支持按天翻转
+// * 支持是否输出源码文件及行号
+// * 业务日志其实位置固定，方便查看
+// * 支持Assert，断言失败后的行为可配置
+// * 支持全局日志对象，独立日志对象
+// * 支持设置前缀，并且前缀可叠加，使得可以按repo ，package，对象等维度添加不同的前缀
+// * 支持标准库中的打印接口函数（但是没有适配非打印接口），方便替换标准库日志
+// * 日志文件目录不存在则自动创建
 //
 // 目前性能和标准库log相当
 
@@ -39,19 +43,25 @@ type Logger interface {
 	Fatal(v ...interface{})
 	Panic(v ...interface{})
 
-	Outputf(level Level, calldepth int, format string, v ...interface{})
-	Output(level Level, calldepth int, v ...interface{})
 	Out(level Level, calldepth int, s string)
 
 	// 断言失败后的行为由配置项Option.AssertBehavior决定
 	// 注意，expected和actual的类型必须相同，比如int(1)和int32(1)是不相等的
 	Assert(expected interface{}, actual interface{})
 
-	FatalIfErrorNotNil(err error)
-	PanicIfErrorNotNil(err error)
-
 	// flush to disk, typically
 	Sync()
+
+	// 添加前缀，新生成一个Logger对象，如果老Logger也有prefix，则老Logger依然打印老prefix，新Logger打印多个prefix
+	WithPrefix(s string) Logger
+
+	// 下面这些打印接口是为兼容标准库，让某些已使用标准库日志的代码替换到nazalog方便一些
+	Output(calldepth int, s string) error
+	Print(v ...interface{})
+	Printf(format string, v ...interface{})
+	Println(v ...interface{})
+	Fatalln(v ...interface{})
+	Panicln(v ...interface{})
 }
 
 type Option struct {
@@ -104,44 +114,4 @@ type ModOption func(option *Option)
 
 func New(modOptions ...ModOption) (Logger, error) {
 	return newLogger(modOptions...)
-}
-
-func newLogger(modOptions ...ModOption) (*logger, error) {
-	var err error
-
-	l := new(logger)
-	l.currRoundTime = time.Now()
-	l.option = defaultOption
-
-	for _, fn := range modOptions {
-		fn(&l.option)
-	}
-
-	if err := validate(l.option); err != nil {
-		return nil, err
-	}
-	if l.option.Filename != "" {
-		l.dir = filepath.Dir(l.option.Filename)
-		if err = os.MkdirAll(l.dir, 0777); err != nil {
-			return nil, err
-		}
-		if l.fp, err = os.OpenFile(l.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
-			return nil, err
-		}
-	}
-	if l.option.IsToStdout {
-		l.console = os.Stdout
-	}
-
-	return l, nil
-}
-
-func validate(option Option) error {
-	if option.Level < LevelDebug || option.Level > LevelPanic {
-		return ErrLog
-	}
-	if option.AssertBehavior < AssertError || option.AssertBehavior > AssertPanic {
-		return ErrLog
-	}
-	return nil
 }

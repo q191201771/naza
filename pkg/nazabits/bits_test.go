@@ -41,3 +41,44 @@ func TestGetBits8(t *testing.T) {
 	assert.Equal(t, 105, nazabits.GetBits8(v, 0, 7))
 	assert.Equal(t, 105, nazabits.GetBits8(v, 0, 8))
 }
+
+func TestGetBit16(t *testing.T) {
+	v := []byte{48, 57} // 12345 {0011 0000, 0011 1001}
+	assert.Equal(t, 1, nazabits.GetBit16(v, 0))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 1))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 2))
+	assert.Equal(t, 1, nazabits.GetBit16(v, 3))
+	assert.Equal(t, 1, nazabits.GetBit16(v, 4))
+	assert.Equal(t, 1, nazabits.GetBit16(v, 5))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 6))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 7))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 8))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 9))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 10))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 11))
+	assert.Equal(t, 1, nazabits.GetBit16(v, 12))
+	assert.Equal(t, 1, nazabits.GetBit16(v, 13))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 14))
+	assert.Equal(t, 0, nazabits.GetBit16(v, 15))
+}
+
+func TestGetBits16(t *testing.T) {
+	v := []byte{48, 57} // 12345 {0011 0000, 0011 1001}
+	assert.Equal(t, 12345, nazabits.GetBits16(v, 0, 16))
+	assert.Equal(t, 1, nazabits.GetBits16(v, 0, 1))
+	assert.Equal(t, 0, nazabits.GetBits16(v, 1, 2))
+	assert.Equal(t, 6, nazabits.GetBits16(v, 2, 3))
+	assert.Equal(t, 7, nazabits.GetBits16(v, 3, 4))
+	assert.Equal(t, 3, nazabits.GetBits16(v, 4, 5))
+	assert.Equal(t, 1, nazabits.GetBits16(v, 5, 6))
+	assert.Equal(t, 64, nazabits.GetBits16(v, 6, 7))
+	assert.Equal(t, 96, nazabits.GetBits16(v, 7, 8))
+	assert.Equal(t, 0, nazabits.GetBits16(v, 8, 1))
+	assert.Equal(t, 0, nazabits.GetBits16(v, 9, 2))
+	assert.Equal(t, 4, nazabits.GetBits16(v, 10, 3))
+	assert.Equal(t, 6, nazabits.GetBits16(v, 11, 4))
+	assert.Equal(t, 3, nazabits.GetBits16(v, 12, 3))
+	assert.Equal(t, 1, nazabits.GetBits16(v, 13, 2))
+	assert.Equal(t, 0, nazabits.GetBits16(v, 14, 1))
+	assert.Equal(t, 0, nazabits.GetBits16(v, 15, 1))
+}

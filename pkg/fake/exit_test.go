@@ -17,18 +17,18 @@ import (
 
 func TestWithFakeExit(t *testing.T) {
 	var er fake.ExitResult
-	er = fake.WithFakeExit(func() {
-		fake.Exit(1)
+	er = fake.WithFakeOSExit(func() {
+		fake.OS_Exit(1)
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	er = fake.WithFakeExit(func() {
+	er = fake.WithFakeOSExit(func() {
 	})
 	assert.Equal(t, false, er.HasExit)
 
-	er = fake.WithFakeExit(func() {
-		fake.Exit(2)
+	er = fake.WithFakeOSExit(func() {
+		fake.OS_Exit(2)
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 2, er.ExitCode)

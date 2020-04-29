@@ -82,7 +82,7 @@ func main() {
 		license := fmt.Sprintf(licenseTmpl, abbrlink, abbrlink)
 		return filebatch.AddTailContent(content, []byte(license))
 	})
-	nazalog.FatalIfErrorNotNil(err2)
+	nazalog.Assert(nil, err2)
 	nazalog.Infof("count. mod=%d, skip=%d", modCount, skipCount)
 }
 

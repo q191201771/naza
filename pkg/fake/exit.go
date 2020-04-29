@@ -10,9 +10,7 @@ package fake
 
 import "os"
 
-var (
-	exit = os.Exit
-)
+var exit = os.Exit
 
 type ExitResult struct {
 	HasExit  bool
@@ -22,11 +20,11 @@ type ExitResult struct {
 var exitResult ExitResult
 
 // 正常情况下，调用 os.Exit，单元测试时，可通过调用 WithFakeExit 配置为不调用 os.Exit
-func Exit(code int) {
+func OS_Exit(code int) {
 	exit(code)
 }
 
-func WithFakeExit(fn func()) ExitResult {
+func WithFakeOSExit(fn func()) ExitResult {
 	startFakeExit()
 	fn()
 	stopFakeExit()

@@ -119,7 +119,7 @@ func main() {
 	}
 	wg.Wait()
 	memfd, err := os.Create(fmt.Sprintf("/tmp/mem%d.prof", strategy))
-	nazalog.FatalIfErrorNotNil(err)
+	nazalog.Assert(nil, err)
 	_ = pprof.WriteHeapProfile(memfd)
 	_ = memfd.Close()
 	nazalog.Debug("> GC.")

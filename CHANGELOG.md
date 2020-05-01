@@ -1,3 +1,18 @@
+#### v0.10.0
+
+- package nazalog:
+    - [feat] 新增WithPrefix函数，用于支持设置前缀，并且前缀可叠加，使得可以按repo ，package，对象等维度添加不同的前缀
+    - [feat] 新增Println等函数，方便替换标准库日志
+    - [perf] 减小锁粒度
+    - [test] 测试覆盖率增加至100%
+    - [refactor] 删除FatalIfErrorNotNil, PanicIfErrorNotNil, Outputf, writeShortFile四个函数函数
+- package nazabit:
+    - [feat] 新增GetBit16，GetBits16函数
+- package fake:
+    - [feat] 新增WithRecover函数
+    - [feat] 新增time.Now hook相关的接口
+    - [refactor] 重新命名os.Exit hook相关的接口
+
 #### v0.9.1
 
 - package nazabits:

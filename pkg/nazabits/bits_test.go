@@ -82,3 +82,47 @@ func TestGetBits16(t *testing.T) {
 	assert.Equal(t, 0, nazabits.GetBits16(v, 14, 1))
 	assert.Equal(t, 0, nazabits.GetBits16(v, 15, 1))
 }
+
+func TestBitReader_ReadBit(t *testing.T) {
+	res := []int{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1}
+	v := []byte{48, 57} // 12345 {0011 0000, 0011 1001}
+	br := nazabits.NewBitReader(v)
+	for _, b := range res {
+		assert.Equal(t, b, br.ReadBit())
+	}
+}
+
+func TestBitReader_ReadBits8(t *testing.T) {
+	v := []byte{48, 57, 48, 57}
+	br := nazabits.NewBitReader(v)
+	// {0 01 1 00 00, 00 11 100 1, 0011 0 000, 0011 1001}
+	//  0,01,1 00,00 00, 11 100,100110,   0000011,
+	assert.Equal(t, 0, br.ReadBits(1))
+	assert.Equal(t, 1, br.ReadBits(2))
+	assert.Equal(t, 4, br.ReadBits(3))
+	assert.Equal(t, 0, br.ReadBits(4))
+	assert.Equal(t, 28, br.ReadBits(5))
+	assert.Equal(t, 38, br.ReadBits(6))
+	assert.Equal(t, 3, br.ReadBits(7))
+
+	br = nazabits.NewBitReader(v)
+	// {0011 0000, 0011 1001, 0 011 0000, 0011 1001}
+	assert.Equal(t, 48, br.ReadBits(8))
+	assert.Equal(t, 114, br.ReadBits(9))
+	assert.Equal(t, 385, br.ReadBits(10))
+}
+
+func BenchmarkGetBits16(b *testing.B) {
+	v := []byte{48, 57}
+	for i := 0; i < b.N; i++ {
+		nazabits.GetBits16(v, 0, 16)
+	}
+}
+
+func BenchmarkBitReader_ReadBits(b *testing.B) {
+	v := []byte{48, 57}
+	for i := 0; i < b.N; i++ {
+		br := nazabits.NewBitReader(v)
+		br.ReadBits(9)
+	}
+}

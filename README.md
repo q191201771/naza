@@ -68,6 +68,7 @@ bin/                    ...... 可执行文件编译输出目录
 * [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
 * playground/p3 [利用CPU cache特性优化Go程序](https://pengrl.com/p/9125/)
 * playground/p4 [老弟在吗，我的Go标准库中的二分查找有bug！](https://pengrl.com/p/20011/)
+* [写的一些其他Go相关的文章](https://pengrl.com/categories/Go/)
 
 #### 联系我
 

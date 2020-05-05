@@ -10,6 +10,8 @@ package nazabits
 
 // TODO chef 这个package的性能可以优化
 
+// 所有的读写操作，由调用方保证不超出切片的范围
+
 type BitReader struct {
 	core  []byte
 	index uint
@@ -32,7 +34,8 @@ func (br *BitReader) ReadBit() uint8 {
 	return res
 }
 
-// 目前限制一次最多读8位，大于8位可以分多次读，或者以后把限制放开
+// 目前限制一次最多读8位，需调用方自己保证。如果需要读取大于8位，可以分多次读，或者以后把限制放开
+// @param n: 取值范围 [1, 8]
 func (br *BitReader) ReadBits(n uint) (r uint8) {
 	var i uint
 	for i = 0; i < n; i++ {
@@ -65,10 +68,14 @@ func (bw *BitWriter) WriteBit(b uint8) {
 	}
 }
 
-// 目前限制一次最多写8位，大于8位可以分多次写，或者以后把限制放开
-func (bw *BitWriter) WriteBits(n int, v uint8) {
-	for i := n - 1; i >= 0; i-- {
-		bw.WriteBit(v >> uint8(i))
+// @param n: 取值范围 [1, 16]
+// 目前限制一次最多写16位，大于16位可以分多次写，或者以后把限制放开
+func (bw *BitWriter) WriteBits(n uint, v uint16) {
+	for i := n - 1; ; i-- {
+		bw.WriteBit(uint8(v >> i & 0x1))
+		if i == 0 {
+			break
+		}
 	}
 }
 

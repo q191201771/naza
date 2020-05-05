@@ -148,6 +148,12 @@ func TestBitWriter_WriteBits(t *testing.T) {
 	bw = nazabits.NewBitWriter(v)
 	bw.WriteBits(3, 1+8+32+128)
 	assert.Equal(t, uint8(1<<5), v[0])
+
+	v = make([]byte, 2)
+	bw = nazabits.NewBitWriter(v)
+	bw.WriteBits(16, 0xFFFF)
+	assert.Equal(t, uint8(0xFF), v[0])
+	assert.Equal(t, uint8(0xFF), v[1])
 }
 
 func BenchmarkGetBits16(b *testing.B) {

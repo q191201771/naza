@@ -34,9 +34,9 @@ func (br *BitReader) ReadBit() uint8 {
 	return res
 }
 
-// 目前限制一次最多读8位，需调用方自己保证。如果需要读取大于8位，可以分多次读，或者以后把限制放开
+// 如果需要读取大于8位，可以分多次读，以后可能加上ReadBits16等接口
 // @param n: 取值范围 [1, 8]
-func (br *BitReader) ReadBits(n uint) (r uint8) {
+func (br *BitReader) ReadBits8(n uint) (r uint8) {
 	var i uint
 	for i = 0; i < n; i++ {
 		r = (r << 1) | br.ReadBit()
@@ -68,9 +68,18 @@ func (bw *BitWriter) WriteBit(b uint8) {
 	}
 }
 
-// @param n: 取值范围 [1, 16]
-// 目前限制一次最多写16位，大于16位可以分多次写，或者以后把限制放开
-func (bw *BitWriter) WriteBits(n uint, v uint16) {
+// 将<v>的低<n>位写入
+// @param n: 取值范围 [1, 8]
+func (bw *BitWriter) WriteBits8(n uint, v uint8) {
+	for i := n - 1; ; i-- {
+		bw.WriteBit(v >> i & 0x1)
+		if i == 0 {
+			break
+		}
+	}
+}
+
+func (bw *BitWriter) WriteBits16(n uint, v uint16) {
 	for i := n - 1; ; i-- {
 		bw.WriteBit(uint8(v >> i & 0x1))
 		if i == 0 {

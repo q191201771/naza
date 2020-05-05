@@ -1,3 +1,9 @@
+#### v0.11.0
+
+- package nazabits:
+    - [feat] 增加BitReader用于按位读取，增加BitWriter用于按位写入
+    - [refactor] GetBit8等函数修改整型类型
+
 #### v0.10.0
 
 - package nazalog:

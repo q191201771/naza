@@ -1,3 +1,9 @@
+#### v0.12.0
+
+- package nazabits:
+    - [refactor] BitReader::ReadBits重命名为ReadBits8，BitWriter::WriteBits重命名为WriteBits8，WriteBits16
+    - [fix] BitWriter::WriteBit传入的值不为0和1时，只取最低位
+
 #### v0.11.0
 
 - package nazabits:

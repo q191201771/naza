@@ -1,3 +1,8 @@
+#### v0.12.1
+
+- package nazabits:
+    - [feat] 新增 BitReader::ReadBits16，ReadBits32，ReadBytes函数
+
 #### v0.12.0
 
 - package nazabits:

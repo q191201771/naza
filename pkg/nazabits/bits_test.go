@@ -95,8 +95,6 @@ func TestBitReader_ReadBit(t *testing.T) {
 func TestBitReader_ReadBits8(t *testing.T) {
 	v := []byte{48, 57, 48, 57}
 	br := nazabits.NewBitReader(v)
-	// {0 01 1 00 00, 00 11 100 1, 0011 0 000, 0011 1001}
-	//  0,01,1 00,00 00, 11 100,100110,   0000011,
 	assert.Equal(t, uint8(0), br.ReadBits8(1))
 	assert.Equal(t, uint8(1), br.ReadBits8(2))
 	assert.Equal(t, uint8(4), br.ReadBits8(3))
@@ -108,8 +106,27 @@ func TestBitReader_ReadBits8(t *testing.T) {
 	br = nazabits.NewBitReader(v)
 	// {0011 0000, 0011 1001, 0 011 0000, 0011 1001}
 	assert.Equal(t, uint8(48), br.ReadBits8(8))
-	//assert.Equal(t, uint8(114), br.ReadBits8(9))
-	//assert.Equal(t, uint8(385), br.ReadBits8(10))
+}
+
+func TestBitReader_ReadBits16(t *testing.T) {
+	v := []byte{48, 57, 48, 57}
+	br := nazabits.NewBitReader(v)
+	assert.Equal(t, uint16(48), br.ReadBits16(8))
+	assert.Equal(t, uint16(1), br.ReadBits16(3))
+	assert.Equal(t, uint16(25), br.ReadBits16(5))
+	assert.Equal(t, uint16(12345), br.ReadBits16(16))
+}
+
+func TestBitReader_ReadBits32(t *testing.T) {
+	v := []byte{48, 57, 48, 57}
+	br := nazabits.NewBitReader(v)
+	assert.Equal(t, uint32(809054265), br.ReadBits32(32))
+}
+
+func TestBitReader_ReadBytes(t *testing.T) {
+	v := []byte{48, 57}
+	br := nazabits.NewBitReader(v)
+	assert.Equal(t, v, br.ReadBytes(2))
 }
 
 func TestBitWriter_WriteBit(t *testing.T) {

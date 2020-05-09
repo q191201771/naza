@@ -8,7 +8,10 @@
 
 package nazabits
 
-// TODO chef 这个package的性能可以优化
+// TODO
+// - 这个package的性能可以优化
+// - BitReader考虑增加skip接口
+// - BitReader开率增加返回目前位置接口
 
 // 所有的读写操作，由调用方保证不超出切片的范围
 
@@ -34,12 +37,33 @@ func (br *BitReader) ReadBit() uint8 {
 	return res
 }
 
-// 如果需要读取大于8位，可以分多次读，以后可能加上ReadBits16等接口
 // @param n: 取值范围 [1, 8]
 func (br *BitReader) ReadBits8(n uint) (r uint8) {
-	var i uint
-	for i = 0; i < n; i++ {
+	for i := uint(0); i < n; i++ {
 		r = (r << 1) | br.ReadBit()
+	}
+	return
+}
+
+// @param n: 取值范围 [1, 16]
+func (br *BitReader) ReadBits16(n uint) (r uint16) {
+	for i := uint(0); i < n; i++ {
+		r = (r << 1) | uint16(br.ReadBit())
+	}
+	return
+}
+
+func (br *BitReader) ReadBits32(n uint) (r uint32) {
+	for i := uint(0); i < n; i++ {
+		r = (r << 1) | uint32(br.ReadBit())
+	}
+	return
+}
+
+// @param n: 读取多少个字节
+func (br *BitReader) ReadBytes(n uint) (r []byte) {
+	for i := uint(0); i < n; i++ {
+		r = append(r, br.ReadBits8(8))
 	}
 	return
 }

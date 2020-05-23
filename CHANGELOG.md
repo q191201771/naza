@@ -1,3 +1,8 @@
+#### v0.12.2
+
+- package nazabits:
+    - [fix] BitWriter::WriteBit如果原数据不为非零值时，会错误覆盖非写入的位
+
 #### v0.12.1
 
 - package nazabits:

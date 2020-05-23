@@ -147,6 +147,19 @@ func TestBitWriter_WriteBit(t *testing.T) {
 	}
 	assert.Equal(t, uint8(48), v[0])
 	assert.Equal(t, uint8(57), v[1])
+
+	// 对非0原值进行位写入
+	v = []uint8{0xF0}
+	bw = nazabits.NewBitWriter(v)
+	bw.WriteBit(0)
+	bw.WriteBit(0)
+	bw.WriteBit(0)
+	bw.WriteBit(0)
+	bw.WriteBit(1)
+	bw.WriteBit(1)
+	bw.WriteBit(1)
+	bw.WriteBit(1)
+	assert.Equal(t, uint8(0x0F), v[0])
 }
 
 func TestBitWriter_WriteBits8(t *testing.T) {

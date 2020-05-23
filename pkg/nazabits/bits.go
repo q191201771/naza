@@ -84,7 +84,11 @@ func NewBitWriter(b []byte) BitWriter {
 
 // @param b: 当b不为0和1时，取b的最低位
 func (bw *BitWriter) WriteBit(b uint8) {
-	bw.core[bw.index] |= (b & 0x1) << (7 - bw.pos)
+	if b&0x1 == 1 {
+		bw.core[bw.index] |= 1 << (7 - bw.pos)
+	} else {
+		bw.core[bw.index] &= ^(1 << (7 - bw.pos))
+	}
 	bw.pos++
 	if bw.pos == 8 {
 		bw.pos = 0

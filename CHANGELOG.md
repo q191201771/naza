@@ -28,7 +28,7 @@
     - [perf] 减小锁粒度
     - [test] 测试覆盖率增加至100%
     - [refactor] 删除FatalIfErrorNotNil, PanicIfErrorNotNil, Outputf, writeShortFile四个函数函数
-- package nazabit:
+- package nazabits:
     - [feat] 新增GetBit16，GetBits16函数
 - package fake:
     - [feat] 新增WithRecover函数

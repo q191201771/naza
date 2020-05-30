@@ -1,3 +1,10 @@
+#### v0.12.3
+
+- package lru:
+    - [feat] 新增package，一个基础的LRU缓存
+- package nazahttp:
+    - [feat] 新增函数GetHttpFile，用于下载HTTP文件
+
 #### v0.12.2
 
 - package nazabits:

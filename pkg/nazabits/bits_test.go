@@ -83,50 +83,166 @@ func TestGetBits16(t *testing.T) {
 	assert.Equal(t, uint16(0), nazabits.GetBits16(v, 15, 1))
 }
 
+func TestCorner(t *testing.T) {
+	v := []byte{0}
+	var err error
+	br := nazabits.NewBitReader(v)
+	_, err = br.ReadBytes(1)
+	assert.Equal(t, nil, err)
+	_, err = br.ReadBit()
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	_, err = br.ReadBits8(1)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	_, err = br.ReadBits16(1)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	_, err = br.ReadBits32(1)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	_, err = br.ReadBytes(1)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	_, err = br.ReadGolomb()
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+
+	v2 := []byte{1}
+	br2 := nazabits.NewBitReader(v2)
+	_, err = br2.ReadGolomb()
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+}
+
 func TestBitReader_ReadBit(t *testing.T) {
 	res := []uint8{0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1}
 	v := []byte{48, 57} // 12345 {0011 0000, 0011 1001}
 	br := nazabits.NewBitReader(v)
 	for _, b := range res {
-		assert.Equal(t, b, br.ReadBit())
+		r, err := br.ReadBit()
+		assert.Equal(t, nil, err)
+		assert.Equal(t, b, r)
 	}
 }
 
 func TestBitReader_ReadBits8(t *testing.T) {
 	v := []byte{48, 57, 48, 57}
 	br := nazabits.NewBitReader(v)
-	assert.Equal(t, uint8(0), br.ReadBits8(1))
-	assert.Equal(t, uint8(1), br.ReadBits8(2))
-	assert.Equal(t, uint8(4), br.ReadBits8(3))
-	assert.Equal(t, uint8(0), br.ReadBits8(4))
-	assert.Equal(t, uint8(28), br.ReadBits8(5))
-	assert.Equal(t, uint8(38), br.ReadBits8(6))
-	assert.Equal(t, uint8(3), br.ReadBits8(7))
+
+	gold := []struct {
+		n uint
+		r uint8
+	}{
+		{1, 0},
+		{2, 1},
+		{3, 4},
+		{4, 0},
+		{5, 28},
+		{6, 38},
+		{7, 3},
+	}
+	for _, item := range gold {
+		r, err := br.ReadBits8(item.n)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, item.r, r)
+	}
 
 	br = nazabits.NewBitReader(v)
 	// {0011 0000, 0011 1001, 0 011 0000, 0011 1001}
-	assert.Equal(t, uint8(48), br.ReadBits8(8))
+	r, err := br.ReadBits8(8)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint8(48), r)
 }
 
 func TestBitReader_ReadBits16(t *testing.T) {
 	v := []byte{48, 57, 48, 57}
 	br := nazabits.NewBitReader(v)
-	assert.Equal(t, uint16(48), br.ReadBits16(8))
-	assert.Equal(t, uint16(1), br.ReadBits16(3))
-	assert.Equal(t, uint16(25), br.ReadBits16(5))
-	assert.Equal(t, uint16(12345), br.ReadBits16(16))
+
+	gold := []struct {
+		n uint
+		r uint16
+	}{
+		{8, 48},
+		{3, 1},
+		{5, 25},
+		{16, 12345},
+	}
+	for _, item := range gold {
+		r, err := br.ReadBits16(item.n)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, item.r, r)
+	}
 }
 
 func TestBitReader_ReadBits32(t *testing.T) {
 	v := []byte{48, 57, 48, 57}
 	br := nazabits.NewBitReader(v)
-	assert.Equal(t, uint32(809054265), br.ReadBits32(32))
+	r, err := br.ReadBits32(32)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(809054265), r)
 }
 
 func TestBitReader_ReadBytes(t *testing.T) {
 	v := []byte{48, 57}
 	br := nazabits.NewBitReader(v)
-	assert.Equal(t, v, br.ReadBytes(2))
+	r, err := br.ReadBytes(2)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, v, r)
+}
+
+func TestBitReader_ReadGolomb(t *testing.T) {
+	var b []byte
+	var v uint32
+	var err error
+	var br nazabits.BitReader
+
+	b = []byte{0x88, 0x82}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(7), v)
+
+	b = []byte{0x88, 0x84}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(7), v)
+
+	b = []byte{0x9a, 0x26}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(5), v)
+
+	b = []byte{0x9a, 0x46}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(5), v)
+
+	b = []byte{0x9a, 0x24}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(5), v)
+
+	b = []byte{0x9e, 0x42}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(0), v)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, uint32(6), v)
 }
 
 func TestBitWriter_WriteBit(t *testing.T) {

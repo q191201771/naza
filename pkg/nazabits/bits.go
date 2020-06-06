@@ -8,12 +8,14 @@
 
 package nazabits
 
+import "errors"
+
 // TODO
 // - 这个package的性能可以优化
 // - BitReader考虑增加skip接口
-// - BitReader开率增加返回目前位置接口
+// - BitReader考虑增加返回目前位置接口
 
-// 所有的读写操作，由调用方保证不超出切片的范围
+var ErrNazaBits = errors.New("nazabits: fxxk")
 
 type BitReader struct {
 	core  []byte
@@ -27,48 +29,97 @@ func NewBitReader(b []byte) BitReader {
 	}
 }
 
-func (br *BitReader) ReadBit() uint8 {
+func (br *BitReader) ReadBit() (uint8, error) {
+	if br.index >= uint(len(br.core)) {
+		return 0, ErrNazaBits
+	}
 	res := GetBit8(br.core[br.index], 7-br.pos)
 	br.pos++
 	if br.pos == 8 {
 		br.pos = 0
 		br.index++
 	}
-	return res
+	return res, nil
 }
 
 // @param n: 取值范围 [1, 8]
-func (br *BitReader) ReadBits8(n uint) (r uint8) {
+func (br *BitReader) ReadBits8(n uint) (r uint8, err error) {
+	var t uint8
 	for i := uint(0); i < n; i++ {
-		r = (r << 1) | br.ReadBit()
+		t, err = br.ReadBit()
+		if err != nil {
+			return
+		}
+		r = (r << 1) | t
 	}
 	return
 }
 
 // @param n: 取值范围 [1, 16]
-func (br *BitReader) ReadBits16(n uint) (r uint16) {
+func (br *BitReader) ReadBits16(n uint) (r uint16, err error) {
+	var t uint8
 	for i := uint(0); i < n; i++ {
-		r = (r << 1) | uint16(br.ReadBit())
+		t, err = br.ReadBit()
+		if err != nil {
+			return
+		}
+		r = (r << 1) | uint16(t)
 	}
 	return
 }
 
-func (br *BitReader) ReadBits32(n uint) (r uint32) {
+func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
+	var t uint8
 	for i := uint(0); i < n; i++ {
-		r = (r << 1) | uint32(br.ReadBit())
+		t, err = br.ReadBit()
+		if err != nil {
+			return
+		}
+		r = (r << 1) | uint32(t)
 	}
 	return
 }
 
 // @param n: 读取多少个字节
-func (br *BitReader) ReadBytes(n uint) (r []byte) {
+func (br *BitReader) ReadBytes(n uint) (r []byte, err error) {
+	var t uint8
 	for i := uint(0); i < n; i++ {
-		r = append(r, br.ReadBits8(8))
+		t, err = br.ReadBits8(8)
+		if err != nil {
+			return
+		}
+		r = append(r, t)
 	}
 	return
 }
 
+// 0阶指数哥伦布编码
+func (br *BitReader) ReadGolomb() (v uint32, err error) {
+	var t uint8
+	var n uint
+	var m uint32
+	for {
+		t, err = br.ReadBit()
+		if err != nil {
+			return
+		}
+		if t == 0 {
+			n++
+		} else {
+			break
+		}
+	}
+	m, err = br.ReadBits32(n)
+	if err != nil {
+		return
+	}
+	v = 1<<n + m - 1
+	return
+}
+
 // ----------------------------------------------------------------------------
+
+// TODO chef: BitWriter没有对写越界做检查，由调用方保证这一点，后续可能会加上检查
 
 type BitWriter struct {
 	core  []byte
@@ -117,6 +168,8 @@ func (bw *BitWriter) WriteBits16(n uint, v uint16) {
 }
 
 // ----------------------------------------------------------------------------
+
+// TODO chef: func GetBitX和func GetBitsX没有对写越界做检查，由调用方保证这一点，后续可能会加上检查
 
 // @param pos: 取值范围 [0, 7]，0表示最低位
 func GetBit8(v uint8, pos uint) uint8 {

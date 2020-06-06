@@ -1,3 +1,12 @@
+#### v0.13.0
+
+- package nazabits:
+    - [feat] BitReader的所有函数增加读取越界检查
+    - [feat] 增加BitReader::ReadGolomb函数，读取0阶指数哥伦布编码
+- package nazahttp:
+    - [feat] nazahttp: 增加函数ReadHTTPHeader，ParseHTTPRequestLine，ParseHTTPStatusLine，读取HTTP头部信息
+    - [refactor] 函数GetHttpFile，DownloadHTttpFile重命名为GetHTTPFile，DownloadHTTPFile
+
 #### v0.12.3
 
 - package lru:

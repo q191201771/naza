@@ -16,9 +16,8 @@ import (
 	"time"
 )
 
-// 获取http文件
-// @return <error> 成功返回nil
-func GetHttpFile(url string, timeoutMSec int) ([]byte, error) {
+// 获取http文件保存至字节切片
+func GetHTTPFile(url string, timeoutMSec int) ([]byte, error) {
 	var c http.Client
 	if timeoutMSec > 0 {
 		c.Timeout = time.Duration(timeoutMSec) * time.Millisecond
@@ -34,7 +33,7 @@ func GetHttpFile(url string, timeoutMSec int) ([]byte, error) {
 }
 
 // 获取http文件保存至本地
-func DownloadHttpFile(url string, saveTo string, timeoutMSec int) (int64, error) {
+func DownloadHTTPFile(url string, saveTo string, timeoutMSec int) (int64, error) {
 	var c http.Client
 	if timeoutMSec > 0 {
 		c.Timeout = time.Duration(timeoutMSec) * time.Millisecond

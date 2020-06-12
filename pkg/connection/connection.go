@@ -8,9 +8,11 @@
 
 // package connection
 //
+// 注意，这个package还在开发中
+//
 // 对 net.Conn 接口的二次封装，目的有两个：
 // 1. 在流媒体传输这种特定的长连接场景下提供更方便、高性能的接口
-// 2. 便于后续将 TCPConn 替换成其他传输协议
+// 2. 便于后续将TCPConn替换成其他传输协议
 package connection
 
 import (
@@ -19,15 +21,20 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-var ErrConnection = errors.New("naza.connection: fxxk")
+var (
+	ErrConnectionPanic = errors.New("naza.connection: using in a wrong way")
+	ErrClosedAlready   = errors.New("naza.connection: connection closed already")
+	ErrWriteChanFull   = errors.New("naza.connection: write channel full")
+)
 
 type Connection interface {
-	// 包含 interface net.Conn 的所有方法
+	// 包含interface net.Conn的所有方法
 	// Read
 	// Write
 	// Close
@@ -39,15 +46,15 @@ type Connection interface {
 	net.Conn
 
 	ReadAtLeast(buf []byte, min int) (n int, err error)
-	ReadLine() (line []byte, isPrefix bool, err error) // 只有设置了 ReadBufSize 才可以使用这个方法
+	ReadLine() (line []byte, isPrefix bool, err error) // 只有设置了ReadBufSize才可以使用这个方法
 
-	// 如果使用了 bufio 写缓冲，则将缓冲中的数据发送出去
-	// 如果使用了 channel 异步发送，则阻塞等待，直到之前 channel 中的数据全部发送完毕
-	// 一般在 Close 前，想要将剩余数据发送完毕时调用
+	// 如果使用了bufio写缓冲，则将缓冲中的数据发送出去
+	// 如果使用了channel异步发送，则阻塞等待，直到之前channel中的数据全部发送完毕
+	// 一般在Close前，想要将剩余数据发送完毕时调用
 	Flush() error
 
 	// 阻塞直到连接关闭或发生错误
-	// @return 返回 nil 则是本端主动调用 Close 关闭
+	// @return 返回nil则是本端主动调用Close关闭
 	Done() <-chan error
 
 	// TODO chef: 这几个接口是否不提供
@@ -58,8 +65,15 @@ type Connection interface {
 	ModWriteTimeoutMS(n int)
 }
 
+type WriteChanFullBehavior int
+
+const (
+	WriteChanFullBehaviorReturnError WriteChanFullBehavior = iota + 1
+	WriteChanFullBehaviorBlock
+)
+
 type Option struct {
-	// 如果不为0，则之后每次读/写使用 bufio 的缓冲
+	// 如果不为0，则之后每次读/写使用bufio的缓冲
 	ReadBufSize  int
 	WriteBufSize int
 
@@ -67,17 +81,23 @@ type Option struct {
 	ReadTimeoutMS  int
 	WriteTimeoutMS int
 
-	// 如果不为0，则写使用 channel 将数据发送到后台协程中发送
+	// 如果不为0，则写使用channel将数据发送到后台协程中发送
 	WriteChanSize int
+
+	// 使用channel发送数据时，channel满了时Write函数的行为
+	// WriteChanFullBehaviorReturnError 返回错误
+	// WriteChanFullBehaviorBlock 阻塞直到向channel写入成功
+	WriteChanFullBehavior WriteChanFullBehavior
 }
 
 // 没有配置的属性，将按如下配置
 var defaultOption = Option{
-	ReadBufSize:    0,
-	WriteBufSize:   0,
-	ReadTimeoutMS:  0,
-	WriteTimeoutMS: 0,
-	WriteChanSize:  0,
+	ReadBufSize:           0,
+	WriteBufSize:          0,
+	ReadTimeoutMS:         0,
+	WriteTimeoutMS:        0,
+	WriteChanSize:         0,
+	WriteChanFullBehavior: WriteChanFullBehaviorReturnError,
 }
 
 type ModOption func(option *Option)
@@ -85,6 +105,7 @@ type ModOption func(option *Option)
 func New(conn net.Conn, modOptions ...ModOption) Connection {
 	c := new(connection)
 	c.doneChan = make(chan error, 1)
+	c.closedFlag = 0
 	c.Conn = conn
 
 	c.option = defaultOption
@@ -137,12 +158,13 @@ type connection struct {
 	flushDoneChan chan struct{}
 	exitChan      chan struct{}
 	doneChan      chan error
+	closedFlag    uint32
 	closeOnce     sync.Once
 }
 
 func (c *connection) ModWriteChanSize(n int) {
 	if c.option.WriteChanSize > 0 {
-		panic(ErrConnection)
+		panic(ErrConnectionPanic)
 	}
 	c.option.WriteChanSize = n
 	c.wChan = make(chan wMsg, n)
@@ -155,7 +177,7 @@ func (c *connection) ModWriteBufSize(n int) {
 	if c.option.WriteBufSize > 0 {
 		// 如果之前已经设置过写缓冲，直接 panic
 		// 这里改成 flush 后替换成新缓冲也行，暂时没这个必要
-		panic(ErrConnection)
+		panic(ErrConnectionPanic)
 	}
 	c.option.WriteBufSize = n
 	c.w = bufio.NewWriterSize(c.Conn, n)
@@ -163,14 +185,14 @@ func (c *connection) ModWriteBufSize(n int) {
 
 func (c *connection) ModReadTimeoutMS(n int) {
 	if c.option.ReadTimeoutMS > 0 {
-		panic(ErrConnection)
+		panic(ErrConnectionPanic)
 	}
 	c.option.ReadTimeoutMS = n
 }
 
 func (c *connection) ModWriteTimeoutMS(n int) {
 	if c.option.WriteTimeoutMS > 0 {
-		panic(ErrConnection)
+		panic(ErrConnectionPanic)
 	}
 	c.option.WriteTimeoutMS = n
 }
@@ -179,13 +201,12 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
+			c.close(err)
 			return 0, err
 		}
 	}
 	n, err = io.ReadAtLeast(c.r, buf, min)
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return n, err
@@ -196,18 +217,17 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	bufioReader, ok := c.r.(*bufio.Reader)
 	if !ok {
 		// 目前只有使用了 bufio.Reader 时才能执行 ReadLine 操作
-		panic(ErrConnection)
+		panic(ErrConnectionPanic)
 	}
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
+			c.close(err)
 			return nil, false, err
 		}
 	}
 	line, isPrefix, err = bufioReader.ReadLine()
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return line, isPrefix, err
@@ -217,68 +237,42 @@ func (c *connection) Read(b []byte) (n int, err error) {
 	if c.option.ReadTimeoutMS > 0 {
 		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
 		if err != nil {
-			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
+			c.close(err)
 			return 0, err
 		}
 	}
 	n, err = c.r.Read(b)
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return n, err
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
+	if atomic.LoadUint32(&c.closedFlag) == 1 {
+		return 0, ErrClosedAlready
+	}
 	if c.option.WriteChanSize > 0 {
-		c.wChan <- wMsg{t: wMsgTWrite, b: b}
-		return len(b), nil
+		switch c.option.WriteChanFullBehavior {
+		case WriteChanFullBehaviorBlock:
+			c.wChan <- wMsg{t: wMsgTWrite, b: b}
+			return len(b), nil
+		case WriteChanFullBehaviorReturnError:
+			select {
+			case c.wChan <- wMsg{t: wMsgTWrite, b: b}:
+				return len(b), nil
+			default:
+				return 0, ErrWriteChanFull
+			}
+		}
 	}
 	return c.write(b)
 }
 
-func (c *connection) write(b []byte) (n int, err error) {
-	if c.option.WriteTimeoutMS > 0 {
-		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
-		if err != nil {
-			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-			return 0, err
-		}
-	}
-	n, err = c.w.Write(b)
-	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-		c.close(err)
-	}
-	return n, err
-}
-
-func (c *connection) runWriteLoop() {
-	for {
-		select {
-		case <-c.exitChan:
-			nazalog.Debug("exitChan recv, exit write loop.")
-			return
-		case msg := <-c.wChan:
-			switch msg.t {
-			case wMsgTWrite:
-				if _, err := c.write(msg.b); err != nil {
-					nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-					return
-				}
-			case wMsgTFlush:
-				if err := c.flush(); err != nil {
-					nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-					c.flushDoneChan <- struct{}{}
-					return
-				}
-				c.flushDoneChan <- struct{}{}
-			}
-		}
-	}
-}
-
 func (c *connection) Flush() error {
+	if atomic.LoadUint32(&c.closedFlag) == 1 {
+		return ErrClosedAlready
+	}
 	if c.option.WriteChanSize > 0 {
 		c.wChan <- wMsg{t: wMsgTFlush}
 		<-c.flushDoneChan
@@ -288,40 +282,10 @@ func (c *connection) Flush() error {
 	return c.flush()
 }
 
-func (c *connection) flush() error {
-	w, ok := c.w.(*bufio.Writer)
-	if ok {
-		if c.option.WriteTimeoutMS > 0 {
-			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
-			if err != nil {
-				nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-				return err
-			}
-		}
-		if err := w.Flush(); err != nil {
-			nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
-			c.close(err)
-			return err
-		}
-	}
-	return nil
-}
-
 func (c *connection) Close() error {
 	nazalog.Debugf("naza connection Close. conn=%p", c)
 	c.close(nil)
 	return nil
-}
-
-func (c *connection) close(err error) {
-	nazalog.Debugf("naza connection close. err=%v, conn=%p", err, c)
-	c.closeOnce.Do(func() {
-		if c.option.WriteChanSize > 0 {
-			c.exitChan <- struct{}{}
-		}
-		c.doneChan <- err
-		_ = c.Conn.Close()
-	})
 }
 
 func (c *connection) Done() <-chan error {
@@ -339,7 +303,6 @@ func (c *connection) RemoteAddr() net.Addr {
 func (c *connection) SetDeadline(t time.Time) error {
 	err := c.Conn.SetDeadline(t)
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err
@@ -348,7 +311,6 @@ func (c *connection) SetDeadline(t time.Time) error {
 func (c *connection) SetReadDeadline(t time.Time) error {
 	err := c.Conn.SetReadDeadline(t)
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err
@@ -357,8 +319,75 @@ func (c *connection) SetReadDeadline(t time.Time) error {
 func (c *connection) SetWriteDeadline(t time.Time) error {
 	err := c.Conn.SetWriteDeadline(t)
 	if err != nil {
-		nazalog.Debugf("naza connection. error=%v, conn=%p", err, c)
 		c.close(err)
 	}
 	return err
+}
+func (c *connection) write(b []byte) (n int, err error) {
+	if c.option.WriteTimeoutMS > 0 {
+		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
+		if err != nil {
+			c.close(err)
+			return 0, err
+		}
+	}
+	n, err = c.w.Write(b)
+	if err != nil {
+		c.close(err)
+	}
+	return n, err
+}
+
+func (c *connection) runWriteLoop() {
+	for {
+		select {
+		case <-c.exitChan:
+			nazalog.Debugf("naza connection recv exitChan and exit write loop. conn=%p", c)
+			return
+		case msg := <-c.wChan:
+			switch msg.t {
+			case wMsgTWrite:
+				if _, err := c.write(msg.b); err != nil {
+					return
+				}
+			case wMsgTFlush:
+				if err := c.flush(); err != nil {
+					c.flushDoneChan <- struct{}{}
+					return
+				}
+				c.flushDoneChan <- struct{}{}
+			}
+		}
+	}
+}
+
+func (c *connection) flush() error {
+	w, ok := c.w.(*bufio.Writer)
+	if ok {
+		if c.option.WriteTimeoutMS > 0 {
+			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
+			if err != nil {
+				c.close(err)
+				return err
+			}
+		}
+		if err := w.Flush(); err != nil {
+			c.close(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *connection) close(err error) {
+	nazalog.Debugf("naza connection close. err=%v, conn=%p", err, c)
+	c.closeOnce.Do(func() {
+		atomic.StoreUint32(&c.closedFlag, 1)
+		if c.option.WriteChanSize > 0 {
+			c.exitChan <- struct{}{}
+		}
+		c.doneChan <- err
+		_ = c.Conn.Close()
+		// 如果使用了wChan，并不关闭它，避免竞态条件下connection继续使用它造成问题。让它随connection对象释放。
+	})
 }

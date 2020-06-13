@@ -127,7 +127,7 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 	}
 
 	if c.option.WriteChanSize > 0 {
-		c.wChan = make(chan wMsg, c.option.WriteBufSize)
+		c.wChan = make(chan wMsg, c.option.WriteChanSize)
 		c.flushDoneChan = make(chan struct{}, 1)
 		c.exitChan = make(chan struct{}, 1)
 		go c.runWriteLoop()

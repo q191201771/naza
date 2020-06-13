@@ -1,3 +1,12 @@
+#### v0.13.1
+
+- package connection:
+  - [feat] 增加连接关闭标志，使用channel发送数据时，如果连接已关闭，可以向调用方返回错误
+  - [feat] 增加Option.WriteChanFullBehavior，使用channel发送数据时，如果channel满了，可以配置是阻塞还是返回错误
+  - [fix] 设置wChan大小时，应该使用WriteChanSize而不是WriteBufSize
+  - [refactor] 不同错误返回不同的错误值
+  - [refactor] 去除一些debug日志
+
 #### v0.13.0
 
 - package nazabits:

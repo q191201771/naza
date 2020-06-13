@@ -31,6 +31,7 @@ Go语言基础库
 pkg/                    ...... 源码包
     |-- bininfo/        ...... 将编译时源码的git版本信息（当前commit log的sha值和commit message），编译时间，Go版本，平台打入程序中
     |-- nazalog/        ...... 日志库
+    |-- assert/         ...... 提供了单元测试时的断言功能，减少一些模板代码
     |-- taskpool/       ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
     |-- bele/           ...... 大小端转换操作
     |-- nazabits/       ...... 位操作
@@ -38,9 +39,10 @@ pkg/                    ...... 源码包
     |-- lru             ...... LRU缓存
     |-- fake/           ...... 实现一些常用的接口，hook一些不方便测试的代码
     |-- consistenthash/ ...... 一致性哈希
-    |-- assert/         ...... 提供了单元测试时的断言功能，减少一些模板代码
     |-- nazajson/       ...... json操作
     |-- nazahttp/       ...... http操作
+    |-- unique/         ...... 对象唯一ID
+    |-- connection/     ...... 对net.Conn接口的二次封装
     |-- filebatch/      ...... 文件批处理操作
     |-- nazaatomic/     ...... 原子操作
     |-- snowflake/      ...... 分布式唯一性ID生成器
@@ -48,9 +50,7 @@ pkg/                    ...... 源码包
     |-- nazastring/     ...... string和[]byte相关的操作
     |-- ratelimit/      ...... 限流器，令牌桶，漏桶
     |-- nazamd5/        ...... md5操作
-    |-- connection/     ...... 对net.Conn接口的二次封装
     |-- ic/             ...... 将整型切片压缩成二进制字节切片
-    |-- unique/         ...... 对象唯一ID
 playground/             ...... Go实验代码片段
 demo/                   ...... 示例相关的代码
 bin/                    ...... 可执行文件编译输出目录

@@ -48,6 +48,7 @@ func TestWriteTimeout(t *testing.T) {
 			break
 		}
 	}
+	c.Close()
 	ch <- struct{}{}
 }
 
@@ -79,6 +80,7 @@ func TestWrite(t *testing.T) {
 		assert.Equal(t, nil, err)
 		nazalog.Debugf("total sent:%d", sentN)
 		atomic.StoreUint32(&sentDone, 1)
+		srvConn.Close()
 	}()
 
 	conn, err := net.Dial("tcp", ":10027")
@@ -94,4 +96,5 @@ func TestWrite(t *testing.T) {
 			break
 		}
 	}
+	conn.Close()
 }

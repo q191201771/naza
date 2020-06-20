@@ -11,6 +11,8 @@ package nazalog
 import (
 	"fmt"
 
+	"github.com/q191201771/naza/pkg/nazareflect"
+
 	"github.com/q191201771/naza/pkg/fake"
 )
 
@@ -93,7 +95,7 @@ func Panicln(v ...interface{}) {
 }
 
 func Assert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
+	if !nazareflect.Equal(expected, actual) {
 		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
 		switch global.core.option.AssertBehavior {
 		case AssertError:

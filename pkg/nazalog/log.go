@@ -13,10 +13,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazareflect"
 
 	"github.com/q191201771/naza/pkg/fake"
 )
@@ -153,7 +154,7 @@ func (l *logger) Panicln(v ...interface{}) {
 }
 
 func (l *logger) Assert(expected interface{}, actual interface{}) {
-	if !equal(expected, actual) {
+	if !nazareflect.Equal(expected, actual) {
 		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
 		switch l.core.option.AssertBehavior {
 		case AssertError:
@@ -319,34 +320,6 @@ func validate(option Option) error {
 		return ErrLog
 	}
 	return nil
-}
-func isNil(actual interface{}) bool {
-	if actual == nil {
-		return true
-	}
-	v := reflect.ValueOf(actual)
-	k := v.Kind()
-	if k == reflect.Chan || k == reflect.Map || k == reflect.Ptr || k == reflect.Interface || k == reflect.Slice {
-		return v.IsNil()
-	}
-	return false
-}
-
-func equal(expected, actual interface{}) bool {
-	if expected == nil {
-		return isNil(actual)
-	}
-
-	exp, ok := expected.([]byte)
-	if !ok {
-		return reflect.DeepEqual(expected, actual)
-	}
-
-	act, ok := actual.([]byte)
-	if !ok {
-		return false
-	}
-	return bytes.Equal(exp, act)
 }
 
 func writeTime(buf *bytes.Buffer, t time.Time) {

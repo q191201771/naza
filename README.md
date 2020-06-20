@@ -43,6 +43,7 @@ pkg/                    ...... 源码包
     |-- nazahttp/       ...... http操作
     |-- unique/         ...... 对象唯一ID
     |-- connection/     ...... 对net.Conn接口的二次封装
+    |-- nazareflect/    ...... 利用反射做的一些操作
     |-- filebatch/      ...... 文件批处理操作
     |-- nazaatomic/     ...... 原子操作
     |-- snowflake/      ...... 分布式唯一性ID生成器

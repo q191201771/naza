@@ -40,7 +40,7 @@ func TestWriteTimeout(t *testing.T) {
 		opt.WriteTimeoutMS = 1000
 	})
 	assert.Equal(t, nil, err)
-	b := make([]byte, 128)
+	b := make([]byte, 128*1024)
 	for {
 		n, err := c.Write(b)
 		nazalog.Infof("%d %+v", n, err)

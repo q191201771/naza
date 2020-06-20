@@ -1,3 +1,8 @@
+#### v0.13.2
+
+- package nazareflect:
+  - [feat] 新增package，提供三个函数IsNil，Equal，EqualInteger
+
 #### v0.13.1
 
 - package connection:

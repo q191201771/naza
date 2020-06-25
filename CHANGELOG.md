@@ -1,3 +1,10 @@
+#### v0.13.3
+
+- package nazahttp:
+  - [fix] 当request line和status line存在多个空格时，解析错误
+- package bininfo:
+  - [feat] 增加git tag信息
+
 #### v0.13.2
 
 - package nazareflect:

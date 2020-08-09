@@ -36,6 +36,8 @@ pkg/                    ...... 源码包
     |-- bele/           ...... 大小端转换操作
     |-- nazabits/       ...... 位操作
     |-- bitrate/        ...... 计算带宽
+    |-- nazanet/        ...... socket操作相关
+    |-- circularqueue   ...... 底层基于切片实现的固定容量大小的FIFO的环形队列
     |-- lru             ...... LRU缓存
     |-- fake/           ...... 实现一些常用的接口，hook一些不方便测试的代码
     |-- consistenthash/ ...... 一致性哈希

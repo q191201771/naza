@@ -1,3 +1,13 @@
+#### v0.13.4
+
+- package circularqueue:
+  - [feat] 新增package，底层基于切片实现的固定容量大小的FIFO的环形队列
+- package nazanet:
+  - [feat] 这是一个新增的package，其中struct AvailUDPConnPool，可以从指定的UDP端口范围内，寻找可绑定监听的端口，绑定监听并返回
+  - [feat] 新增struct UDPConnection，对UDP连接对象的简易封装
+- package bele:
+  - [feat] 新增func BEPutUint16, BEPutUint64
+
 #### v0.13.3
 
 - package nazahttp:

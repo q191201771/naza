@@ -118,6 +118,10 @@ func ReadLEUint32(r io.Reader) (uint32, error) {
 
 // ----- 序列化 -----
 
+func BEPutUint16(out []byte, in uint16) {
+	binary.BigEndian.PutUint16(out, in)
+}
+
 func BEPutUint24(out []byte, in uint32) {
 	out[0] = byte(in >> 16)
 	out[1] = byte(in >> 8)
@@ -126,6 +130,10 @@ func BEPutUint24(out []byte, in uint32) {
 
 func BEPutUint32(out []byte, in uint32) {
 	binary.BigEndian.PutUint32(out, in)
+}
+
+func BEPutUint64(out []byte, in uint64) {
+	binary.BigEndian.PutUint64(out, in)
 }
 
 func LEPutUint32(out []byte, in uint32) {

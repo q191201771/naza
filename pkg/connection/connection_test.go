@@ -88,8 +88,7 @@ func TestWrite(t *testing.T) {
 	b := make([]byte, 4096)
 	var readN uint32
 	for {
-		n, err := conn.Read(b)
-		assert.Equal(t, nil, err)
+		n, _ := conn.Read(b)
 		readN += uint32(n)
 		nazalog.Debugf("total read:%d", readN)
 		if atomic.LoadUint32(&sentDone) == 1 && atomic.LoadUint32(&sentN) == readN {

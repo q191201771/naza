@@ -116,6 +116,18 @@ func TestLEUint32(t *testing.T) {
 	}
 }
 
+func TestBEPutUint16(t *testing.T) {
+	b := make([]byte, 2)
+	BEPutUint16(b, 1)
+	assert.Equal(t, []byte{0, 1}, b)
+}
+
+func TestBEPutUint64(t *testing.T) {
+	b := make([]byte, 8)
+	BEPutUint64(b, 1)
+	assert.Equal(t, []byte{0, 0, 0, 0, 0, 0, 0, 1}, b)
+}
+
 func TestBEPutUint24(t *testing.T) {
 	vector := []struct {
 		input  uint32

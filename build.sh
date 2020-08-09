@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x
+#set -x
 
 # 获取git tag版本号
 GitTag=`git tag --sort=version:refname | tail -n 1`

@@ -1,3 +1,10 @@
+#### v0.14.0
+
+- package nazanet:
+  - [refactor] 重构UDPConnection，既可作为服务端连接，又可作为客户端连接
+- package nazastring:
+  - [feat] 增加func DumpSliceByte
+
 #### v0.13.4
 
 - package circularqueue:

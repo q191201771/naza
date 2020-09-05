@@ -8,65 +8,96 @@
 
 package nazanet
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
-// TODO chef:
-//   1. 长度可能需要提供接口供业务方设置
-//   2. 每次读取数据时的buf，是新建还是复用，需要提供接口供业务方设置
+const maxReadSizeOfUDPConnection = 1500
 
-const maxUDPPacketLength = 1500
-
-// @param err: 注意，当err不为nil时，read loop将结束并退出（该语义后续可能发生变化，具体见代码）
-type OnReadUDPPacket func(b []byte, remoteAddr net.Addr, err error)
+// @return 上层回调返回false，则关闭UDPConnection
+//
+type OnReadUDPPacket func(b []byte, raddr *net.UDPAddr, err error) bool
 
 type UDPConnection struct {
-	localAddr       string
-	conn            *net.UDPConn
-	onReadUDPPacket OnReadUDPPacket
+	conn   *net.UDPConn
+	ruaddr *net.UDPAddr
 }
 
-func NewUDPConnectionWithLocalAddr(localAddr string, onReadUDPPacket OnReadUDPPacket) *UDPConnection {
-	return &UDPConnection{
-		localAddr:       localAddr,
-		onReadUDPPacket: onReadUDPPacket,
-	}
-}
-
-// 直接使用已绑定好监听的net.UDPConn对象
-func NewUDPConnectionWithConn(conn *net.UDPConn, onReadUDPPacket OnReadUDPPacket) *UDPConnection {
-	return &UDPConnection{
-		conn:            conn,
-		onReadUDPPacket: onReadUDPPacket,
-	}
-}
-
-// 配合func NewUDPConnectionWithLocalAddr使用
-func (u *UDPConnection) Listen() error {
-	udpAddr, err := net.ResolveUDPAddr("udp", u.localAddr)
+// @param laddr: 本地bind地址，如果设置为空，则自动选择可用端口
+//               比如作为客户端时，如果不想特别指定本地端口，可以设置为空
+//
+// @param raddr: 如果为空，则只能使用func Write2Addr携带对端地址进行发送，不能使用func Write
+//               好处是作为客户端时，对端地址通常只有一个，在构造函数中指定，后续就不用每次发送都指定
+//
+func NewUDPConnection(laddr string, raddr string) (c *UDPConnection, err error) {
+	c = &UDPConnection{}
+	conn, err := listenUDPWithAddr(laddr)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	u.conn, err = net.ListenUDP("udp", udpAddr)
-	return err
+	c.conn = conn
+
+	if c.ruaddr, err = net.ResolveUDPAddr(udpNetwork, raddr); err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
-// 开启读取事件循环，读取到数据时通过回调返回给上层
-func (u *UDPConnection) RunLoop() {
+// @param conn: 直接传入外部创建好的连接对象供内部使用
+func NewUDPConnectionWithConn(conn *net.UDPConn) (c *UDPConnection) {
+	return &UDPConnection{
+		conn: conn,
+	}
+}
+
+// 阻塞直至Read发生错误或上层回调函数返回false
+//
+// @return error: 如果外部调用Dispose，会返回error
+//
+func (c *UDPConnection) RunLoop(onRead OnReadUDPPacket) error {
+	// TODO chef: 外部可以指定，是否复用
+	b := make([]byte, maxReadSizeOfUDPConnection)
 	for {
-		b := make([]byte, maxUDPPacketLength)
-		length, remoteAddr, err := u.conn.ReadFrom(b)
-		u.onReadUDPPacket(b[:length], remoteAddr, err)
+		n, raddr, err := c.conn.ReadFromUDP(b)
+		if keepRunning := onRead(b[:n], raddr, err); !keepRunning {
+			if err == nil {
+				return c.Dispose()
+			}
+		}
 		if err != nil {
-			break
+			return err
 		}
 	}
 }
 
-func (u *UDPConnection) Write(b []byte) error {
-	_, err := u.conn.Write(b)
+// 直接读取数据，不使用RunLoop
+//
+func (c *UDPConnection) ReadWithTimeout(timeoutMS int) ([]byte, *net.UDPAddr, error) {
+	if timeoutMS > 0 {
+		if err := c.conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)); err != nil {
+			return nil, nil, err
+		}
+	}
+	b := make([]byte, maxReadSizeOfUDPConnection)
+	n, raddr, err := c.conn.ReadFromUDP(b)
+	if err != nil {
+		return nil, nil, err
+	}
+	return b[:n], raddr, nil
+}
+
+func (c *UDPConnection) Write(b []byte) error {
+	_, err := c.conn.WriteToUDP(b, c.ruaddr)
 	return err
 }
 
-func (u *UDPConnection) Dispose() error {
-	return u.conn.Close()
+func (c *UDPConnection) Write2Addr(b []byte, ruaddr *net.UDPAddr) error {
+	_, err := c.conn.WriteToUDP(b, ruaddr)
+	return err
+}
+
+func (c *UDPConnection) Dispose() error {
+	return c.conn.Close()
 }

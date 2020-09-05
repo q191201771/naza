@@ -9,7 +9,6 @@
 package nazanet
 
 import (
-	"fmt"
 	"net"
 	"sync"
 )
@@ -46,7 +45,7 @@ func (a *AvailUDPConnPool) Acquire() (*net.UDPConn, uint16, error) {
 		}
 		loopFirstFlag = false
 
-		conn, err := listenUDP(p)
+		conn, err := listenUDPWithPort(p)
 
 		// 绑定失败，尝试下一个端口
 		if err != nil {
@@ -82,7 +81,7 @@ func (a *AvailUDPConnPool) Acquire2() (*net.UDPConn, uint16, *net.UDPConn, uint1
 			continue
 		}
 
-		conn, err := listenUDP(p)
+		conn, err := listenUDPWithPort(p)
 
 		// 第一个就绑定失败，尝试下一个端口
 		if err != nil {
@@ -93,7 +92,7 @@ func (a *AvailUDPConnPool) Acquire2() (*net.UDPConn, uint16, *net.UDPConn, uint1
 		// 绑定成功，因为我们需要两个，所以我们还要找第二个
 
 		// 因为前面已经有判断最大值了，所以直接+1
-		conn2, err := listenUDP(p + 1)
+		conn2, err := listenUDPWithPort(p + 1)
 
 		// 第二个失败了，关闭第一个，然后从第二个的下一个重新尝试
 		if err != nil {
@@ -123,15 +122,4 @@ func (a *AvailUDPConnPool) nextPort(p uint16) uint16 {
 	}
 
 	return p + 1
-}
-
-func listenUDP(port uint16) (*net.UDPConn, error) {
-	addr := fmt.Sprintf(":%d", port)
-
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return net.ListenUDP("udp", udpAddr)
 }

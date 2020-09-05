@@ -11,38 +11,68 @@ package nazanet_test
 import (
 	"fmt"
 	"net"
+	"sync"
 	"testing"
-	"time"
-
-	"github.com/q191201771/naza/pkg/nazalog"
 
 	"github.com/q191201771/naza/pkg/assert"
+
 	"github.com/q191201771/naza/pkg/nazanet"
 )
 
 func TestUDPConnection(t *testing.T) {
-	port, err := nazanet.NewAvailUDPConnPool(8000, 16000).Peek()
+	p := nazanet.NewAvailUDPConnPool(4000, 8000)
+	srvConn, srvPort, err := p.Acquire()
 	assert.Equal(t, nil, err)
+	laddr := fmt.Sprintf(":%d", srvPort)
+	srv := nazanet.NewUDPConnectionWithConn(srvConn)
 
-	addr := fmt.Sprintf(":%d", port)
-	conn := nazanet.NewUDPConnectionWithLocalAddr(addr, func(b []byte, remoteAddr net.Addr, err error) {
-		nazalog.Debugf("%d, %v, %v", len(b), remoteAddr, err)
-	})
-	err = conn.Listen()
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		var count int
+		err := srv.RunLoop(func(b []byte, raddr *net.UDPAddr, err error) bool {
+			count++
+			if count > 2 {
+				return true
+			}
+			assert.Equal(t, []byte("hello"), b)
+			err2 := srv.Write2Addr([]byte("world"), raddr)
+			assert.Equal(t, nil, err2)
+			return true
+		})
+		// 因为server loop是通过Dispose强行关闭的，所以这里error有值
+		assert.IsNotNil(t, err)
+	}()
+
+	cli, err := nazanet.NewUDPConnection("", laddr)
 	assert.Equal(t, nil, err)
-	go conn.RunLoop()
-	err = conn.Dispose()
+	go func() {
+		err := cli.Write([]byte("hello"))
+		assert.Equal(t, nil, err)
+		err = cli.RunLoop(func(b []byte, raddr *net.UDPAddr, err error) bool {
+			assert.Equal(t, []byte("world"), b)
+			return false
+		})
+		assert.Equal(t, nil, err)
+		wg.Done()
+	}()
+
+	cli2, err := nazanet.NewUDPConnection("", laddr)
 	assert.Equal(t, nil, err)
-	time.Sleep(100 * time.Millisecond)
-}
+	go func() {
+		err := cli2.Write([]byte("hello"))
+		assert.Equal(t, nil, err)
+		err = cli2.RunLoop(func(b []byte, raddr *net.UDPAddr, err error) bool {
+			assert.Equal(t, []byte("world"), b)
+			return false
+		})
+		assert.Equal(t, nil, err)
+		wg.Done()
+	}()
 
-func TestNewUDPConnectionWithConn(t *testing.T) {
-	conn, _, err := nazanet.NewAvailUDPConnPool(8000, 16000).Acquire()
+	wg.Wait()
+
+	err = srv.Dispose()
 	assert.Equal(t, nil, err)
-
-	connection := nazanet.NewUDPConnectionWithConn(conn, func(b []byte, remoteAddr net.Addr, err error) {
-
-	})
-	go connection.RunLoop()
-	_ = connection.Dispose()
 }

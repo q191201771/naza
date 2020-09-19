@@ -1,3 +1,9 @@
+#### v0.15.0
+
+- [feat] package nazabits: 新增函数ReadBits64
+- [feat] package nazanet: UDPConnection支持IPv6
+- [refactor] package nazanet: UDPConnection构造函数支持更多配置
+
 #### v0.14.0
 
 - package nazanet:

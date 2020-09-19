@@ -19,12 +19,35 @@ import (
 	"github.com/q191201771/naza/pkg/nazanet"
 )
 
+// [::]:4000 => 0.0.0.0:4000
+// [::1]:4000 => 127.0.0.1:4000
+//
+// ------------------------------
+// srv laddr=":4000" raddr=""
+// succ:
+// cli laddr=""      raddr="127.0.0.1:4000"
+// cli laddr=""      raddr="[::1]:4000"
+// cli laddr=":4001" raddr="127.0.0.1:4000"
+// fail:
+//
+// ------------------------------
+// srv laddr="[::]:4000" raddr=""
+// succ:
+// cli laddr=""          raddr="[::1]:4000"
+// cli laddr=""          raddr="127.0.0.1:4000"
+// fail:
+//
+
 func TestUDPConnection(t *testing.T) {
 	p := nazanet.NewAvailUDPConnPool(4000, 8000)
 	srvConn, srvPort, err := p.Acquire()
 	assert.Equal(t, nil, err)
-	laddr := fmt.Sprintf(":%d", srvPort)
-	srv := nazanet.NewUDPConnectionWithConn(srvConn)
+	toAddr1 := fmt.Sprintf("127.0.0.1:%d", srvPort)
+	toAddr2 := fmt.Sprintf("[::1]:%d", srvPort)
+	srv, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+		option.Conn = srvConn
+	})
+	assert.Equal(t, nil, err)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -45,7 +68,9 @@ func TestUDPConnection(t *testing.T) {
 		assert.IsNotNil(t, err)
 	}()
 
-	cli, err := nazanet.NewUDPConnection("", laddr)
+	cli, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+		option.RAddr = toAddr1
+	})
 	assert.Equal(t, nil, err)
 	go func() {
 		err := cli.Write([]byte("hello"))
@@ -58,7 +83,9 @@ func TestUDPConnection(t *testing.T) {
 		wg.Done()
 	}()
 
-	cli2, err := nazanet.NewUDPConnection("", laddr)
+	cli2, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+		option.RAddr = toAddr2
+	})
 	assert.Equal(t, nil, err)
 	go func() {
 		err := cli2.Write([]byte("hello"))

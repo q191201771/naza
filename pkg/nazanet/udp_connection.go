@@ -13,43 +13,60 @@ import (
 	"time"
 )
 
-const maxReadSizeOfUDPConnection = 1500
-
 // @return 上层回调返回false，则关闭UDPConnection
 //
 type OnReadUDPPacket func(b []byte, raddr *net.UDPAddr, err error) bool
 
+type UDPConnectionOption struct {
+	// 两种初始化方式：
+	// 方式一：直接传入外部创建好的连接对象供内部使用
+	Conn *net.UDPConn
+	// 方式二：填入地址，内部创建连接对象
+	// LAddr: 本地bind地址，如果设置为空，则自动选择可用端口
+	//        比如作为客户端时，如果不想特别指定本地端口，可以设置为空
+	//
+	// Raddr: 如果为空，则只能使用func Write2Addr携带对端地址进行发送，不能使用func Write
+	//        不为空的作用：作为客户端时，对端地址通常只有一个，在构造函数中指定，后续就不用每次发送都指定
+	//        注意，对端地址需显示填写IP
+	//
+	LAddr string
+	RAddr string
+
+	MaxReadPacketSize int  // 读取数据时，内存块大小
+	AllocEachRead     bool // 使用Read Loop时，是否每次读取都申请新的内存块，如果为false，则复用一块内存块
+}
+
+var defaultOption = UDPConnectionOption{
+	MaxReadPacketSize: 1500,
+	AllocEachRead:     true,
+}
+
 type UDPConnection struct {
-	conn   *net.UDPConn
+	option UDPConnectionOption
 	ruaddr *net.UDPAddr
 }
 
-// @param laddr: 本地bind地址，如果设置为空，则自动选择可用端口
-//               比如作为客户端时，如果不想特别指定本地端口，可以设置为空
-//
-// @param raddr: 如果为空，则只能使用func Write2Addr携带对端地址进行发送，不能使用func Write
-//               好处是作为客户端时，对端地址通常只有一个，在构造函数中指定，后续就不用每次发送都指定
-//
-func NewUDPConnection(laddr string, raddr string) (c *UDPConnection, err error) {
-	c = &UDPConnection{}
-	conn, err := listenUDPWithAddr(laddr)
-	if err != nil {
+type ModUDPConnectionOption func(option *UDPConnectionOption)
+
+func NewUDPConnection(modOptions ...ModUDPConnectionOption) (*UDPConnection, error) {
+	c := &UDPConnection{}
+	c.option = defaultOption
+	for _, fn := range modOptions {
+		fn(&c.option)
+	}
+	if c.option.Conn != nil {
+		return c, nil
+	}
+
+	var err error
+	if c.option.Conn, err = listenUDPWithAddr(c.option.LAddr); err != nil {
 		return nil, err
 	}
-	c.conn = conn
 
-	if c.ruaddr, err = net.ResolveUDPAddr(udpNetwork, raddr); err != nil {
+	if c.ruaddr, err = net.ResolveUDPAddr(udpNetwork, c.option.RAddr); err != nil {
 		return nil, err
 	}
-
-	return c, nil
-}
-
-// @param conn: 直接传入外部创建好的连接对象供内部使用
-func NewUDPConnectionWithConn(conn *net.UDPConn) (c *UDPConnection) {
-	return &UDPConnection{
-		conn: conn,
-	}
+	return c, err
 }
 
 // 阻塞直至Read发生错误或上层回调函数返回false
@@ -57,10 +74,15 @@ func NewUDPConnectionWithConn(conn *net.UDPConn) (c *UDPConnection) {
 // @return error: 如果外部调用Dispose，会返回error
 //
 func (c *UDPConnection) RunLoop(onRead OnReadUDPPacket) error {
-	// TODO chef: 外部可以指定，是否复用
-	b := make([]byte, maxReadSizeOfUDPConnection)
+	var b []byte
+	if !c.option.AllocEachRead {
+		b = make([]byte, c.option.MaxReadPacketSize)
+	}
 	for {
-		n, raddr, err := c.conn.ReadFromUDP(b)
+		if c.option.AllocEachRead {
+			b = make([]byte, c.option.MaxReadPacketSize)
+		}
+		n, raddr, err := c.option.Conn.ReadFromUDP(b)
 		if keepRunning := onRead(b[:n], raddr, err); !keepRunning {
 			if err == nil {
 				return c.Dispose()
@@ -76,12 +98,12 @@ func (c *UDPConnection) RunLoop(onRead OnReadUDPPacket) error {
 //
 func (c *UDPConnection) ReadWithTimeout(timeoutMS int) ([]byte, *net.UDPAddr, error) {
 	if timeoutMS > 0 {
-		if err := c.conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)); err != nil {
+		if err := c.option.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)); err != nil {
 			return nil, nil, err
 		}
 	}
-	b := make([]byte, maxReadSizeOfUDPConnection)
-	n, raddr, err := c.conn.ReadFromUDP(b)
+	b := make([]byte, c.option.MaxReadPacketSize)
+	n, raddr, err := c.option.Conn.ReadFromUDP(b)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,15 +111,15 @@ func (c *UDPConnection) ReadWithTimeout(timeoutMS int) ([]byte, *net.UDPAddr, er
 }
 
 func (c *UDPConnection) Write(b []byte) error {
-	_, err := c.conn.WriteToUDP(b, c.ruaddr)
+	_, err := c.option.Conn.WriteToUDP(b, c.ruaddr)
 	return err
 }
 
 func (c *UDPConnection) Write2Addr(b []byte, ruaddr *net.UDPAddr) error {
-	_, err := c.conn.WriteToUDP(b, ruaddr)
+	_, err := c.option.Conn.WriteToUDP(b, ruaddr)
 	return err
 }
 
 func (c *UDPConnection) Dispose() error {
-	return c.conn.Close()
+	return c.option.Conn.Close()
 }

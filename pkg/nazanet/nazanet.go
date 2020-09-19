@@ -12,4 +12,4 @@ import "errors"
 
 var ErrNazaNet = errors.New("nazanet: fxxk")
 
-const udpNetwork = "udp4"
+const udpNetwork = "udp"

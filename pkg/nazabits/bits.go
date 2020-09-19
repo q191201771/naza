@@ -68,6 +68,7 @@ func (br *BitReader) ReadBits16(n uint) (r uint16, err error) {
 	return
 }
 
+// @param n: 取值范围 [1, 32]
 func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
 	var t uint8
 	for i := uint(0); i < n; i++ {
@@ -76,6 +77,19 @@ func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
 			return
 		}
 		r = (r << 1) | uint32(t)
+	}
+	return
+}
+
+// @param n: 取值范围 [1, 64]
+func (br *BitReader) ReadBits64(n uint) (r uint64, err error) {
+	var t uint8
+	for i := uint(0); i < n; i++ {
+		t, err = br.ReadBit()
+		if err != nil {
+			return
+		}
+		r = (r << 1) | uint64(t)
 	}
 	return
 }

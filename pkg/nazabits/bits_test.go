@@ -243,6 +243,41 @@ func TestBitReader_ReadGolomb(t *testing.T) {
 	v, err = br.ReadGolomb()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, uint32(6), v)
+
+	// 1<<n + m - 1
+	// 1(0, 0)   -> 0
+	// 010(1, 0) -> 1
+	// 011(1, 1) -> 2
+	// 00100(2, 0) -> 3
+	// 00111(2, 3) -> 7
+	// (3, 7) -> 15
+	// (4, 15) -> 31
+	// (5, 31) -> 63
+	// (9, 209) -> 720
+	b = []byte{0x80}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(0), v)
+	b = []byte{0x40}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(1), v)
+	b = []byte{0x60}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(2), v)
+	b = []byte{0x20}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(3), v)
+	b = []byte{0x0, 0x40, 0x0}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(511), v)
+	b = []byte{0x0, 0x5a, 0x20}
+	br = nazabits.NewBitReader(b)
+	v, err = br.ReadGolomb()
+	assert.Equal(t, uint32(720), v)
 }
 
 func TestBitWriter_WriteBit(t *testing.T) {

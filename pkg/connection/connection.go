@@ -63,6 +63,13 @@ type Connection interface {
 	ModWriteBufSize(n int)
 	ModReadTimeoutMS(n int)
 	ModWriteTimeoutMS(n int)
+
+	GetStat() Stat
+}
+
+type Stat struct {
+	ReadBytesSum  uint64
+	WroteBytesSum uint64
 }
 
 type WriteChanFullBehavior int
@@ -160,6 +167,7 @@ type connection struct {
 	doneChan      chan error
 	closedFlag    uint32
 	closeOnce     sync.Once
+	stat          Stat
 }
 
 func (c *connection) ModWriteChanSize(n int) {
@@ -209,6 +217,7 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
+	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(n))
 	return n, err
 }
 
@@ -230,6 +239,7 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	if err != nil {
 		c.close(err)
 	}
+	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(len(line)))
 	return line, isPrefix, err
 }
 
@@ -245,6 +255,7 @@ func (c *connection) Read(b []byte) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
+	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(n))
 	return n, err
 }
 
@@ -323,6 +334,13 @@ func (c *connection) SetWriteDeadline(t time.Time) error {
 	}
 	return err
 }
+
+func (c *connection) GetStat() (s Stat) {
+	s.ReadBytesSum = atomic.LoadUint64(&c.stat.ReadBytesSum)
+	s.WroteBytesSum = atomic.LoadUint64(&c.stat.WroteBytesSum)
+	return
+}
+
 func (c *connection) write(b []byte) (n int, err error) {
 	if c.option.WriteTimeoutMS > 0 {
 		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
@@ -335,6 +353,7 @@ func (c *connection) write(b []byte) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
+	atomic.AddUint64(&c.stat.WroteBytesSum, uint64(n))
 	return n, err
 }
 

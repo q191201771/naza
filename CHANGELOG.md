@@ -1,3 +1,7 @@
+#### v0.15.1
+
+- [feat] package connection: 增加GetStat函数，用于获取连接读取、发送数据的总字节数
+
 #### v0.15.0
 
 - [feat] package nazabits: 新增函数ReadBits64

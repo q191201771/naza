@@ -1,3 +1,7 @@
+#### v0.15.2
+
+- [fix] package nazanet: 使用net.UDPConn方式初始化UDPConnection时，可以同时初始化RAddr远端地址
+
 #### v0.15.1
 
 - [feat] package connection: 增加GetStat函数，用于获取连接读取、发送数据的总字节数

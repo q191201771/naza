@@ -25,9 +25,10 @@ type UDPConnectionOption struct {
 	// LAddr: 本地bind地址，如果设置为空，则自动选择可用端口
 	//        比如作为客户端时，如果不想特别指定本地端口，可以设置为空
 	//
-	// Raddr: 如果为空，则只能使用func Write2Addr携带对端地址进行发送，不能使用func Write
+	// RAddr: 如果为空，则只能使用func Write2Addr携带对端地址进行发送，不能使用func Write
 	//        不为空的作用：作为客户端时，对端地址通常只有一个，在构造函数中指定，后续就不用每次发送都指定
-	//        注意，对端地址需显示填写IP
+	//        注意，对端地址需显式填写IP
+	//        注意，即使使用方式一，也可以设置Rddr
 	//
 	LAddr string
 	RAddr string
@@ -49,21 +50,21 @@ type UDPConnection struct {
 type ModUDPConnectionOption func(option *UDPConnectionOption)
 
 func NewUDPConnection(modOptions ...ModUDPConnectionOption) (*UDPConnection, error) {
+	var err error
+
 	c := &UDPConnection{}
 	c.option = defaultOption
 	for _, fn := range modOptions {
 		fn(&c.option)
 	}
+	if c.ruaddr, err = net.ResolveUDPAddr(udpNetwork, c.option.RAddr); err != nil {
+		return nil, err
+	}
 	if c.option.Conn != nil {
 		return c, nil
 	}
 
-	var err error
 	if c.option.Conn, err = listenUDPWithAddr(c.option.LAddr); err != nil {
-		return nil, err
-	}
-
-	if c.ruaddr, err = net.ResolveUDPAddr(udpNetwork, c.option.RAddr); err != nil {
 		return nil, err
 	}
 	return c, err

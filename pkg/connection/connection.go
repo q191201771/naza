@@ -64,6 +64,9 @@ type Connection interface {
 	ModReadTimeoutMS(n int)
 	ModWriteTimeoutMS(n int)
 
+	// 连接上读取和发送的字节总数。
+	// 注意，如果是异步发送，发送字节统计的是调用底层write的值，而非上层调用Connection发送的值
+	// 也即不包含Connection中的发送缓存部分，但是可能包含内核socket发送缓冲区的值。
 	GetStat() Stat
 }
 

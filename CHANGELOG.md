@@ -1,3 +1,17 @@
+#### v0.15.5
+
+- [fix] package taskpool: 全局对象解析task参数错误
+- [feat] package nazahttp: 新增函数ReadHTTPRequest，读取HTTP请求并解析
+
+#### v0.15.4
+
+- [feat] 新增package defertaskthread，用于执行延时任务
+
+#### v0.15.3
+
+- [feat] func UnmarshalRequestJsonBody 反序列化http json body
+- [feat] func PostJson 序列化json数据做http post
+
 #### v0.15.2
 
 - [fix] package nazanet: 使用net.UDPConn方式初始化UDPConnection时，可以同时初始化RAddr远端地址

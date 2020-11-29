@@ -26,5 +26,5 @@ func PostJson(url string, info interface{}, client *http.Client) (*http.Response
 	if client == nil {
 		client = http.DefaultClient
 	}
-	return client.Post(url, "application/json", b)
+	return client.Post(url, HeaderFieldContentType, b)
 }

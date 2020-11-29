@@ -9,11 +9,8 @@
 package nazahttp
 
 import (
-	"errors"
 	"strings"
 )
-
-var ErrHTTPHeader = errors.New("nazahttp: fxxk")
 
 type LineReader interface {
 	ReadLine() (line []byte, isPrefix bool, err error)

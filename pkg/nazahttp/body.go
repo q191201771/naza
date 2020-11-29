@@ -10,15 +10,14 @@ package nazahttp
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/q191201771/naza/pkg/nazajson"
 )
 
-var ErrParamMissing = errors.New("nazahttp: param missing")
-
+// @brief 从http请求中解析body中的json字符串，并反序列化至结构体中
+//
 // @param r            http请求对象
 // @param info         输出参数，用于接收反序列化之后的数据
 // @param keyFieldList 可选参数，可指定一个或多个json中必须存在的字段

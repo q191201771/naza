@@ -1,3 +1,7 @@
+#### v0.16.0
+
+- [refactor] package nazahttp: 删除函数ReadHTTPRequest，新增函数ReadHTTPRequestMessage，函数ReadHTTPResponseMessage
+
 #### v0.15.5
 
 - [fix] package taskpool: 全局对象解析task参数错误

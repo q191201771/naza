@@ -58,22 +58,15 @@ func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, 
 
 // Request-Line = Method SP URI SP Version CRLF
 func ParseHTTPRequestLine(line string) (method string, uri string, version string, err error) {
-	f := strings.Index(line, " ")
-	if f == -1 {
-		err = ErrHTTPHeader
-		return
-	}
-	s := strings.Index(line[f+1:], " ")
-	if s == -1 || f+1+s+1 == len(line) {
-		err = ErrHTTPHeader
-		return
-	}
-
-	return line[0:f], line[f+1 : f+1+s], line[f+1+s+1:], nil
+	return parseFirstLine(line)
 }
 
 // Status-Line = Version SP Status-Code SP Reason CRLF
 func ParseHTTPStatusLine(line string) (version string, statusCode string, reason string, err error) {
+	return parseFirstLine(line)
+}
+
+func parseFirstLine(line string) (item1, item2, item3 string, err error) {
 	f := strings.Index(line, " ")
 	if f == -1 {
 		err = ErrHTTPHeader

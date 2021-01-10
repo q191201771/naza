@@ -1,3 +1,8 @@
+#### v0.16.1
+
+- [feat] package nazastring，增加SubSliceSafety函数，安全的获取切片的子切片
+- [feat] package nazaerrors，增加CombineErrors函数，将多个error组合成一个
+
 #### v0.16.0
 
 - [refactor] package nazahttp: 删除函数ReadHTTPRequest，新增函数ReadHTTPRequestMessage，函数ReadHTTPResponseMessage

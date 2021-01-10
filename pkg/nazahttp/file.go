@@ -28,8 +28,7 @@ func GetHTTPFile(url string, timeoutMSec int) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	content, err := ioutil.ReadAll(resp.Body)
-	return content, err
+	return ioutil.ReadAll(resp.Body)
 }
 
 // 获取http文件保存至本地

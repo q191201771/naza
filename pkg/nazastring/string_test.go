@@ -28,6 +28,25 @@ func TestStringToSliceByteTmp(t *testing.T) {
 	assert.Equal(t, inbuf, buf)
 }
 
+func TestDumpSliceByte(t *testing.T) {
+	golden := []byte{1, 2, 3, 4, 5}
+	ret := DumpSliceByte(golden)
+	assert.Equal(t, "[]byte{0x01, 0x02, 0x03, 0x04, 0x05}", ret)
+}
+
+func TestSubSliceSafety(t *testing.T) {
+	var b []byte
+	assert.Equal(t, nil, SubSliceSafety(b, 1))
+	assert.Equal(t, nil, SubSliceSafety(b, 2))
+	b = []byte{1}
+	assert.Equal(t, b, SubSliceSafety(b, 1))
+	assert.Equal(t, b, SubSliceSafety(b, 2))
+	b = []byte{1, 2}
+	assert.Equal(t, []byte{1}, SubSliceSafety(b, 1))
+	assert.Equal(t, b, SubSliceSafety(b, 2))
+	assert.Equal(t, b, SubSliceSafety(b, 3))
+}
+
 func BenchmarkSliceByteToStringOrigin(b *testing.B) {
 	var str string
 

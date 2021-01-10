@@ -60,3 +60,11 @@ func DumpSliceByte(b []byte) string {
 	bb.WriteString("}")
 	return bb.String()
 }
+
+// @param m 对切片做子切片操作，取值范围大于0，如果超过了原切片大小，则返回原切片
+func SubSliceSafety(b []byte, m int) []byte {
+	if m <= len(b) {
+		return b[:m]
+	}
+	return b
+}

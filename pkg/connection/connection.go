@@ -143,6 +143,7 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 		go c.runWriteLoop()
 	}
 
+	nazalog.Debugf("naza connection New. net.Conn=%p, naza.Connection=%p", conn, c)
 	return c
 }
 

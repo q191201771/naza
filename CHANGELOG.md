@@ -1,3 +1,8 @@
+#### v0.17.0
+
+- [feat] package nazaerrors: 增加Wrap函数，用于封装error
+- [chore] 最低Go依赖版本提高至1.13
+
 #### v0.16.1
 
 - [feat] package nazastring，增加SubSliceSafety函数，安全的获取切片的子切片

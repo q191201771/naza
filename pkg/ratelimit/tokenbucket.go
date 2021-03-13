@@ -12,8 +12,9 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazaatomic"
 )
 
 var ErrTokenNotEnough = errors.New("naza.ratelimit: token not enough")
@@ -24,7 +25,7 @@ type TokenBucket struct {
 	prodTokenInterval         time.Duration
 	prodTokenNumEveryInterval int
 
-	disposeFlag int32
+	disposeFlag nazaatomic.Bool
 
 	mu        sync.Mutex
 	available int
@@ -89,7 +90,7 @@ func (tb *TokenBucket) WaitUntilAquireWithNum(num int) {
 
 // 销毁令牌桶
 func (tb *TokenBucket) Dispose() {
-	atomic.StoreInt32(&tb.disposeFlag, 1)
+	tb.disposeFlag.Store(true)
 }
 
 func (tb *TokenBucket) asyncProdToken() {
@@ -97,7 +98,7 @@ func (tb *TokenBucket) asyncProdToken() {
 		t := time.NewTicker(tb.prodTokenInterval)
 		defer t.Stop()
 		for {
-			if atomic.LoadInt32(&tb.disposeFlag) == 1 {
+			if tb.disposeFlag.Load() {
 				break
 			}
 			select {

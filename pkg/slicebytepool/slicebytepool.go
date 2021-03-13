@@ -8,9 +8,7 @@
 
 package slicebytepool
 
-import (
-	"sync/atomic"
-)
+import "github.com/q191201771/naza/pkg/nazaatomic"
 
 var (
 	minSize = 1024
@@ -20,11 +18,18 @@ var (
 type sliceBytePool struct {
 	strategy        Strategy
 	capToFreeBucket map[int]Bucket
-	status          Status
+	status          statusAtomic
+}
+
+type statusAtomic struct {
+	getCount  nazaatomic.Int64
+	putCount  nazaatomic.Int64
+	hitCount  nazaatomic.Int64
+	sizeBytes nazaatomic.Int64
 }
 
 func (bp *sliceBytePool) Get(size int) []byte {
-	atomic.AddInt64(&bp.status.getCount, 1)
+	bp.status.getCount.Increment()
 
 	ss := up2power(size)
 	if ss < minSize {
@@ -38,15 +43,15 @@ func (bp *sliceBytePool) Get(size int) []byte {
 		return buf
 	}
 
-	atomic.AddInt64(&bp.status.hitCount, 1)
-	atomic.AddInt64(&bp.status.sizeBytes, int64(-cap(buf)))
+	bp.status.hitCount.Increment()
+	bp.status.sizeBytes.Sub(int64(cap(buf)))
 	return buf
 }
 
 func (bp *sliceBytePool) Put(buf []byte) {
 	c := cap(buf)
-	atomic.AddInt64(&bp.status.putCount, 1)
-	atomic.AddInt64(&bp.status.sizeBytes, int64(c))
+	bp.status.putCount.Increment()
+	bp.status.sizeBytes.Add(int64(c))
 
 	size := down2power(c)
 	if size < minSize {
@@ -60,10 +65,10 @@ func (bp *sliceBytePool) Put(buf []byte) {
 
 func (bp *sliceBytePool) RetrieveStatus() Status {
 	return Status{
-		getCount:  atomic.LoadInt64(&bp.status.getCount),
-		putCount:  atomic.LoadInt64(&bp.status.putCount),
-		hitCount:  atomic.LoadInt64(&bp.status.hitCount),
-		sizeBytes: atomic.LoadInt64(&bp.status.sizeBytes),
+		getCount:  bp.status.getCount.Load(),
+		putCount:  bp.status.putCount.Load(),
+		hitCount:  bp.status.hitCount.Load(),
+		sizeBytes: bp.status.sizeBytes.Load(),
 	}
 }
 

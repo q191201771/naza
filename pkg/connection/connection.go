@@ -21,8 +21,9 @@ import (
 	"io"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazaatomic"
 
 	"github.com/q191201771/naza/pkg/nazalog"
 )
@@ -75,6 +76,11 @@ type Stat struct {
 	WroteBytesSum uint64
 }
 
+type StatAtomic struct {
+	ReadBytesSum  nazaatomic.Uint64
+	WroteBytesSum nazaatomic.Uint64
+}
+
 type WriteChanFullBehavior int
 
 const (
@@ -115,7 +121,6 @@ type ModOption func(option *Option)
 func New(conn net.Conn, modOptions ...ModOption) Connection {
 	c := new(connection)
 	c.doneChan = make(chan error, 1)
-	c.closedFlag = 0
 	c.Conn = conn
 
 	c.option = defaultOption
@@ -169,9 +174,9 @@ type connection struct {
 	flushDoneChan chan struct{}
 	exitChan      chan struct{}
 	doneChan      chan error
-	closedFlag    uint32
+	closedFlag    nazaatomic.Bool
 	closeOnce     sync.Once
-	stat          Stat
+	stat          StatAtomic
 }
 
 func (c *connection) ModWriteChanSize(n int) {
@@ -221,7 +226,7 @@ func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
-	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(n))
+	c.stat.ReadBytesSum.Add(uint64(n))
 	return n, err
 }
 
@@ -243,7 +248,7 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 	if err != nil {
 		c.close(err)
 	}
-	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(len(line)))
+	c.stat.ReadBytesSum.Add(uint64(len(line)))
 	return line, isPrefix, err
 }
 
@@ -259,12 +264,12 @@ func (c *connection) Read(b []byte) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
-	atomic.AddUint64(&c.stat.ReadBytesSum, uint64(n))
+	c.stat.ReadBytesSum.Add(uint64(n))
 	return n, err
 }
 
 func (c *connection) Write(b []byte) (n int, err error) {
-	if atomic.LoadUint32(&c.closedFlag) == 1 {
+	if c.closedFlag.Load() {
 		return 0, ErrClosedAlready
 	}
 	if c.option.WriteChanSize > 0 {
@@ -285,7 +290,7 @@ func (c *connection) Write(b []byte) (n int, err error) {
 }
 
 func (c *connection) Flush() error {
-	if atomic.LoadUint32(&c.closedFlag) == 1 {
+	if c.closedFlag.Load() {
 		return ErrClosedAlready
 	}
 	if c.option.WriteChanSize > 0 {
@@ -340,8 +345,8 @@ func (c *connection) SetWriteDeadline(t time.Time) error {
 }
 
 func (c *connection) GetStat() (s Stat) {
-	s.ReadBytesSum = atomic.LoadUint64(&c.stat.ReadBytesSum)
-	s.WroteBytesSum = atomic.LoadUint64(&c.stat.WroteBytesSum)
+	s.ReadBytesSum = c.stat.ReadBytesSum.Load()
+	s.WroteBytesSum = c.stat.WroteBytesSum.Load()
 	return
 }
 
@@ -357,7 +362,7 @@ func (c *connection) write(b []byte) (n int, err error) {
 	if err != nil {
 		c.close(err)
 	}
-	atomic.AddUint64(&c.stat.WroteBytesSum, uint64(n))
+	c.stat.WroteBytesSum.Add(uint64(n))
 	return n, err
 }
 
@@ -405,7 +410,7 @@ func (c *connection) flush() error {
 func (c *connection) close(err error) {
 	nazalog.Debugf("naza connection close. err=%v, conn=%p", err, c)
 	c.closeOnce.Do(func() {
-		atomic.StoreUint32(&c.closedFlag, 1)
+		c.closedFlag.Store(true)
 		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}
 		}

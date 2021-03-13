@@ -17,10 +17,13 @@ import "errors"
 
 var ErrNazaBits = errors.New("nazabits: fxxk")
 
+// 按位流式读取字节切片
+// 注意，可以在每次读取后，判断是否发生错误。也可以在多次读取后，判断是否发生错误。
 type BitReader struct {
 	core  []byte
 	index uint
 	pos   uint // 从左往右
+	err   error
 }
 
 func NewBitReader(b []byte) BitReader {
@@ -30,23 +33,14 @@ func NewBitReader(b []byte) BitReader {
 }
 
 func (br *BitReader) ReadBit() (uint8, error) {
-	if br.index >= uint(len(br.core)) {
-		return 0, ErrNazaBits
-	}
-	res := GetBit8(br.core[br.index], 7-br.pos)
-	br.pos++
-	if br.pos == 8 {
-		br.pos = 0
-		br.index++
-	}
-	return res, nil
+	return br.readBit()
 }
 
 // @param n: 取值范围 [1, 8]
 func (br *BitReader) ReadBits8(n uint) (r uint8, err error) {
 	var t uint8
 	for i := uint(0); i < n; i++ {
-		t, err = br.ReadBit()
+		t, err = br.readBit()
 		if err != nil {
 			return
 		}
@@ -59,7 +53,7 @@ func (br *BitReader) ReadBits8(n uint) (r uint8, err error) {
 func (br *BitReader) ReadBits16(n uint) (r uint16, err error) {
 	var t uint8
 	for i := uint(0); i < n; i++ {
-		t, err = br.ReadBit()
+		t, err = br.readBit()
 		if err != nil {
 			return
 		}
@@ -72,7 +66,7 @@ func (br *BitReader) ReadBits16(n uint) (r uint16, err error) {
 func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
 	var t uint8
 	for i := uint(0); i < n; i++ {
-		t, err = br.ReadBit()
+		t, err = br.readBit()
 		if err != nil {
 			return
 		}
@@ -85,7 +79,7 @@ func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
 func (br *BitReader) ReadBits64(n uint) (r uint64, err error) {
 	var t uint8
 	for i := uint(0); i < n; i++ {
-		t, err = br.ReadBit()
+		t, err = br.readBit()
 		if err != nil {
 			return
 		}
@@ -113,7 +107,7 @@ func (br *BitReader) ReadGolomb() (v uint32, err error) {
 	var n uint
 	var m uint32
 	for {
-		t, err = br.ReadBit()
+		t, err = br.readBit()
 		if err != nil {
 			return
 		}
@@ -129,6 +123,31 @@ func (br *BitReader) ReadGolomb() (v uint32, err error) {
 	}
 	v = 1<<n + m - 1
 	return
+}
+
+func (br *BitReader) Err() error {
+	return br.err
+}
+
+func (br *BitReader) readBit() (uint8, error) {
+	if br.err != nil {
+		return 0, br.err
+	}
+	if br.index >= uint(len(br.core)) {
+		br.setErr(ErrNazaBits)
+		return 0, ErrNazaBits
+	}
+	res := GetBit8(br.core[br.index], 7-br.pos)
+	br.pos++
+	if br.pos == 8 {
+		br.pos = 0
+		br.index++
+	}
+	return res, nil
+}
+
+func (br *BitReader) setErr(err error) {
+	br.err = err
 }
 
 // ----------------------------------------------------------------------------

@@ -1,3 +1,9 @@
+#### v0.17.1
+
+- [feat] nazabits: BitReader，增加一种使用方式，可多次读取，最后判断是否发生错误
+- [feat] nazalog: 增加配置项 1 是否在每行日志首部添加时间戳的信息 2 时间戳是否精确到毫秒 3 日志是否包含日志级别字段
+- [fix] nazaatomic: uint64和int64，在32位系统时，使用mutex替代标准库中的atomic，避免崩溃，见文章：https://pengrl.com/p/21030/
+
 #### v0.17.0
 
 - [feat] package nazaerrors: 增加Wrap函数，用于封装error

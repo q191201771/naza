@@ -74,19 +74,25 @@ type Option struct {
 
 	IsRotateDaily bool `json:"is_rotate_daily"` // 日志按天翻转
 
-	ShortFileFlag bool `json:"short_file_flag"` // 是否在每行日志尾部添加源码文件及行号的信息
+	ShortFileFlag       bool `json:"short_file_flag"`        // 是否在每行日志尾部添加源码文件及行号的信息
+	TimestampFlag       bool `json:"timestamp_flag"`         // 是否在每行日志首部添加时间戳的信息
+	TimestampWithMSFlag bool `json:"timestamp_with_ms_flag"` // 时间戳是否精确到毫秒
+	LevelFlag           bool `json:"level_flag"`             // 日志是否包含日志级别字段
 
 	AssertBehavior AssertBehavior `json:"assert_behavior"` // 断言失败时的行为
 }
 
 // 没有配置的属性，将按如下配置
 var defaultOption = Option{
-	Level:          LevelDebug,
-	Filename:       "",
-	IsToStdout:     true,
-	IsRotateDaily:  false,
-	ShortFileFlag:  true,
-	AssertBehavior: AssertError,
+	Level:               LevelDebug,
+	Filename:            "",
+	IsToStdout:          true,
+	IsRotateDaily:       false,
+	ShortFileFlag:       true,
+	TimestampFlag:       true,
+	TimestampWithMSFlag: true,
+	LevelFlag:           true,
+	AssertBehavior:      AssertError,
 }
 
 type Level uint8

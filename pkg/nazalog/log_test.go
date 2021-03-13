@@ -290,6 +290,44 @@ func TestLogger_WithPrefix(t *testing.T) {
 	wg.Wait()
 }
 
+func TestTimestamp(t *testing.T) {
+	l, _ := nazalog.New(func(option *nazalog.Option) {
+		option.TimestampFlag = false
+	})
+	l.Debug("without timestamp.")
+	l.Info("without timestamp.")
+	l, _ = nazalog.New(func(option *nazalog.Option) {
+		option.TimestampWithMSFlag = false
+	})
+	l.Debug("without timestamp.")
+	l.Info("timestamp without ms.")
+}
+
+func TestFieldFlag(t *testing.T) {
+	l, _ := nazalog.New(func(option *nazalog.Option) {
+	})
+	l.Debug("1")
+	l.Info("1")
+	l, _ = nazalog.New(func(option *nazalog.Option) {
+		option.ShortFileFlag = false
+	})
+	l.Debug("2")
+	l.Info("2")
+	l, _ = nazalog.New(func(option *nazalog.Option) {
+		option.ShortFileFlag = false
+		option.LevelFlag = false
+	})
+	l.Debug("3")
+	l.Info("3")
+	l, _ = nazalog.New(func(option *nazalog.Option) {
+		option.ShortFileFlag = false
+		option.LevelFlag = false
+		option.TimestampFlag = false
+	})
+	l.Debug("4")
+	l.Info("4")
+}
+
 func BenchmarkNazaLog(b *testing.B) {
 	b.ReportAllocs()
 

@@ -187,12 +187,16 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 
 	l.core.buf.Reset()
 
-	writeTime(&l.core.buf, now)
+	if l.core.option.TimestampFlag {
+		writeTime(&l.core.buf, now, l.core.option.TimestampWithMSFlag)
+	}
 
-	if l.core.console != nil {
-		l.core.buf.WriteString(levelToColorString[level])
-	} else {
-		l.core.buf.WriteString(levelToString[level])
+	if l.core.option.LevelFlag {
+		if l.core.console != nil {
+			l.core.buf.WriteString(levelToColorString[level])
+		} else {
+			l.core.buf.WriteString(levelToString[level])
+		}
 	}
 
 	if l.prefixs != nil {
@@ -322,7 +326,7 @@ func validate(option Option) error {
 	return nil
 }
 
-func writeTime(buf *bytes.Buffer, t time.Time) {
+func writeTime(buf *bytes.Buffer, t time.Time, withMS bool) {
 	year, month, day := t.Date()
 	itoa(buf, year, 4)
 	buf.WriteByte('/')
@@ -337,8 +341,12 @@ func writeTime(buf *bytes.Buffer, t time.Time) {
 	itoa(buf, min, 2)
 	buf.WriteByte(':')
 	itoa(buf, sec, 2)
-	buf.WriteByte('.')
-	itoa(buf, t.Nanosecond()/1e3, 6)
+
+	if withMS {
+		buf.WriteByte('.')
+		itoa(buf, t.Nanosecond()/1e3, 6)
+	}
+
 	buf.WriteByte(' ')
 }
 

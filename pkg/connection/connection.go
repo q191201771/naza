@@ -23,6 +23,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/q191201771/naza/pkg/unique"
+
 	"github.com/q191201771/naza/pkg/nazaatomic"
 
 	"github.com/q191201771/naza/pkg/nazalog"
@@ -120,6 +122,7 @@ type ModOption func(option *Option)
 
 func New(conn net.Conn, modOptions ...ModOption) Connection {
 	c := new(connection)
+	c.uniqueKey = uniqueGen.GenUniqueKey()
 	c.doneChan = make(chan error, 1)
 	c.Conn = conn
 
@@ -148,7 +151,7 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 		go c.runWriteLoop()
 	}
 
-	nazalog.Debugf("naza connection New. net.Conn=%p, naza.Connection=%p", conn, c)
+	nazalog.Debugf("[%s] lifecycle new connection. net.Conn=%p, naza.Connection=%p", c.uniqueKey, conn, c)
 	return c
 }
 
@@ -170,6 +173,7 @@ type connection struct {
 	r             io.Reader
 	w             io.Writer
 	option        Option
+	uniqueKey     string
 	wChan         chan wMsg
 	flushDoneChan chan struct{}
 	exitChan      chan struct{}
@@ -178,6 +182,8 @@ type connection struct {
 	closeOnce     sync.Once
 	stat          StatAtomic
 }
+
+var uniqueGen *unique.SingleGenerator
 
 func (c *connection) ModWriteChanSize(n int) {
 	if c.option.WriteChanSize > 0 {
@@ -303,7 +309,7 @@ func (c *connection) Flush() error {
 }
 
 func (c *connection) Close() error {
-	nazalog.Debugf("naza connection Close. conn=%p", c)
+	nazalog.Debugf("[%s] Close.", c.uniqueKey)
 	c.close(nil)
 	return nil
 }
@@ -370,7 +376,7 @@ func (c *connection) runWriteLoop() {
 	for {
 		select {
 		case <-c.exitChan:
-			nazalog.Debugf("naza connection recv exitChan and exit write loop. conn=%p", c)
+			//nazalog.Debugf("[%s] recv exitChan and exit write loop", c.uniqueKey)
 			return
 		case msg := <-c.wChan:
 			switch msg.t {
@@ -408,8 +414,8 @@ func (c *connection) flush() error {
 }
 
 func (c *connection) close(err error) {
-	nazalog.Debugf("naza connection close. err=%v, conn=%p", err, c)
 	c.closeOnce.Do(func() {
+		nazalog.Debugf("[%s] close once. err=%+v", c.uniqueKey, err)
 		c.closedFlag.Store(true)
 		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}
@@ -418,4 +424,8 @@ func (c *connection) close(err error) {
 		_ = c.Conn.Close()
 		// 如果使用了wChan，并不关闭它，避免竞态条件下connection继续使用它造成问题。让它随connection对象释放。
 	})
+}
+
+func init() {
+	uniqueGen = unique.NewSingleGenerator("NAZACONN")
 }

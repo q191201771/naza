@@ -38,6 +38,18 @@ func TestGenUniqueKey(t *testing.T) {
 	assert.Equal(t, 1000, len(m))
 }
 
+func TestSingleGenerator_GenUniqueKey(t *testing.T) {
+	si1 := NewSingleGenerator("one")
+	si2 := NewSingleGenerator("two")
+	var uk1, uk2 string
+	for i := 0; i < 1000; i++ {
+		uk1 = si1.GenUniqueKey()
+		uk2 = si2.GenUniqueKey()
+	}
+	assert.Equal(t, "one1000", uk1)
+	assert.Equal(t, "two1000", uk2)
+}
+
 func BenchmarkGenUniqueKey(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		GenUniqueKey("benchmark")

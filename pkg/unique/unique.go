@@ -12,32 +12,48 @@ package unique
 import (
 	"fmt"
 	"sync"
+
+	"github.com/q191201771/naza/pkg/nazaatomic"
 )
 
-var global Unique
+var global MultiGenerator
 
 func GenUniqueKey(prefix string) string {
 	return global.GenUniqueKey(prefix)
 }
 
-type Unique struct {
-	//id uint64
+// 只管理一个需要生成unique id的generator对象
+type SingleGenerator struct {
+	prefix string
+	id     nazaatomic.Uint64
+}
 
-	m         sync.Mutex
+// 统一管理各个需要生成unique id的generator对象
+type MultiGenerator struct {
+	mu        sync.Mutex
 	prefix2id map[string]uint64
 }
 
-func (u *Unique) GenUniqueKey(prefix string) string {
-	//return fmt.Sprintf("%s%d", prefix, atomic.AddUint64(&u.id, 1))
-	u.m.Lock()
-	defer u.m.Unlock()
-	id, ok := u.prefix2id[prefix]
+func NewSingleGenerator(prefix string) *SingleGenerator {
+	return &SingleGenerator{
+		prefix: prefix,
+	}
+}
+
+func (si *SingleGenerator) GenUniqueKey() string {
+	return fmt.Sprintf("%s%d", si.prefix, si.id.Increment())
+}
+
+func (mi *MultiGenerator) GenUniqueKey(prefix string) string {
+	mi.mu.Lock()
+	defer mi.mu.Unlock()
+	id, ok := mi.prefix2id[prefix]
 	if ok {
 		id++
 	} else {
 		id = 1
 	}
-	u.prefix2id[prefix] = id
+	mi.prefix2id[prefix] = id
 	return fmt.Sprintf("%s%d", prefix, id)
 }
 

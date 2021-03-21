@@ -1,3 +1,8 @@
+#### v0.18.0
+
+- [feat] 新增package crypto: 内部包含PKCS5和PKCS7的加密、解密函数，AES CBC的加密、解密函数
+- [refactor] unique: 拆分成SingleGenerator，MultiGenerator，业务方可以使用多个SingleGenerator来获得更高的性能
+
 #### v0.17.1
 
 - [feat] nazabits: BitReader，增加一种使用方式，可多次读取，最后判断是否发生错误

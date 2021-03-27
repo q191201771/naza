@@ -1,3 +1,7 @@
+#### v0.18.1
+
+- [feat] package nazasync:新增的package，其中的Mutex可用于debug锁方面的问题
+
 #### v0.18.0
 
 - [feat] 新增package crypto: 内部包含PKCS5和PKCS7的加密、解密函数，AES CBC的加密、解密函数

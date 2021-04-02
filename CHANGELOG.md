@@ -1,3 +1,8 @@
+#### v0.18.2 (2021-04)
+
+- [fix] package nazaatomic: mips mipsle两个32位的平台的64位原子整型使用mutex来避免崩溃
+- [feat] package nazalog: Level和AssertBehavior两个枚举类型增加ReadableString返回对应的可读字符串
+
 #### v0.18.1
 
 - [feat] package nazasync:新增的package，其中的Mutex可用于debug锁方面的问题

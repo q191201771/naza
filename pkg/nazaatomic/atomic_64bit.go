@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// +build !386, !arm
+// +build !386, !arm, !mips !mipsle
 
 package nazaatomic
 

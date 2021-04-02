@@ -49,6 +49,7 @@ pkg/                    ...... 源码包
     |-- nazajson/       ...... json操作
     |-- nazamd5/        ...... md5操作
     |-- nazaatomic/     ...... 原子操作
+    |-- crypto/         ...... 加解密操作
     |-- slicebytepool/  ...... []byte内存池
     |-- nazastring/     ...... string和[]byte相关的操作
     |-- unique/         ...... 对象唯一ID

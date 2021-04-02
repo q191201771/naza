@@ -328,6 +328,21 @@ func TestFieldFlag(t *testing.T) {
 	l.Info("4")
 }
 
+func TestReadableString(t *testing.T) {
+	assert.Equal(t, "LevelDebug", nazalog.LevelDebug.ReadableString())
+	assert.Equal(t, "LevelInfo", nazalog.LevelInfo.ReadableString())
+	assert.Equal(t, "LevelWarn", nazalog.LevelWarn.ReadableString())
+	assert.Equal(t, "LevelError", nazalog.LevelError.ReadableString())
+	assert.Equal(t, "LevelFatal", nazalog.LevelFatal.ReadableString())
+	assert.Equal(t, "LevelPanic", nazalog.LevelPanic.ReadableString())
+	assert.Equal(t, "unknown", nazalog.Level(100).ReadableString())
+
+	assert.Equal(t, "AssertError", nazalog.AssertError.ReadableString())
+	assert.Equal(t, "AssertFatal", nazalog.AssertFatal.ReadableString())
+	assert.Equal(t, "AssertPanic", nazalog.AssertPanic.ReadableString())
+	assert.Equal(t, "unknown", nazalog.AssertBehavior(100).ReadableString())
+}
+
 func BenchmarkNazaLog(b *testing.B) {
 	b.ReportAllocs()
 

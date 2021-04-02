@@ -107,6 +107,25 @@ const (
 	LevelPanic
 )
 
+func (l Level) ReadableString() string {
+	switch l {
+	case LevelDebug:
+		return "LevelDebug"
+	case LevelInfo:
+		return "LevelInfo"
+	case LevelWarn:
+		return "LevelWarn"
+	case LevelError:
+		return "LevelError"
+	case LevelFatal:
+		return "LevelFatal"
+	case LevelPanic:
+		return "LevelPanic"
+	default:
+		return "unknown"
+	}
+}
+
 type AssertBehavior uint8
 
 const (
@@ -115,6 +134,19 @@ const (
 	AssertFatal
 	AssertPanic
 )
+
+func (a AssertBehavior) ReadableString() string {
+	switch a {
+	case AssertError:
+		return "AssertError"
+	case AssertFatal:
+		return "AssertFatal"
+	case AssertPanic:
+		return "AssertPanic"
+	default:
+		return "unknown"
+	}
+}
 
 type ModOption func(option *Option)
 

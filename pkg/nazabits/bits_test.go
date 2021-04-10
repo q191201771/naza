@@ -9,7 +9,12 @@
 package nazabits_test
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
+	"time"
+
+	"github.com/q191201771/naza/pkg/nazalog"
 
 	"github.com/q191201771/naza/pkg/assert"
 	"github.com/q191201771/naza/pkg/nazabits"
@@ -110,6 +115,14 @@ func TestCorner(t *testing.T) {
 	_, err = br2.ReadGolomb()
 	assert.Equal(t, nazabits.ErrNazaBits, err)
 	assert.Equal(t, nazabits.ErrNazaBits, br.Err())
+
+	{
+		v := []byte{1}
+		br := nazabits.NewBitReader(v)
+		_, _ = br.ReadBit()
+		_, err = br.ReadBytes(1)
+		assert.Equal(t, nazabits.ErrNazaBits, err)
+	}
 }
 
 func TestBitReader_ReadBit(t *testing.T) {
@@ -143,7 +156,7 @@ func TestBitReader_ReadBits8(t *testing.T) {
 	for _, item := range gold {
 		r, err := br.ReadBits8(item.n)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, item.r, r)
+		assert.Equal(t, item.r, r, fmt.Sprintf("n=%d", item.n))
 		assert.Equal(t, nil, br.Err())
 	}
 
@@ -153,11 +166,16 @@ func TestBitReader_ReadBits8(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, uint8(48), r)
 	assert.Equal(t, nil, br.Err())
+
+	br = nazabits.NewBitReader(v)
+	r, err = br.ReadBits8(3)
+	assert.Equal(t, uint8(1), r)
+	r, err = br.ReadBits8(6)
+	assert.Equal(t, uint8(32), r)
 }
 
 func TestBitReader_ReadBits16(t *testing.T) {
 	v := []byte{48, 57, 48, 57}
-	br := nazabits.NewBitReader(v)
 
 	gold := []struct {
 		n uint
@@ -168,6 +186,25 @@ func TestBitReader_ReadBits16(t *testing.T) {
 		{5, 25},
 		{16, 12345},
 	}
+	br := nazabits.NewBitReader(v)
+	for _, item := range gold {
+		r, err := br.ReadBits16(item.n)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, item.r, r)
+		assert.Equal(t, nil, br.Err())
+	}
+
+	// {0011 0000, 0011 1001, 0 011 0000, 0011 1001}
+	gold = []struct {
+		n uint
+		r uint16
+	}{
+		{5, 6},
+		{8, 7},
+		{9, 76},
+		{10, 57},
+	}
+	br = nazabits.NewBitReader(v)
 	for _, item := range gold {
 		r, err := br.ReadBits16(item.n)
 		assert.Equal(t, nil, err)
@@ -195,12 +232,25 @@ func TestBitReader_ReadBits64(t *testing.T) {
 }
 
 func TestBitReader_ReadBytes(t *testing.T) {
-	v := []byte{48, 57}
-	br := nazabits.NewBitReader(v)
-	r, err := br.ReadBytes(2)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, v, r)
-	assert.Equal(t, nil, br.Err())
+	// {0011 0000, 0011 1001, 0011 0000}
+	v := []byte{48, 57, 48}
+	{
+		br := nazabits.NewBitReader(v)
+		r, err := br.ReadBytes(2)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, v[0:2], r)
+		assert.Equal(t, nil, br.Err())
+	}
+
+	{
+		br := nazabits.NewBitReader(v)
+		r1, err := br.ReadBit()
+		assert.Equal(t, nil, err)
+		assert.Equal(t, uint8(0), r1)
+		r2, err := br.ReadBytes(2)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, []byte{96, 114}, r2)
+	}
 }
 
 func TestBitReader_ReadGolomb(t *testing.T) {
@@ -381,25 +431,154 @@ func TestBitWriter_WriteBits16(t *testing.T) {
 	assert.Equal(t, uint8(0xFF), v[1])
 }
 
-func BenchmarkGetBits16(b *testing.B) {
-	v := []byte{48, 57}
+func TestBitReader_AvailBits(t *testing.T) {
+	v := []byte{1}
+	br := nazabits.NewBitReader(v)
+
+	_, _ = br.ReadBit()
+	n, err := br.AvailBits()
+	assert.Equal(t, uint(7), n)
+	assert.Equal(t, nil, err)
+
+	_, _ = br.ReadBit()
+	n, err = br.AvailBits()
+	assert.Equal(t, uint(6), n)
+	assert.Equal(t, nil, err)
+
+	_, err = br.ReadBits8(8)
+	n, err = br.AvailBits()
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+}
+
+func TestBitReader_Skip(t *testing.T) {
+	v := []byte{48, 57, 48} // {0011 0000, 0011 1001, 0011 0000}
+	br := nazabits.NewBitReader(v)
+
+	// 0,1
+	r1, _ := br.ReadBit()
+	assert.Equal(t, uint8(0), r1)
+
+	// 0,3
+	err := br.SkipBits(2)
+	assert.Equal(t, nil, err)
+
+	// 0,5
+	r1, _ = br.ReadBits8(2)
+	assert.Equal(t, uint8(2), r1)
+
+	// 1,5
+	err = br.SkipBytes(1)
+	assert.Equal(t, nil, err)
+
+	// 2,4
+	err = br.SkipBits(7)
+	assert.Equal(t, nil, err)
+
+	// 2,6
+	r1, _ = br.ReadBits8(2)
+	assert.Equal(t, uint8(0), r1)
+
+	err = br.SkipBits(4)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+	err = br.SkipBytes(1)
+	assert.Equal(t, nazabits.ErrNazaBits, err)
+}
+
+// -----bench
+
+func BenchmarkGetBits8(b *testing.B) {
+	v := uint8(48)
+	var ret uint8
+	rand.Seed(time.Now().UnixNano())
+	pos := rand.Int() % 8       // [0, 7]
+	n := 1 + rand.Int()%(8-pos) // [1, 8]
+	ppos := uint(pos)
+	nn := uint(n)
+	nazalog.Infof("%d, %d", ppos, nn)
 	for i := 0; i < b.N; i++ {
-		nazabits.GetBits16(v, 0, 16)
+		ret = nazabits.GetBits8(v, ppos, nn)
 	}
+	_ = ret
+}
+
+func BenchmarkGetBit8(b *testing.B) {
+	v := uint8(48)
+	var ret uint8
+	rand.Seed(time.Now().UnixNano())
+	pos := rand.Int() % 8 // [0, 7]
+	ppos := uint(pos)
+	nazalog.Infof("%d", ppos)
+	for i := 0; i < b.N; i++ {
+		ret = nazabits.GetBit8(v, ppos)
+	}
+	_ = ret
+}
+
+func BenchmarkBitReader_ReadBit(b *testing.B) {
+	v := []byte{48, 57, 48, 57}
+	var ret uint8
+	for i := 0; i < b.N; i++ {
+		br := nazabits.NewBitReader(v)
+		for j := 0; j < 16; j++ {
+			a, _ := br.ReadBit()
+			ret = a
+		}
+	}
+	_ = ret
 }
 
 func BenchmarkBitReader_ReadBits8(b *testing.B) {
-	v := []byte{48, 57}
+	v := []byte{48, 57, 48, 57}
+	var ret uint8
 	for i := 0; i < b.N; i++ {
 		br := nazabits.NewBitReader(v)
-		br.ReadBits8(9)
+		a, _ := br.ReadBits8(4)
+		a, _ = br.ReadBits8(8)
+		ret = a
 	}
+	_ = ret
 }
 
-func BenchmarkBitWriter_WriteBits16(b *testing.B) {
-	v := make([]byte, 2)
+func BenchmarkBitReader_ReadBits16(b *testing.B) {
+	v := []byte{48, 57, 48, 57}
+	var ret uint16
 	for i := 0; i < b.N; i++ {
-		bw := nazabits.NewBitWriter(v)
-		bw.WriteBits16(9, 28)
+		br := nazabits.NewBitReader(v)
+		a, _ := br.ReadBits16(5)
+		a, _ = br.ReadBits16(8)
+		a, _ = br.ReadBits16(9)
+		a, _ = br.ReadBits16(10)
+		ret = a
 	}
+	_ = ret
+}
+
+func BenchmarkBitReader_ReadBits32(b *testing.B) {
+	v := []byte{48, 57, 48, 57}
+	var ret uint32
+	for i := 0; i < b.N; i++ {
+		br := nazabits.NewBitReader(v)
+		ret, _ = br.ReadBits32(32)
+	}
+	_ = ret
+}
+
+func BenchmarkBitReader_ReadBits64(b *testing.B) {
+	v := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	var ret uint64
+	for i := 0; i < b.N; i++ {
+		br := nazabits.NewBitReader(v)
+		ret, _ = br.ReadBits64(64)
+	}
+	_ = ret
+}
+
+func BenchmarkBitReader_ReadBytes(b *testing.B) {
+	v := make([]byte, 1024)
+	var ret []byte
+	for i := 0; i < b.N; i++ {
+		br := nazabits.NewBitReader(v)
+		ret, _ = br.ReadBytes(128)
+	}
+	_ = ret
 }

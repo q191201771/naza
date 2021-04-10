@@ -10,25 +10,23 @@ package nazabits
 
 import "errors"
 
-// TODO
-// - 这个package的性能可以优化
-// - BitReader考虑增加skip接口
-// - BitReader考虑增加返回目前位置接口
-
 var ErrNazaBits = errors.New("nazabits: fxxk")
 
 // 按位流式读取字节切片
+// 从高位向低位读
 // 注意，可以在每次读取后，判断是否发生错误。也可以在多次读取后，判断是否发生错误。
 type BitReader struct {
 	core  []byte
-	index uint
-	pos   uint // 从左往右
+	avail uint // 还没有读取的bit数量
+	index uint // 从0开始
+	pos   uint // 从左往右，从高位往低位 [0, 7]
 	err   error
 }
 
 func NewBitReader(b []byte) BitReader {
 	return BitReader{
-		core: b,
+		core:  b,
+		avail: uint(len(b)) * 8,
 	}
 }
 
@@ -38,58 +36,114 @@ func (br *BitReader) ReadBit() (uint8, error) {
 
 // @param n: 取值范围 [1, 8]
 func (br *BitReader) ReadBits8(n uint) (r uint8, err error) {
-	var t uint8
-	for i := uint(0); i < n; i++ {
-		t, err = br.readBit()
-		if err != nil {
+	// TODO chef: 8,16,32都去调用ReadBits64会带来额外开销，所以采用实现拷贝的方式，等泛型出来后重构
+	if err = br.reserve(n); err != nil {
+		return
+	}
+
+	for {
+		if br.pos+n > 8 {
+			r |= br.core[br.index] & m1[8-br.pos] << (n + br.pos - 8)
+			n += br.pos - 8
+			br.index++
+			br.pos = 0
+		} else {
+			r |= br.core[br.index] & m1[8-br.pos] >> (8 - br.pos - n)
+			br.pos += n
+			if br.pos >= 8 {
+				br.pos -= 8
+				br.index++
+			}
 			return
 		}
-		r = (r << 1) | t
 	}
-	return
+	// never reach here
 }
 
 // @param n: 取值范围 [1, 16]
 func (br *BitReader) ReadBits16(n uint) (r uint16, err error) {
-	var t uint8
-	for i := uint(0); i < n; i++ {
-		t, err = br.readBit()
-		if err != nil {
+	if err = br.reserve(n); err != nil {
+		return
+	}
+	for {
+		if br.pos+n > 8 {
+			r |= uint16(br.core[br.index]&m1[8-br.pos]) << (n + br.pos - 8)
+			n += br.pos - 8
+			br.index++
+			br.pos = 0
+		} else {
+			r |= uint16(br.core[br.index] & m1[8-br.pos] >> (8 - br.pos - n))
+			br.pos += n
+			if br.pos >= 8 {
+				br.pos -= 8
+				br.index++
+			}
 			return
 		}
-		r = (r << 1) | uint16(t)
 	}
-	return
 }
 
 // @param n: 取值范围 [1, 32]
 func (br *BitReader) ReadBits32(n uint) (r uint32, err error) {
-	var t uint8
-	for i := uint(0); i < n; i++ {
-		t, err = br.readBit()
-		if err != nil {
+	if err = br.reserve(n); err != nil {
+		return
+	}
+
+	for {
+		if br.pos+n > 8 {
+			r |= uint32(br.core[br.index]&m1[8-br.pos]) << (n + br.pos - 8)
+			n += br.pos - 8
+			br.index++
+			br.pos = 0
+		} else {
+			r |= uint32(br.core[br.index] & m1[8-br.pos] >> (8 - br.pos - n))
+			br.pos += n
+			if br.pos >= 8 {
+				br.pos -= 8
+				br.index++
+			}
 			return
 		}
-		r = (r << 1) | uint32(t)
 	}
-	return
 }
 
 // @param n: 取值范围 [1, 64]
 func (br *BitReader) ReadBits64(n uint) (r uint64, err error) {
-	var t uint8
-	for i := uint(0); i < n; i++ {
-		t, err = br.readBit()
-		if err != nil {
+	if err = br.reserve(n); err != nil {
+		return
+	}
+
+	for {
+		if br.pos+n > 8 {
+			r |= uint64(br.core[br.index]&m1[8-br.pos]) << (n + br.pos - 8)
+			n += br.pos - 8
+			br.index++
+			br.pos = 0
+		} else {
+			r |= uint64(br.core[br.index] & m1[8-br.pos] >> (8 - br.pos - n))
+			br.pos += n
+			if br.pos >= 8 {
+				br.pos -= 8
+				br.index++
+			}
 			return
 		}
-		r = (r << 1) | uint64(t)
 	}
-	return
 }
 
 // @param n: 读取多少个字节
 func (br *BitReader) ReadBytes(n uint) (r []byte, err error) {
+	// 对常见的pos为0的情况单独做优化
+	if br.pos == 0 {
+		if err = br.reserve(n * 8); err != nil {
+			return
+		}
+		r = make([]byte, n)
+		copy(r, br.core[br.index:br.index+n])
+		br.index += n
+		return
+	}
+
 	var t uint8
 	for i := uint(0); i < n; i++ {
 		t, err = br.ReadBits8(8)
@@ -125,29 +179,66 @@ func (br *BitReader) ReadGolomb() (v uint32, err error) {
 	return
 }
 
+func (br *BitReader) SkipBytes(n uint) error {
+	if err := br.reserve(n * 8); err != nil {
+		return err
+	}
+	br.index += n
+	return nil
+}
+
+func (br *BitReader) SkipBits(n uint) error {
+	if err := br.reserve(n); err != nil {
+		return err
+	}
+	i := n / 8
+	p := n % 8
+	br.index += i
+	if p != 0 {
+		br.pos += p
+		if br.pos >= 8 {
+			br.pos -= 8
+			br.index++
+		}
+	}
+	return nil
+}
+
+// 返回可读bit数量
+func (br *BitReader) AvailBits() (uint, error) {
+	return br.avail, br.err
+}
+
 func (br *BitReader) Err() error {
 	return br.err
 }
 
-func (br *BitReader) readBit() (uint8, error) {
-	if br.err != nil {
-		return 0, br.err
+func (br *BitReader) readBit() (r uint8, err error) {
+	if err = br.reserve(1); err != nil {
+		return
 	}
-	if br.index >= uint(len(br.core)) {
-		br.setErr(ErrNazaBits)
-		return 0, ErrNazaBits
-	}
-	res := GetBit8(br.core[br.index], 7-br.pos)
+
+	r = br.core[br.index] >> (7 - br.pos) & 1
 	br.pos++
 	if br.pos == 8 {
 		br.pos = 0
 		br.index++
 	}
-	return res, nil
+	return
 }
 
-func (br *BitReader) setErr(err error) {
-	br.err = err
+// 确保可读空间大小
+func (br *BitReader) reserve(n uint) error {
+	if br.err != nil {
+		return br.err
+	}
+	if br.avail < n {
+		br.err = ErrNazaBits
+		return ErrNazaBits
+	}
+
+	br.avail -= n
+	return nil
 }
 
 // ----------------------------------------------------------------------------
@@ -205,8 +296,9 @@ func (bw *BitWriter) WriteBits16(n uint, v uint16) {
 // TODO chef: func GetBitX和func GetBitsX没有对写越界做检查，由调用方保证这一点，后续可能会加上检查
 
 // @param pos: 取值范围 [0, 7]，0表示最低位
+// @return: [0, 1]
 func GetBit8(v uint8, pos uint) uint8 {
-	return GetBits8(v, pos, 1)
+	return v >> pos & 1
 }
 
 // @param pos: 取值范围 [0, 7]，0表示最低位
@@ -218,7 +310,7 @@ func GetBit8(v uint8, pos uint) uint8 {
 //   n:   .. ..
 //
 func GetBits8(v uint8, pos uint, n uint) uint8 {
-	return v >> pos & m[n]
+	return v >> pos & m1[n]
 }
 
 func GetBit16(v []byte, pos uint) uint8 {
@@ -239,8 +331,10 @@ func GetBits16(v []byte, pos uint, n uint) uint16 {
 	return uint16(GetBits8(v[0], pos-8, n))
 }
 
-var m []uint8
+var (
+	m1 []uint8
+)
 
 func init() {
-	m = []uint8{0, 1, 3, 7, 15, 31, 63, 127, 255} // 0 is dummy
+	m1 = []uint8{0, 1, 3, 7, 15, 31, 63, 127, 255} // 0 is dummy
 }

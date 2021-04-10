@@ -1,6 +1,8 @@
 #### v0.18.3 (2021-04)
 
 - [perf] nazabits: 提高BitReader性能
+- [feat] nazabits: 增加BitReader::SkipBits，SkipBytes函数，用于跳过数据
+- [feat] nazabits: 增加BitReader::AvailBits函数，用于获取剩余可读bit数量
 - [fix] nazaatomic: 匹配平台写错导致重定义
 
 #### v0.18.2 (2021-04)

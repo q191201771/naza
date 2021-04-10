@@ -1,3 +1,8 @@
+#### v0.18.3 (2021-04)
+
+- [perf] nazabits: 提高BitReader性能
+- [fix] nazaatomic: 匹配平台写错导致重定义
+
 #### v0.18.2 (2021-04)
 
 - [fix] package nazaatomic: mips mipsle两个32位的平台的64位原子整型使用mutex来避免崩溃

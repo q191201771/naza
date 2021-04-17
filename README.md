@@ -28,38 +28,40 @@ Go语言基础库
 #### 工程目录说明
 
 ```
-pkg/                    ...... 源码包
-    |-- bininfo/        ...... 将编译时源码的git版本信息（当前commit log的sha值和commit message），编译时间，Go版本，平台打入程序中
-    |-- nazalog/        ...... 日志库
-    |-- assert/         ...... 提供了单元测试时的断言功能，减少一些模板代码
-    |-- nazaerrors/     ...... error相关
-    |-- fake/           ...... 实现一些常用的接口，hook一些不方便测试的代码
-    |-- taskpool/       ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
-    |-- defertaskthread ...... 执行延时任务
-    |-- bele/           ...... 大小端转换操作
-    |-- nazabits/       ...... 位操作
-    |-- bitrate/        ...... 计算带宽
-    |-- ratelimit/      ...... 限流器，令牌桶，漏桶
-    |-- connection/     ...... 对net.Conn接口的二次封装
-    |-- nazanet/        ...... socket操作相关
-    |-- nazahttp/       ...... http操作
-    |-- circularqueue   ...... 底层基于切片实现的固定容量大小的FIFO的环形队列
-    |-- lru/            ...... LRU缓存
-    |-- consistenthash/ ...... 一致性哈希
-    |-- nazajson/       ...... json操作
-    |-- nazamd5/        ...... md5操作
-    |-- nazaatomic/     ...... 原子操作
-    |-- crypto/         ...... 加解密操作
-    |-- slicebytepool/  ...... []byte内存池
-    |-- nazastring/     ...... string和[]byte相关的操作
-    |-- unique/         ...... 对象唯一ID
-    |-- snowflake/      ...... 分布式唯一性ID生成器
-    |-- nazareflect/    ...... 利用反射做的一些操作
-    |-- filebatch/      ...... 文件批处理操作
-    |-- ic/             ...... 将整型切片压缩成二进制字节切片
-playground/             ...... Go实验代码片段
-demo/                   ...... 示例相关的代码
-bin/                    ...... 可执行文件编译输出目录
+pkg/                     ...... 源码包
+    |-- assert/          ...... 提供了单元测试时的断言功能，减少一些模板代码
+    |-- bele/            ...... 大小端转换操作
+    |-- bininfo/         ...... 将编译时源码的git版本信息（当前commit log的sha值和commit message），编译时间，Go版本，平台打入程序中
+    |-- circularqueue    ...... 底层基于切片实现的固定容量大小的FIFO的环形队列
+    |-- connection/      ...... 对net.Conn接口的二次封装
+    |-- defertaskthread  ...... 执行延时任务
+    |-- fake/            ...... 实现一些常用的接口，hook一些不方便测试的代码
+    |-- filebatch/       ...... 文件批处理操作
+    |-- filesystemlayer/ ...... 对文件操作的封装，可以使用内存作为磁盘使用
+    |-- nazaatomic/      ...... 原子操作
+    |-- nazabits/        ...... 位操作
+    |-- nazaerrors/      ...... error相关
+    |-- nazahttp/        ...... http操作
+    |-- nazajson/        ...... json操作
+    |-- nazalog/         ...... 日志库
+    |-- nazamd5/         ...... md5操作
+    |-- nazanet/         ...... socket操作相关
+    |-- nazareflect/     ...... 利用反射做的一些操作
+    |-- nazastring/      ...... string和[]byte相关的操作
+    |-- unique/          ...... 对象唯一ID
+    |-- nazasync/        ...... 对sync的封装，比如定位sync.Mutex死锁
+    |-- taskpool/        ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
+    |-- bitrate/         ...... 计算带宽
+    |-- ratelimit/       ...... 限流器，令牌桶，漏桶
+    |-- lru/             ...... LRU缓存
+    |-- consistenthash/  ...... 一致性哈希
+    |-- crypto/          ...... 加解密操作
+    |-- slicebytepool/   ...... []byte内存池
+    |-- snowflake/       ...... 分布式唯一性ID生成器
+    |-- ic/              ...... 将整型切片压缩成二进制字节切片
+playground/              ...... Go实验代码片段
+demo/                    ...... 示例相关的代码
+bin/                     ...... 可执行文件编译输出目录
 ```
 
 #### 依赖
@@ -68,14 +70,7 @@ bin/                    ...... 可执行文件编译输出目录
 
 #### 相关文档
 
-* pkg/snowflake [分布式ID生成算法snowflake介绍及Go语言实现](https://pengrl.com/p/20041/)
-* pkg/bininfo [给Go程序加入编译版本时间等信息](https://pengrl.com/p/37397/)
-* pkg/nazastring [Go语言中[]byte和string类型相互转换时的性能分析和优化](https://www.pengrl.com/p/31544/)
-
-* [Go创建对象时，如何优雅的传递初始化参数](https://pengrl.com/p/60015/)
-* playground/p3 [利用CPU cache特性优化Go程序](https://pengrl.com/p/9125/)
-* playground/p4 [老弟在吗，我的Go标准库中的二分查找有bug！](https://pengrl.com/p/20011/)
-* [写的一些其他Go相关的文章](https://pengrl.com/categories/Go/)
+https://pengrl.com/categories/Go/
 
 #### 联系我
 

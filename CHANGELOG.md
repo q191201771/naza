@@ -1,3 +1,8 @@
+#### v0.18.4 (2021-04)
+
+- [feat] filesystemlayer: 新的包，提供一层文件操作的抽象，可以使用内存替换磁盘作为存储
+- [refactor] sync: Mutex中使用unique.SingleGenerator
+
 #### v0.18.3 (2021-04)
 
 - [perf] nazabits: 提高BitReader性能

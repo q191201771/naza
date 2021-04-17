@@ -1,21 +1,22 @@
-coverage.txt
-coverage.html
-tmp
-profile.out*
-profile*.pdf
-*.test
+/pkg/nazabytes/
+/pkg/tag
+/pkg/nazatime
+
+/playground
+/playground/cc
+/demo/samefile
+/demo/time
+/demo/temp
 
 /.idea
 /.trash
 /bin
 /pre-commit.sh
 /TODO.md
-/playground
-/playground/cc
 
-/pkg/tag
-/pkg/nazatime
-
-/demo/samefile
-/demo/time
-/demo/temp
+coverage.txt
+coverage.html
+tmp
+profile.out*
+profile*.pdf
+*.test

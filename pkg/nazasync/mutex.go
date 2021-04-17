@@ -21,6 +21,8 @@ import (
 
 const unlockedGid = 0
 
+var uniqueGen *unique.SingleGenerator
+
 type Mutex struct {
 	core sync.Mutex
 
@@ -32,7 +34,7 @@ type Mutex struct {
 func (m *Mutex) Lock() {
 	m.mu.Lock()
 	if m.uniqueKey == "" {
-		m.uniqueKey = unique.GenUniqueKey("MUTEX")
+		m.uniqueKey = uniqueGen.GenUniqueKey()
 	}
 	gid, _ := CurGoroutineID()
 	if gid == m.gid {
@@ -64,4 +66,8 @@ func (m *Mutex) Unlock() {
 	nazalog.Out(nazalog.LevelDebug, 3, fmt.Sprintf("[%s] > Unlock(). gid=%d", m.uniqueKey, gid))
 	m.core.Unlock()
 	nazalog.Out(nazalog.LevelDebug, 3, fmt.Sprintf("[%s] < Unlock(). gid=%d", m.uniqueKey, gid))
+}
+
+func init() {
+	uniqueGen = unique.NewSingleGenerator("MUTEX")
 }

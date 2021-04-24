@@ -16,7 +16,11 @@ import (
 	"github.com/q191201771/naza/pkg/fake"
 )
 
-var global *logger
+var global Logger
+
+func Tracef(format string, v ...interface{}) {
+	global.Out(LevelTrace, 2, fmt.Sprintf(format, v...))
+}
 
 func Debugf(format string, v ...interface{}) {
 	global.Out(LevelDebug, 2, fmt.Sprintf(format, v...))
@@ -42,6 +46,10 @@ func Fatalf(format string, v ...interface{}) {
 func Panicf(format string, v ...interface{}) {
 	global.Out(LevelPanic, 2, fmt.Sprintf(format, v...))
 	panic(fmt.Sprintf(format, v...))
+}
+
+func Trace(v ...interface{}) {
+	global.Out(LevelTrace, 2, fmt.Sprint(v...))
 }
 
 func Debug(v ...interface{}) {
@@ -97,7 +105,7 @@ func Panicln(v ...interface{}) {
 func Assert(expected interface{}, actual interface{}) {
 	if !nazareflect.Equal(expected, actual) {
 		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
-		switch global.core.option.AssertBehavior {
+		switch global.GetOption().AssertBehavior {
 		case AssertError:
 			global.Out(LevelError, 2, err)
 		case AssertFatal:
@@ -122,7 +130,24 @@ func WithPrefix(s string) Logger {
 	return global.WithPrefix(s)
 }
 
-// 这里不加锁保护，如果要调用Init函数初始化全局的Logger，那么由调用方保证调用Init函数时不会并发调用全局Logger的其他方法
+func GetOption() Option {
+	return global.GetOption()
+}
+
+// -------------------------------------------------------------------------------------------------
+
+// 这些设置全局Logger的函数没有加锁，由调用方保证调用Init、SetGlobalLogger函数时不会并发调用全局Logger的其他方法
+// 也即最好在程序启动时配置
+
+func SetGlobalLogger(l Logger) {
+	global = l
+}
+
+func GetGlobalLogger() Logger {
+	return global
+}
+
+// 初始化全局Logger
 func Init(modOptions ...ModOption) error {
 	var err error
 	global, err = newLogger(modOptions...)

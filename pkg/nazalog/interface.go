@@ -17,9 +17,9 @@ import "errors"
 // * 可选输出至控制台或文件，也可以同时输出
 // * 日志文件支持按天翻转
 // * 支持是否输出源码文件及行号
-// * 业务日志其实位置固定，方便查看
+// * 业务日志起始位置固定，方便查看
 // * 支持Assert，断言失败后的行为可配置
-// * 支持全局日志对象，独立日志对象
+// * 支持全局日志对象，独立日志对象，日志对象都可以配置，相互间可以赋值
 // * 支持设置前缀，并且前缀可叠加，使得可以按repo ，package，对象等维度添加不同的前缀
 // * 支持标准库中的打印接口函数（但是没有适配非打印接口），方便替换标准库日志
 // * 日志文件目录不存在则自动创建
@@ -29,6 +29,7 @@ import "errors"
 var ErrLog = errors.New("naza.log:fxxk")
 
 type Logger interface {
+	Tracef(format string, v ...interface{})
 	Debugf(format string, v ...interface{})
 	Infof(format string, v ...interface{})
 	Warnf(format string, v ...interface{})
@@ -36,6 +37,7 @@ type Logger interface {
 	Fatalf(format string, v ...interface{}) // 打印日志并退出程序
 	Panicf(format string, v ...interface{})
 
+	Trace(v ...interface{})
 	Debug(v ...interface{})
 	Info(v ...interface{})
 	Warn(v ...interface{})
@@ -62,6 +64,9 @@ type Logger interface {
 	Println(v ...interface{})
 	Fatalln(v ...interface{})
 	Panicln(v ...interface{})
+
+	// 获取配置项，注意，作用是只读，非修改配置
+	GetOption() Option
 }
 
 type Option struct {
@@ -98,17 +103,20 @@ var defaultOption = Option{
 type Level uint8
 
 const (
-	_          Level = iota
-	LevelDebug       // 1
+	LevelTrace Level = iota // 0
+	LevelDebug              // 1
 	LevelInfo
 	LevelWarn
 	LevelError
 	LevelFatal
 	LevelPanic
+	LevelLogNothing
 )
 
 func (l Level) ReadableString() string {
 	switch l {
+	case LevelTrace:
+		return "LevelTrace"
 	case LevelDebug:
 		return "LevelDebug"
 	case LevelInfo:
@@ -121,6 +129,8 @@ func (l Level) ReadableString() string {
 		return "LevelFatal"
 	case LevelPanic:
 		return "LevelPanic"
+	case LevelLogNothing:
+		return "LevelLogNothing"
 	default:
 		return "unknown"
 	}

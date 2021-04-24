@@ -25,6 +25,7 @@ import (
 var _ Logger = new(logger)
 
 const (
+	levelTraceString = "TRACE "
 	levelDebugString = "DEBUG "
 	levelInfoString  = " INFO "
 	levelWarnString  = " WARN "
@@ -32,7 +33,8 @@ const (
 	levelFatalString = "FATAL "
 	levelPanicString = "PANIC "
 
-	levelDebugColorString = "\033[22;37mDEBUG\033[0m "
+	levelTraceColorString = "\033[22;32mTRACE\033[0m "
+	levelDebugColorString = "\033[22;34mDEBUG\033[0m "
 	levelInfoColorString  = "\033[22;36m INFO\033[0m "
 	levelWarnColorString  = "\033[22;33m WARN\033[0m "
 	levelErrorColorString = "\033[22;31mERROR\033[0m "
@@ -42,6 +44,7 @@ const (
 
 var (
 	levelToString = map[Level]string{
+		LevelTrace: levelTraceString,
 		LevelDebug: levelDebugString,
 		LevelInfo:  levelInfoString,
 		LevelWarn:  levelWarnString,
@@ -50,6 +53,7 @@ var (
 		LevelPanic: levelPanicString,
 	}
 	levelToColorString = map[Level]string{
+		LevelTrace: levelTraceColorString,
 		LevelDebug: levelDebugColorString,
 		LevelInfo:  levelInfoColorString,
 		LevelWarn:  levelWarnColorString,
@@ -72,6 +76,10 @@ type core struct {
 	console       *os.File
 	buf           bytes.Buffer
 	currRoundTime time.Time
+}
+
+func (l *logger) Tracef(format string, v ...interface{}) {
+	l.Out(LevelTrace, 2, fmt.Sprintf(format, v...))
 }
 
 func (l *logger) Debugf(format string, v ...interface{}) {
@@ -98,6 +106,10 @@ func (l *logger) Fatalf(format string, v ...interface{}) {
 func (l *logger) Panicf(format string, v ...interface{}) {
 	l.Out(LevelPanic, 2, fmt.Sprintf(format, v...))
 	panic(fmt.Sprintf(format, v...))
+}
+
+func (l *logger) Trace(v ...interface{}) {
+	l.Out(LevelTrace, 2, fmt.Sprint(v...))
 }
 
 func (l *logger) Debug(v ...interface{}) {
@@ -283,6 +295,10 @@ func (l *logger) WithPrefix(s string) Logger {
 	return ll
 }
 
+func (l *logger) GetOption() Option {
+	return l.core.option
+}
+
 func newLogger(modOptions ...ModOption) (*logger, error) {
 	var err error
 
@@ -317,7 +333,7 @@ func newLogger(modOptions ...ModOption) (*logger, error) {
 }
 
 func validate(option Option) error {
-	if option.Level < LevelDebug || option.Level > LevelPanic {
+	if option.Level < LevelTrace || option.Level > LevelLogNothing {
 		return ErrLog
 	}
 	if option.AssertBehavior < AssertError || option.AssertBehavior > AssertPanic {

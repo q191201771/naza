@@ -34,10 +34,12 @@ func TestLogger(t *testing.T) {
 	assert.Equal(t, nil, err)
 	buf := []byte("1234567890987654321")
 	l.Error(hex.Dump(buf))
+	l.Tracef("l test msg by Trace%s", "f")
 	l.Debugf("l test msg by Debug%s", "f")
 	l.Infof("l test msg by Info%s", "f")
 	l.Warnf("l test msg by Warn%s", "f")
 	l.Errorf("l test msg by Error%s", "f")
+	l.Trace("l test msg by Trace")
 	l.Debug("l test msg by Debug")
 	l.Info("l test msg by Info")
 	l.Warn("l test msg by Warn")
@@ -52,10 +54,12 @@ func TestLogger(t *testing.T) {
 func TestGlobal(t *testing.T) {
 	buf := []byte("1234567890987654321")
 	nazalog.Error(hex.Dump(buf))
+	nazalog.Tracef("g test msg by Trace%s", "f")
 	nazalog.Debugf("g test msg by Debug%s", "f")
 	nazalog.Infof("g test msg by Info%s", "f")
 	nazalog.Warnf("g test msg by Warn%s", "f")
 	nazalog.Errorf("g test msg by Error%s", "f")
+	nazalog.Trace("g test msg by Trace")
 	nazalog.Debug("g test msg by Debug")
 	nazalog.Info("g test msg by Info")
 	nazalog.Warn("g test msg by Warn")
@@ -68,10 +72,12 @@ func TestGlobal(t *testing.T) {
 
 	})
 	assert.Equal(t, nil, err)
+	nazalog.Tracef("gc test msg by Trace%s", "f")
 	nazalog.Debugf("gc test msg by Debug%s", "f")
 	nazalog.Infof("gc test msg by Info%s", "f")
 	nazalog.Warnf("gc test msg by Warn%s", "f")
 	nazalog.Errorf("gc test msg by Error%s", "f")
+	nazalog.Trace("gc test msg by Trace")
 	nazalog.Debug("gc test msg by Debug")
 	nazalog.Info("gc test msg by Info")
 	nazalog.Warn("gc test msg by Warn")
@@ -90,7 +96,7 @@ func TestNew(t *testing.T) {
 		err error
 	)
 	l, err = nazalog.New(func(option *nazalog.Option) {
-		option.Level = nazalog.LevelPanic + 1
+		option.Level = nazalog.LevelLogNothing + 1
 	})
 	assert.Equal(t, nil, l)
 	assert.Equal(t, nazalog.ErrLog, err)
@@ -329,18 +335,58 @@ func TestFieldFlag(t *testing.T) {
 }
 
 func TestReadableString(t *testing.T) {
+	assert.Equal(t, "LevelTrace", nazalog.LevelTrace.ReadableString())
 	assert.Equal(t, "LevelDebug", nazalog.LevelDebug.ReadableString())
 	assert.Equal(t, "LevelInfo", nazalog.LevelInfo.ReadableString())
 	assert.Equal(t, "LevelWarn", nazalog.LevelWarn.ReadableString())
 	assert.Equal(t, "LevelError", nazalog.LevelError.ReadableString())
 	assert.Equal(t, "LevelFatal", nazalog.LevelFatal.ReadableString())
 	assert.Equal(t, "LevelPanic", nazalog.LevelPanic.ReadableString())
+	assert.Equal(t, "LevelLogNothing", nazalog.LevelLogNothing.ReadableString())
 	assert.Equal(t, "unknown", nazalog.Level(100).ReadableString())
 
 	assert.Equal(t, "AssertError", nazalog.AssertError.ReadableString())
 	assert.Equal(t, "AssertFatal", nazalog.AssertFatal.ReadableString())
 	assert.Equal(t, "AssertPanic", nazalog.AssertPanic.ReadableString())
 	assert.Equal(t, "unknown", nazalog.AssertBehavior(100).ReadableString())
+}
+
+func TestLevel(t *testing.T) {
+	var l nazalog.Logger
+	l, _ = nazalog.New(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelTrace
+	})
+	l.Trace("log by trace")
+	l.Debug("log by debug")
+	l.Info("log by info")
+	l.Warn("log by warn")
+	l.Error("log by error")
+}
+
+func TestModGlobal(t *testing.T) {
+	l, _ := nazalog.New(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelInfo
+	})
+	nazalog.SetGlobalLogger(l)
+	nazalog.Debug("a")
+	nazalog.Info("b")
+	l = nazalog.GetGlobalLogger()
+	l.Debug("c")
+	l.Info("d")
+}
+
+func TestLogger_GetOption(t *testing.T) {
+	l, _ := nazalog.New(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelDebug
+	})
+	o := l.GetOption()
+	assert.Equal(t, nazalog.LevelDebug, o.Level)
+
+	_ = nazalog.Init(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelDebug
+	})
+	o = nazalog.GetOption()
+	assert.Equal(t, nazalog.LevelDebug, o.Level)
 }
 
 func BenchmarkNazaLog(b *testing.B) {

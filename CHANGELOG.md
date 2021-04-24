@@ -1,3 +1,11 @@
+#### v0.18.5 (2021-04)
+
+- [feat] nazalog: 新增日志级别LevelTrace，目前已有trace, debug, info, warn, error, fatal, panic
+- [feat] nazalog: 新增日志级别LevelNothing，初始化成这个级别的Logger，不会打印任何内容
+- [feat] nazalog: 提供一个Logger实例DummyLogger，该实例不打印任何内容
+- [feat] nazalog: 新增SetGlobalLogger，业务方可以设置替换全局Logger
+- [feat] nazalog: 新增GetGlobalLogger，业务方可以获取全局Logger，比如将全局Logger赋值给其他Logger使用
+
 #### v0.18.4 (2021-04)
 
 - [feat] filesystemlayer: 新的包，提供一层文件操作的抽象，可以使用内存替换磁盘作为存储

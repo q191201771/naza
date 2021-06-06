@@ -36,7 +36,7 @@ func (m *Mutex) Lock() {
 	if m.uniqueKey == "" {
 		m.uniqueKey = uniqueGen.GenUniqueKey()
 	}
-	gid, _ := CurGoroutineID()
+	gid, _ := CurGoroutineId()
 	if gid == m.gid {
 		nazalog.Out(nazalog.LevelError, 3, fmt.Sprintf("[%s] recursive lock. gid=%d", m.uniqueKey, gid))
 	}
@@ -50,7 +50,7 @@ func (m *Mutex) Lock() {
 
 func (m *Mutex) Unlock() {
 	m.mu.Lock()
-	gid, _ := CurGoroutineID()
+	gid, _ := CurGoroutineId()
 	if gid != m.gid {
 		if m.gid == unlockedGid {
 			nazalog.Out(nazalog.LevelError, 3,

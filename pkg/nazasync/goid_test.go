@@ -17,24 +17,24 @@ import (
 	"github.com/q191201771/naza/pkg/nazalog"
 )
 
-func TestCurGoroutineID(t *testing.T) {
+func TestCurGoroutineId(t *testing.T) {
 	max := 5
 
-	gid, err := CurGoroutineID()
+	gid, err := CurGoroutineId()
 	assert.Equal(t, nil, err)
 	nazalog.Infof("> main. gid=%d", gid)
 	var wg sync.WaitGroup
 	wg.Add(max)
 	for i := 0; i < max; i++ {
 		go func(ii int) {
-			gid, err := CurGoroutineID()
+			gid, err := CurGoroutineId()
 			assert.Equal(t, nil, err)
 			nazalog.Infof("> %d. gid=%d", ii, gid)
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-	gid, err = CurGoroutineID()
+	gid, err = CurGoroutineId()
 	assert.Equal(t, nil, err)
 	nazalog.Infof("< main. gid=%d", gid)
 }

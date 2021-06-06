@@ -33,12 +33,12 @@ type TokenBucket struct {
 }
 
 // @param capacity: 桶容量大小
-// @param prodTokenIntervalMSec: 生产令牌的时间间隔，单位毫秒
+// @param prodTokenIntervalMs: 生产令牌的时间间隔，单位毫秒
 // @param prodTokenNumEveryInterval: 每次生产多少个令牌
-func NewTokenBucket(capacity int, prodTokenIntervalMSec int, prodTokenNumEveryInterval int) *TokenBucket {
+func NewTokenBucket(capacity int, prodTokenIntervalMs int, prodTokenNumEveryInterval int) *TokenBucket {
 	tb := &TokenBucket{
 		capacity:                  capacity,
-		prodTokenInterval:         time.Duration(time.Duration(prodTokenIntervalMSec) * time.Millisecond),
+		prodTokenInterval:         time.Duration(time.Duration(prodTokenIntervalMs) * time.Millisecond),
 		prodTokenNumEveryInterval: prodTokenNumEveryInterval,
 	}
 	tb.cond = sync.NewCond(&tb.mu)

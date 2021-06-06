@@ -13,24 +13,24 @@ import (
 	"strings"
 )
 
-type JSON struct {
+type Json struct {
 	//raw []byte
 	m map[string]interface{}
 }
 
-func New(raw []byte) (JSON, error) {
-	var j JSON
+func New(raw []byte) (Json, error) {
+	var j Json
 	err := j.Init(raw)
 	return j, err
 }
 
-func (j *JSON) Init(raw []byte) error {
+func (j *Json) Init(raw []byte) error {
 	return json.Unmarshal(raw, &j.m)
 }
 
 // 判断 json 中某个字段是否存在
 // @param path 支持多级格式，用句号`.`分隔，比如 log.level
-func (j *JSON) Exist(path string) bool {
+func (j *Json) Exist(path string) bool {
 	return exist(j.m, path)
 }
 

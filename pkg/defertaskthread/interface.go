@@ -13,7 +13,7 @@ type TaskFn func(param ...interface{})
 type DeferTaskThread interface {
 	// 注意，一个thread的多个task，本应该是串行执行的语义，
 	// 目前为了简单，让它们并行执行了，以后可能会发生变化
-	Go(deferMS int, task TaskFn, param ...interface{})
+	Go(deferMs int, task TaskFn, param ...interface{})
 }
 
 func NewDeferTaskThread() DeferTaskThread {

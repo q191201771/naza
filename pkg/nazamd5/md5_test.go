@@ -19,8 +19,8 @@ type md5Test struct {
 	out string
 }
 
-func TestMD5(t *testing.T) {
-	assert.Equal(t, "d41d8cd98f00b204e9800998ecf8427e", MD5(nil))
+func TestMd5(t *testing.T) {
+	assert.Equal(t, "d41d8cd98f00b204e9800998ecf8427e", Md5(nil))
 	golden := []md5Test{
 		{"", "d41d8cd98f00b204e9800998ecf8427e"},
 		{"aaa", "47bce5c74f589f4867dbd57e9ca9f808"},
@@ -28,6 +28,6 @@ func TestMD5(t *testing.T) {
 		{"HELLO WORLD!", "b59bc37d6441d96785bda7ab2ae98f75"},
 	}
 	for _, g := range golden {
-		assert.Equal(t, g.out, MD5([]byte(g.in)))
+		assert.Equal(t, g.out, Md5([]byte(g.in)))
 	}
 }

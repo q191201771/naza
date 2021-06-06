@@ -67,38 +67,38 @@ var (
 	}
 )
 
-func TestPKCS7(t *testing.T) {
+func TestPkcs7(t *testing.T) {
 	for i := 0; i < len(goldenOrig)+1; i++ {
 		orig := []byte(goldenOrig[:i])
 		//nazalog.Info(hex.Dump(orig))
 
-		enbuf := EncryptPKCS7(orig, 16)
+		enbuf := EncryptPkcs7(orig, 16)
 		//nazalog.Info(hex.Dump(enbuf))
 		assert.Equal(t, goldenEnSlice7[i], enbuf)
 
-		debuf, err := DecryptPKCS7(enbuf)
+		debuf, err := DecryptPkcs7(enbuf)
 		//nazalog.Info(hex.Dump(debuf))
 		assert.Equal(t, nil, err)
 		assert.Equal(t, orig, debuf)
 	}
 
 	// corner case
-	_, err := DecryptPKCS7(nil)
-	assert.Equal(t, ErrPKCS, err)
-	_, err = DecryptPKCS7([]byte{16})
-	assert.Equal(t, ErrPKCS, err)
+	_, err := DecryptPkcs7(nil)
+	assert.Equal(t, ErrPkcs, err)
+	_, err = DecryptPkcs7([]byte{16})
+	assert.Equal(t, ErrPkcs, err)
 }
 
-func TestPKCS5(t *testing.T) {
+func TestPkcs5(t *testing.T) {
 	for i := 0; i < len(goldenOrig)+1; i++ {
 		orig := []byte(goldenOrig[:i])
 		//nazalog.Info(hex.Dump(orig))
 
-		enbuf := EncryptPKCS5(orig)
+		enbuf := EncryptPkcs5(orig)
 		//nazalog.Info(hex.Dump(enbuf))
 		assert.Equal(t, goldenEnSlice5[i], enbuf)
 
-		debuf, err := DecryptPKCS5(enbuf)
+		debuf, err := DecryptPkcs5(enbuf)
 		//nazalog.Info(hex.Dump(debuf))
 		assert.Equal(t, nil, err)
 		assert.Equal(t, orig, debuf)

@@ -18,7 +18,7 @@ import (
 
 var ErrNotFound = errors.New("naza filesystemlayer: not found")
 
-type FSLMemory struct {
+type FslMemory struct {
 	mu    sync.Mutex
 	files map[string]*file // key filename
 }
@@ -27,21 +27,21 @@ type file struct {
 	buf []byte
 }
 
-func NewFSLMemory() *FSLMemory {
-	return &FSLMemory{
+func NewFslMemory() *FslMemory {
+	return &FslMemory{
 		files: make(map[string]*file),
 	}
 }
 
-func (f *FSLMemory) Type() FSLType {
-	return FSLTypeMemory
+func (f *FslMemory) Type() FslType {
+	return FslTypeMemory
 }
 
-func (f *FSLMemory) Create(name string) (IFile, error) {
+func (f *FslMemory) Create(name string) (IFile, error) {
 	return f.openFile(name, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 }
 
-func (f *FSLMemory) Rename(oldpath string, newpath string) error {
+func (f *FslMemory) Rename(oldpath string, newpath string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	fi, exist := f.files[oldpath]
@@ -53,11 +53,11 @@ func (f *FSLMemory) Rename(oldpath string, newpath string) error {
 	return nil
 }
 
-func (f *FSLMemory) MkdirAll(path string, perm uint32) error {
+func (f *FslMemory) MkdirAll(path string, perm uint32) error {
 	return nil
 }
 
-func (f *FSLMemory) Remove(name string) error {
+func (f *FslMemory) Remove(name string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	_, exist := f.files[name]
@@ -68,7 +68,7 @@ func (f *FSLMemory) Remove(name string) error {
 	return nil
 }
 
-func (f *FSLMemory) RemoveAll(path string) error {
+func (f *FslMemory) RemoveAll(path string) error {
 	if !os.IsPathSeparator(path[len(path)-1]) {
 		path = fmt.Sprintf("%s%c", path, os.PathSeparator)
 	}
@@ -85,7 +85,7 @@ func (f *FSLMemory) RemoveAll(path string) error {
 	return nil
 }
 
-func (f *FSLMemory) ReadFile(filename string) ([]byte, error) {
+func (f *FslMemory) ReadFile(filename string) ([]byte, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	fi, exist := f.files[filename]
@@ -95,7 +95,7 @@ func (f *FSLMemory) ReadFile(filename string) ([]byte, error) {
 	return fi.clone(), nil
 }
 
-func (f *FSLMemory) WriteFile(filename string, data []byte, perm uint32) error {
+func (f *FslMemory) WriteFile(filename string, data []byte, perm uint32) error {
 	fi, err := f.openFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (f *FSLMemory) WriteFile(filename string, data []byte, perm uint32) error {
 	return err
 }
 
-func (f *FSLMemory) openFile(name string, flag int, perm uint32) (IFile, error) {
+func (f *FslMemory) openFile(name string, flag int, perm uint32) (IFile, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	fi, ok := f.files[name]

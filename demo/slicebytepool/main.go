@@ -32,7 +32,7 @@ var tmpSliceByte []byte
 
 var gorutineNum = 1000
 var loopNum = 1000
-var sleepMSec = time.Duration(10) * time.Millisecond
+var sleepMs = time.Duration(10) * time.Millisecond
 
 func size() int {
 	return random(1, 128*1024)
@@ -60,14 +60,14 @@ func originFunc() {
 	buf := make([]byte, size)
 	tmpSliceByte = buf
 	atomic.AddUint32(&doneCount, 1)
-	time.Sleep(sleepMSec)
+	time.Sleep(sleepMs)
 }
 
 func bufferPoolFunc() {
 	size := size()
 	buf := bp.Get(size)
 	tmpSliceByte = buf
-	time.Sleep(sleepMSec)
+	time.Sleep(sleepMs)
 	bp.Put(buf)
 	atomic.AddUint32(&doneCount, 1)
 }

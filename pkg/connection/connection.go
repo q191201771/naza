@@ -64,8 +64,8 @@ type Connection interface {
 	// Mod类型函数不加锁，需要调用方保证不发生竞态调用
 	ModWriteChanSize(n int)
 	ModWriteBufSize(n int)
-	ModReadTimeoutMS(n int)
-	ModWriteTimeoutMS(n int)
+	ModReadTimeoutMs(n int)
+	ModWriteTimeoutMs(n int)
 
 	// 连接上读取和发送的字节总数。
 	// 注意，如果是异步发送，发送字节统计的是调用底层write的值，而非上层调用Connection发送的值
@@ -96,8 +96,8 @@ type Option struct {
 	WriteBufSize int
 
 	// 如果不为0，则之后每次读/写都带超时
-	ReadTimeoutMS  int
-	WriteTimeoutMS int
+	ReadTimeoutMs  int
+	WriteTimeoutMs int
 
 	// 如果不为0，则写使用channel将数据发送到后台协程中发送
 	WriteChanSize int
@@ -112,8 +112,8 @@ type Option struct {
 var defaultOption = Option{
 	ReadBufSize:           0,
 	WriteBufSize:          0,
-	ReadTimeoutMS:         0,
-	WriteTimeoutMS:        0,
+	ReadTimeoutMs:         0,
+	WriteTimeoutMs:        0,
 	WriteChanSize:         0,
 	WriteChanFullBehavior: WriteChanFullBehaviorReturnError,
 }
@@ -155,16 +155,16 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 	return c
 }
 
-type wMsgT int
+type wMsgType int
 
 const (
-	_ wMsgT = iota
-	wMsgTWrite
-	wMsgTFlush
+	_ wMsgType = iota
+	wMsgTypeWrite
+	wMsgTypeFlush
 )
 
 type wMsg struct {
-	t wMsgT
+	t wMsgType
 	b []byte
 }
 
@@ -206,23 +206,23 @@ func (c *connection) ModWriteBufSize(n int) {
 	c.w = bufio.NewWriterSize(c.Conn, n)
 }
 
-func (c *connection) ModReadTimeoutMS(n int) {
-	if c.option.ReadTimeoutMS > 0 {
+func (c *connection) ModReadTimeoutMs(n int) {
+	if c.option.ReadTimeoutMs > 0 {
 		panic(ErrConnectionPanic)
 	}
-	c.option.ReadTimeoutMS = n
+	c.option.ReadTimeoutMs = n
 }
 
-func (c *connection) ModWriteTimeoutMS(n int) {
-	if c.option.WriteTimeoutMS > 0 {
+func (c *connection) ModWriteTimeoutMs(n int) {
+	if c.option.WriteTimeoutMs > 0 {
 		panic(ErrConnectionPanic)
 	}
-	c.option.WriteTimeoutMS = n
+	c.option.WriteTimeoutMs = n
 }
 
 func (c *connection) ReadAtLeast(buf []byte, min int) (n int, err error) {
-	if c.option.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMs > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMs) * time.Millisecond))
 		if err != nil {
 			c.close(err)
 			return 0, err
@@ -243,8 +243,8 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 		// 目前只有使用了 bufio.Reader 时才能执行 ReadLine 操作
 		panic(ErrConnectionPanic)
 	}
-	if c.option.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMs > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMs) * time.Millisecond))
 		if err != nil {
 			c.close(err)
 			return nil, false, err
@@ -259,8 +259,8 @@ func (c *connection) ReadLine() (line []byte, isPrefix bool, err error) {
 }
 
 func (c *connection) Read(b []byte) (n int, err error) {
-	if c.option.ReadTimeoutMS > 0 {
-		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMS) * time.Millisecond))
+	if c.option.ReadTimeoutMs > 0 {
+		err = c.SetReadDeadline(time.Now().Add(time.Duration(c.option.ReadTimeoutMs) * time.Millisecond))
 		if err != nil {
 			c.close(err)
 			return 0, err
@@ -281,11 +281,11 @@ func (c *connection) Write(b []byte) (n int, err error) {
 	if c.option.WriteChanSize > 0 {
 		switch c.option.WriteChanFullBehavior {
 		case WriteChanFullBehaviorBlock:
-			c.wChan <- wMsg{t: wMsgTWrite, b: b}
+			c.wChan <- wMsg{t: wMsgTypeWrite, b: b}
 			return len(b), nil
 		case WriteChanFullBehaviorReturnError:
 			select {
-			case c.wChan <- wMsg{t: wMsgTWrite, b: b}:
+			case c.wChan <- wMsg{t: wMsgTypeWrite, b: b}:
 				return len(b), nil
 			default:
 				return 0, ErrWriteChanFull
@@ -300,7 +300,7 @@ func (c *connection) Flush() error {
 		return ErrClosedAlready
 	}
 	if c.option.WriteChanSize > 0 {
-		c.wChan <- wMsg{t: wMsgTFlush}
+		c.wChan <- wMsg{t: wMsgTypeFlush}
 		<-c.flushDoneChan
 		return nil
 	}
@@ -357,8 +357,8 @@ func (c *connection) GetStat() (s Stat) {
 }
 
 func (c *connection) write(b []byte) (n int, err error) {
-	if c.option.WriteTimeoutMS > 0 {
-		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
+	if c.option.WriteTimeoutMs > 0 {
+		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMs) * time.Millisecond))
 		if err != nil {
 			c.close(err)
 			return 0, err
@@ -380,11 +380,11 @@ func (c *connection) runWriteLoop() {
 			return
 		case msg := <-c.wChan:
 			switch msg.t {
-			case wMsgTWrite:
+			case wMsgTypeWrite:
 				if _, err := c.write(msg.b); err != nil {
 					return
 				}
-			case wMsgTFlush:
+			case wMsgTypeFlush:
 				if err := c.flush(); err != nil {
 					c.flushDoneChan <- struct{}{}
 					return
@@ -398,8 +398,8 @@ func (c *connection) runWriteLoop() {
 func (c *connection) flush() error {
 	w, ok := c.w.(*bufio.Writer)
 	if ok {
-		if c.option.WriteTimeoutMS > 0 {
-			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMS) * time.Millisecond))
+		if c.option.WriteTimeoutMs > 0 {
+			err := c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMs) * time.Millisecond))
 			if err != nil {
 				c.close(err)
 				return err

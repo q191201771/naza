@@ -41,7 +41,7 @@ var commonKey256 = []byte{
 
 //var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 
-var cbcAESTests = []struct {
+var cbcAesTests = []struct {
 	key []byte
 	in  []byte
 	out []byte
@@ -79,12 +79,12 @@ var cbcAESTests = []struct {
 	},
 }
 
-func TestAESWithCBC(t *testing.T) {
-	for _, item := range cbcAESTests {
-		enbuf, err := EncryptAESWithCBC(item.in, item.key, CommonIV)
+func TestAesWithCbc(t *testing.T) {
+	for _, item := range cbcAesTests {
+		enbuf, err := EncryptAesWithCbc(item.in, item.key, CommonIv)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, item.out, enbuf)
-		debuf, err := DecryptAESWithCBC(enbuf, item.key, CommonIV)
+		debuf, err := DecryptAesWithCbc(enbuf, item.key, CommonIv)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, item.in, debuf)
 	}
@@ -96,14 +96,14 @@ func TestCase1(t *testing.T) {
 	goldEn := "36d062398c390623e1b6c8a24c3bd48b"
 
 	key := commonKey192
-	iv := CommonIV
+	iv := CommonIv
 
 	// -----encrypt-----
-	// PKCS7填充
-	paddingOrig := EncryptPKCS7([]byte(goldenOrig), aes.BlockSize)
+	// Pkcs7填充
+	paddingOrig := EncryptPkcs7([]byte(goldenOrig), aes.BlockSize)
 	assert.Equal(t, goldenPaddingOrig, paddingOrig)
 	// AES加密
-	enbuf, err := EncryptAESWithCBC(paddingOrig, key, iv)
+	enbuf, err := EncryptAesWithCbc(paddingOrig, key, iv)
 	assert.Equal(t, nil, err)
 	// 转hex进制
 	en := hex.EncodeToString(enbuf)
@@ -115,11 +115,11 @@ func TestCase1(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, enbuf, enbuf2)
 	// AES解密
-	paddingDebuf, err := DecryptAESWithCBC(enbuf2, key, iv)
+	paddingDebuf, err := DecryptAesWithCbc(enbuf2, key, iv)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, goldenPaddingOrig, paddingDebuf)
-	// 去除PKCS7填充
-	debuf, err := DecryptPKCS7(paddingDebuf)
+	// 去除Pkcs7填充
+	debuf, err := DecryptPkcs7(paddingDebuf)
 	assert.Equal(t, []byte(goldenOrig), debuf)
 	assert.Equal(t, nil, err)
 }

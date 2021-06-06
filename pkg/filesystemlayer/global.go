@@ -10,11 +10,11 @@ package filesystemlayer
 
 //var global IFileSystemLayer
 //
-//func Config(t FSLType) {
-//	global = FSLFactory(t)
+//func Config(t FslType) {
+//	global = FslFactory(t)
 //}
 //
-//func Type() FSLType {
+//func Type() FslType {
 //	return global.Type()
 //}
 //
@@ -46,5 +46,5 @@ package filesystemlayer
 //}
 //
 //func init() {
-//	global = FSLFactory(FSLTypeDisk)
+//	global = FslFactory(FslTypeDisk)
 //}

@@ -40,7 +40,7 @@ func Errorf(format string, v ...interface{}) {
 
 func Fatalf(format string, v ...interface{}) {
 	global.Out(LevelFatal, 2, fmt.Sprintf(format, v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 
 func Panicf(format string, v ...interface{}) {
@@ -70,7 +70,7 @@ func Error(v ...interface{}) {
 
 func Fatal(v ...interface{}) {
 	global.Out(LevelFatal, 2, fmt.Sprint(v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 
 func Panic(v ...interface{}) {
@@ -95,7 +95,7 @@ func Println(v ...interface{}) {
 }
 func Fatalln(v ...interface{}) {
 	global.Out(LevelInfo, 2, fmt.Sprint(v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 func Panicln(v ...interface{}) {
 	global.Out(LevelInfo, 2, fmt.Sprint(v...))
@@ -110,7 +110,7 @@ func Assert(expected interface{}, actual interface{}) {
 			global.Out(LevelError, 2, err)
 		case AssertFatal:
 			global.Out(LevelFatal, 2, err)
-			fake.OS_Exit(1)
+			fake.Os_Exit(1)
 		case AssertPanic:
 			global.Out(LevelPanic, 2, err)
 			panic(err)

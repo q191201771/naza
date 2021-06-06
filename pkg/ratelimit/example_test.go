@@ -31,7 +31,7 @@ func TestLeakyBucket(t *testing.T) {
 				if err == nil {
 					nazalog.Debugf("TryAquire succ. goroutine=%d, index=%d", j, k)
 				} else {
-					time.Sleep(time.Duration(lb.MaybeAvailableIntervalMSec()) * time.Millisecond)
+					time.Sleep(time.Duration(lb.MaybeAvailableIntervalMs()) * time.Millisecond)
 				}
 			}
 		}(i)

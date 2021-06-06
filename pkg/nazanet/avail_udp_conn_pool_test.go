@@ -19,9 +19,9 @@ import (
 	"github.com/q191201771/naza/pkg/nazanet"
 )
 
-func TestAvailUDPConnPool_Acquire(t *testing.T) {
+func TestAvailUdpConnPool_Acquire(t *testing.T) {
 	var conns []*net.UDPConn
-	aucp := nazanet.NewAvailUDPConnPool(8000, 8005)
+	aucp := nazanet.NewAvailUdpConnPool(8000, 8005)
 	closedOnlyOnceFlag := false
 
 	// 循环次数大于端口范围，测试后面的获取是否返回错误
@@ -49,8 +49,8 @@ func TestAvailUDPConnPool_Acquire(t *testing.T) {
 	}
 }
 
-func TestAvailUDPConnPool_Acquire2(t *testing.T) {
-	aucp := nazanet.NewAvailUDPConnPool(8000, 8005)
+func TestAvailUdpConnPool_Acquire2(t *testing.T) {
+	aucp := nazanet.NewAvailUdpConnPool(8000, 8005)
 	closedOnlyOnceFlag := false
 
 	// 循环次数大于端口范围，测试后面的获取是否返回错误
@@ -69,7 +69,7 @@ func TestAvailUDPConnPool_Acquire2(t *testing.T) {
 	}
 }
 
-func TestAvailUDPConnPool_Peek(t *testing.T) {
-	aucp := nazanet.NewAvailUDPConnPool(8000, 8005)
+func TestAvailUdpConnPool_Peek(t *testing.T) {
+	aucp := nazanet.NewAvailUdpConnPool(8000, 8005)
 	nazalog.Debug(aucp.Peek())
 }

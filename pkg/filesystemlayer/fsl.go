@@ -10,8 +10,8 @@ package filesystemlayer
 
 import "os"
 
-var _ IFileSystemLayer = &FSLDisk{}
-var _ IFileSystemLayer = &FSLMemory{}
+var _ IFileSystemLayer = &FslDisk{}
+var _ IFileSystemLayer = &FslMemory{}
 
 var _ IFile = &os.File{}
 var _ IFile = &file{}

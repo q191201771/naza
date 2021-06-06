@@ -11,7 +11,7 @@ package nazahttp
 import "errors"
 
 var (
-	ErrHTTPHeader   = errors.New("nazahttp: fxxk")
+	ErrHttpHeader   = errors.New("nazahttp: fxxk")
 	ErrParamMissing = errors.New("nazahttp: param missing")
 )
 

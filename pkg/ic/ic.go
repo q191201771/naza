@@ -9,7 +9,7 @@
 // package ic 将整型切片压缩成二进制字节切片
 package ic
 
-// 具体使用见 LFCompressor 和 OriginCompressor
+// 具体使用见 LfCompressor 和 OriginCompressor
 type Compressor interface {
 	// 将整型切片压缩成二进制字节切片
 	Marshal(ids []uint32) (ret []byte)

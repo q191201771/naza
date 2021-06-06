@@ -167,19 +167,19 @@ func TestPanic(t *testing.T) {
 func TestFatal(t *testing.T) {
 	var er fake.ExitResult
 
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		nazalog.Fatal("Fatal")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		nazalog.Fatalf("Fatalf%s", ".")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		nazalog.Fatalln("Fatalln")
 	})
 	assert.Equal(t, true, er.HasExit)
@@ -190,19 +190,19 @@ func TestFatal(t *testing.T) {
 	})
 	assert.IsNotNil(t, logger)
 	assert.Equal(t, nil, err)
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		logger.Fatal("Fatal")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		logger.Fatalf("Fatalf%s", ".")
 	})
 	assert.Equal(t, true, er.HasExit)
 	assert.Equal(t, 1, er.ExitCode)
 
-	er = fake.WithFakeOSExit(func() {
+	er = fake.WithFakeOsExit(func() {
 		logger.Fatalln("Fatalln")
 	})
 	assert.Equal(t, true, er.HasExit)
@@ -239,7 +239,7 @@ func TestAssert(t *testing.T) {
 	_ = nazalog.Init(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal
 	})
-	err := fake.WithFakeOSExit(func() {
+	err := fake.WithFakeOsExit(func() {
 		nazalog.Assert(nil, 1)
 	})
 	assert.Equal(t, true, err.HasExit)
@@ -258,7 +258,7 @@ func TestAssert(t *testing.T) {
 	l, _ = nazalog.New(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal
 	})
-	err = fake.WithFakeOSExit(func() {
+	err = fake.WithFakeOsExit(func() {
 		l.Assert(nil, 1)
 	})
 	assert.Equal(t, true, err.HasExit)
@@ -303,7 +303,7 @@ func TestTimestamp(t *testing.T) {
 	l.Debug("without timestamp.")
 	l.Info("without timestamp.")
 	l, _ = nazalog.New(func(option *nazalog.Option) {
-		option.TimestampWithMSFlag = false
+		option.TimestampWithMsFlag = false
 	})
 	l.Debug("without timestamp.")
 	l.Info("timestamp without ms.")

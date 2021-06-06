@@ -13,12 +13,12 @@ import (
 	"net"
 )
 
-func listenUDPWithPort(port uint16) (*net.UDPConn, error) {
+func listenUdpWithPort(port uint16) (*net.UDPConn, error) {
 	addr := fmt.Sprintf(":%d", port)
-	return listenUDPWithAddr(addr)
+	return listenUdpWithAddr(addr)
 }
 
-func listenUDPWithAddr(addr string) (*net.UDPConn, error) {
+func listenUdpWithAddr(addr string) (*net.UDPConn, error) {
 	udpAddr, err := net.ResolveUDPAddr(udpNetwork, addr)
 	if err != nil {
 		return nil, err

@@ -20,11 +20,11 @@ type ExitResult struct {
 var exitResult ExitResult
 
 // 正常情况下，调用 os.Exit，单元测试时，可通过调用 WithFakeExit 配置为不调用 os.Exit
-func OS_Exit(code int) {
+func Os_Exit(code int) {
 	exit(code)
 }
 
-func WithFakeOSExit(fn func()) ExitResult {
+func WithFakeOsExit(fn func()) ExitResult {
 	startFakeExit()
 	fn()
 	stopFakeExit()

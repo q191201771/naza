@@ -16,7 +16,7 @@ import (
 	"github.com/q191201771/naza/pkg/lru"
 )
 
-func TestLRU(t *testing.T) {
+func TestLru(t *testing.T) {
 	l := lru.New(3)
 	l.Put("chef", 1)
 	l.Put("yoko", 2)

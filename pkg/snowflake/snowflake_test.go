@@ -59,29 +59,29 @@ func TestErrInitial(t *testing.T) {
 	assert.Equal(t, snowflake.ErrInitial, err)
 
 	n, err = snowflake.New(0, 0, func(option *snowflake.Option) {
-		option.WorkerIDBits = 64
+		option.WorkerIdBits = 64
 	})
 	assert.Equal(t, snowflake.ErrInitial, err)
 
 	n, err = snowflake.New(0, 0, func(option *snowflake.Option) {
-		option.DataCenterIDBits = 64
+		option.DataCenterIdBits = 64
 	})
 	assert.Equal(t, snowflake.ErrInitial, err)
 
 	n, err = snowflake.New(0, 0, func(option *snowflake.Option) {
-		option.DataCenterIDBits = 31
-		option.WorkerIDBits = 31
+		option.DataCenterIdBits = 31
+		option.WorkerIdBits = 31
 		option.SequenceBits = 31
 	})
 	assert.Equal(t, snowflake.ErrInitial, err)
 
 	n, err = snowflake.New(100, 0, func(option *snowflake.Option) {
-		option.DataCenterIDBits = 1
+		option.DataCenterIdBits = 1
 	})
 	assert.Equal(t, snowflake.ErrInitial, err)
 
 	n, err = snowflake.New(0, 100, func(option *snowflake.Option) {
-		option.WorkerIDBits = 1
+		option.WorkerIdBits = 1
 	})
 	assert.Equal(t, snowflake.ErrInitial, err)
 
@@ -110,7 +110,7 @@ func TestErrGen(t *testing.T) {
 	nazalog.Debug(id)
 }
 
-func TestMT(t *testing.T) {
+func TestMt(t *testing.T) {
 	var (
 		n   *snowflake.Node
 		err error

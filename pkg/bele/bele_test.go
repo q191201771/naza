@@ -16,7 +16,7 @@ import (
 	"github.com/q191201771/naza/pkg/assert"
 )
 
-func TestBEUint16(t *testing.T) {
+func TestBeUint16(t *testing.T) {
 	vector := []struct {
 		input  []byte
 		output uint16
@@ -30,11 +30,11 @@ func TestBEUint16(t *testing.T) {
 	}
 
 	for i := 0; i < len(vector); i++ {
-		assert.Equal(t, vector[i].output, BEUint16(vector[i].input))
+		assert.Equal(t, vector[i].output, BeUint16(vector[i].input))
 	}
 }
 
-func TestBEUint24(t *testing.T) {
+func TestBeUint24(t *testing.T) {
 	vector := []struct {
 		input  []byte
 		output uint32
@@ -47,11 +47,11 @@ func TestBEUint24(t *testing.T) {
 	}
 
 	for i := 0; i < len(vector); i++ {
-		assert.Equal(t, vector[i].output, BEUint24(vector[i].input))
+		assert.Equal(t, vector[i].output, BeUint24(vector[i].input))
 	}
 }
 
-func TestBEUint32(t *testing.T) {
+func TestBeUint32(t *testing.T) {
 	vector := []struct {
 		input  []byte
 		output uint32
@@ -64,11 +64,11 @@ func TestBEUint32(t *testing.T) {
 	}
 
 	for i := 0; i < len(vector); i++ {
-		assert.Equal(t, vector[i].output, BEUint32(vector[i].input))
+		assert.Equal(t, vector[i].output, BeUint32(vector[i].input))
 	}
 }
 
-func TestBEUint64(t *testing.T) {
+func TestBeUint64(t *testing.T) {
 	vector := []struct {
 		input  []byte
 		output uint64
@@ -80,11 +80,11 @@ func TestBEUint64(t *testing.T) {
 	}
 
 	for i := 0; i < len(vector); i++ {
-		assert.Equal(t, vector[i].output, BEUint64(vector[i].input))
+		assert.Equal(t, vector[i].output, BeUint64(vector[i].input))
 	}
 }
 
-func TestBEFloat64(t *testing.T) {
+func TestBeFloat64(t *testing.T) {
 	vector := []int{
 		1,
 		0xFF,
@@ -95,11 +95,11 @@ func TestBEFloat64(t *testing.T) {
 		b := &bytes.Buffer{}
 		err := binary.Write(b, binary.BigEndian, float64(vector[i]))
 		assert.Equal(t, nil, err)
-		assert.Equal(t, vector[i], int(BEFloat64(b.Bytes())))
+		assert.Equal(t, vector[i], int(BeFloat64(b.Bytes())))
 	}
 }
 
-func TestLEUint32(t *testing.T) {
+func TestLeUint32(t *testing.T) {
 	vector := []struct {
 		input  []byte
 		output uint32
@@ -112,23 +112,23 @@ func TestLEUint32(t *testing.T) {
 	}
 
 	for i := 0; i < len(vector); i++ {
-		assert.Equal(t, vector[i].output, LEUint32(vector[i].input))
+		assert.Equal(t, vector[i].output, LeUint32(vector[i].input))
 	}
 }
 
-func TestBEPutUint16(t *testing.T) {
+func TestBePutUint16(t *testing.T) {
 	b := make([]byte, 2)
-	BEPutUint16(b, 1)
+	BePutUint16(b, 1)
 	assert.Equal(t, []byte{0, 1}, b)
 }
 
-func TestBEPutUint64(t *testing.T) {
+func TestBePutUint64(t *testing.T) {
 	b := make([]byte, 8)
-	BEPutUint64(b, 1)
+	BePutUint64(b, 1)
 	assert.Equal(t, []byte{0, 0, 0, 0, 0, 0, 0, 1}, b)
 }
 
-func TestBEPutUint24(t *testing.T) {
+func TestBePutUint24(t *testing.T) {
 	vector := []struct {
 		input  uint32
 		output []byte
@@ -142,12 +142,12 @@ func TestBEPutUint24(t *testing.T) {
 
 	out := make([]byte, 3)
 	for i := 0; i < len(vector); i++ {
-		BEPutUint24(out, vector[i].input)
+		BePutUint24(out, vector[i].input)
 		assert.Equal(t, vector[i].output, out)
 	}
 }
 
-func TestBEPutUint32(t *testing.T) {
+func TestBePutUint32(t *testing.T) {
 	vector := []struct {
 		input  uint32
 		output []byte
@@ -161,12 +161,12 @@ func TestBEPutUint32(t *testing.T) {
 
 	out := make([]byte, 4)
 	for i := 0; i < len(vector); i++ {
-		BEPutUint32(out, vector[i].input)
+		BePutUint32(out, vector[i].input)
 		assert.Equal(t, vector[i].output, out)
 	}
 }
 
-func TestLEPutUint32(t *testing.T) {
+func TestLePutUint32(t *testing.T) {
 	vector := []struct {
 		input  uint32
 		output []byte
@@ -180,12 +180,12 @@ func TestLEPutUint32(t *testing.T) {
 
 	out := make([]byte, 4)
 	for i := 0; i < len(vector); i++ {
-		LEPutUint32(out, vector[i].input)
+		LePutUint32(out, vector[i].input)
 		assert.Equal(t, vector[i].output, out)
 	}
 }
 
-func TestWriteBEUint24(t *testing.T) {
+func TestWriteBeUint24(t *testing.T) {
 	vector := []struct {
 		input  uint32
 		output []byte
@@ -199,13 +199,13 @@ func TestWriteBEUint24(t *testing.T) {
 
 	for i := 0; i < len(vector); i++ {
 		out := &bytes.Buffer{}
-		err := WriteBEUint24(out, vector[i].input)
+		err := WriteBeUint24(out, vector[i].input)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, vector[i].output, out.Bytes())
 	}
 }
 
-func TestWriteBE(t *testing.T) {
+func TestWriteBe(t *testing.T) {
 	vector := []struct {
 		input  interface{}
 		output []byte
@@ -215,13 +215,13 @@ func TestWriteBE(t *testing.T) {
 	}
 	for i := 0; i < len(vector); i++ {
 		out := &bytes.Buffer{}
-		err := WriteBE(out, vector[i].input)
+		err := WriteBe(out, vector[i].input)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, vector[i].output, out.Bytes())
 	}
 }
 
-func TestWriteLE(t *testing.T) {
+func TestWriteLe(t *testing.T) {
 	vector := []struct {
 		input  interface{}
 		output []byte
@@ -231,7 +231,7 @@ func TestWriteLE(t *testing.T) {
 	}
 	for i := 0; i < len(vector); i++ {
 		out := &bytes.Buffer{}
-		err := WriteLE(out, vector[i].input)
+		err := WriteLe(out, vector[i].input)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, vector[i].output, out.Bytes())
 	}
@@ -256,15 +256,15 @@ func TestRead(t *testing.T) {
 	b := &bytes.Buffer{}
 	_, err = ReadUint8(b)
 	assert.IsNotNil(t, err)
-	_, err = ReadBEUint16(b)
+	_, err = ReadBeUint16(b)
 	assert.IsNotNil(t, err)
-	_, err = ReadBEUint24(b)
+	_, err = ReadBeUint24(b)
 	assert.IsNotNil(t, err)
-	_, err = ReadBEUint32(b)
+	_, err = ReadBeUint32(b)
 	assert.IsNotNil(t, err)
-	_, err = ReadBEUint64(b)
+	_, err = ReadBeUint64(b)
 	assert.IsNotNil(t, err)
-	_, err = ReadLEUint32(b)
+	_, err = ReadLeUint32(b)
 	assert.IsNotNil(t, err)
 
 	b.Write([]byte{1})
@@ -272,24 +272,24 @@ func TestRead(t *testing.T) {
 	assert.Equal(t, uint8(1), i8)
 	assert.Equal(t, nil, err)
 	b.Write([]byte{1, 2})
-	i16, err := ReadBEUint16(b)
-	assert.Equal(t, BEUint16([]byte{1, 2}), i16)
+	i16, err := ReadBeUint16(b)
+	assert.Equal(t, BeUint16([]byte{1, 2}), i16)
 	assert.Equal(t, nil, err)
 	b.Write([]byte{1, 2, 3})
-	i24, err := ReadBEUint24(b)
-	assert.Equal(t, BEUint24([]byte{1, 2, 3}), i24)
+	i24, err := ReadBeUint24(b)
+	assert.Equal(t, BeUint24([]byte{1, 2, 3}), i24)
 	assert.Equal(t, nil, err)
 	b.Write([]byte{1, 2, 3, 4})
-	i32, err := ReadBEUint32(b)
-	assert.Equal(t, BEUint32([]byte{1, 2, 3, 4}), i32)
+	i32, err := ReadBeUint32(b)
+	assert.Equal(t, BeUint32([]byte{1, 2, 3, 4}), i32)
 	assert.Equal(t, nil, err)
 	b.Write([]byte{1, 2, 3, 4, 5, 6, 7, 8})
-	i64, err := ReadBEUint64(b)
-	assert.Equal(t, BEUint64([]byte{1, 2, 3, 4, 5, 6, 7, 8}), i64)
+	i64, err := ReadBeUint64(b)
+	assert.Equal(t, BeUint64([]byte{1, 2, 3, 4, 5, 6, 7, 8}), i64)
 	assert.Equal(t, nil, err)
 
 	b.Write([]byte{1, 0, 0, 0})
-	i32, err = ReadLEUint32(b)
+	i32, err = ReadLeUint32(b)
 	assert.Equal(t, uint32(1), i32)
 	assert.Equal(t, nil, err)
 }
@@ -301,32 +301,32 @@ func TestReadString(t *testing.T) {
 	assert.IsNotNil(t, err)
 }
 
-func BenchmarkBEFloat64(b *testing.B) {
+func BenchmarkBeFloat64(b *testing.B) {
 	buf := &bytes.Buffer{}
 	_ = binary.Write(buf, binary.BigEndian, float64(123.4))
 	for i := 0; i < b.N; i++ {
-		BEFloat64(buf.Bytes())
+		BeFloat64(buf.Bytes())
 	}
 }
 
-func BenchmarkBEPutUint24(b *testing.B) {
+func BenchmarkBePutUint24(b *testing.B) {
 	out := make([]byte, 3)
 	for i := 0; i < b.N; i++ {
-		BEPutUint24(out, uint32(i))
+		BePutUint24(out, uint32(i))
 	}
 }
 
-func BenchmarkBEUint24(b *testing.B) {
+func BenchmarkBeUint24(b *testing.B) {
 	buf := []byte{1, 2, 3}
 	for i := 0; i < b.N; i++ {
-		BEUint24(buf)
+		BeUint24(buf)
 	}
 }
 
-func BenchmarkWriteBE(b *testing.B) {
+func BenchmarkWriteBe(b *testing.B) {
 	out := &bytes.Buffer{}
 	in := uint64(123)
 	for i := 0; i < b.N; i++ {
-		_ = WriteBE(out, in)
+		_ = WriteBe(out, in)
 	}
 }

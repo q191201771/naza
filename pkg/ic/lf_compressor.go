@@ -12,16 +12,16 @@ import (
 	"encoding/binary"
 )
 
-type LFCompressor struct {
-	FB      uint32 // 用几个字节的 bit 表示跟随的数据
+type LfCompressor struct {
+	Fb      uint32 // 用几个字节的 bit 表示跟随的数据
 	ZlibExt bool   // 压缩之后，是否再用 zlib 进一步压缩
 
 	oc OriginCompressor // FB 为0时，退化成使用 OriginCompressor
 }
 
 // 传入的整型切片必须是从小到大有序排列
-func (lfc *LFCompressor) Marshal(ids []uint32) (ret []byte) {
-	if lfc.FB == 0 {
+func (lfc *LfCompressor) Marshal(ids []uint32) (ret []byte) {
+	if lfc.Fb == 0 {
 		ret = lfc.oc.Marshal(ids)
 		if lfc.ZlibExt {
 			ret = zlibWrite(ret)
@@ -30,9 +30,9 @@ func (lfc *LFCompressor) Marshal(ids []uint32) (ret []byte) {
 	}
 
 	lBuf := make([]byte, 4)
-	fBuf := make([]byte, lfc.FB)
+	fBuf := make([]byte, lfc.Fb)
 
-	maxDiff := 8 * lfc.FB
+	maxDiff := 8 * lfc.Fb
 
 	var hasLeader bool
 	var leader uint32
@@ -65,12 +65,12 @@ func (lfc *LFCompressor) Marshal(ids []uint32) (ret []byte) {
 	case 1:
 		binary.LittleEndian.PutUint32(lBuf, leader)
 		ret = append(ret, lBuf...)
-		dummy := make([]byte, lfc.FB)
+		dummy := make([]byte, lfc.Fb)
 		ret = append(ret, dummy...)
 	case 2:
 		binary.LittleEndian.PutUint32(lBuf, leader)
 		ret = append(ret, lBuf...)
-		dummy := make([]byte, lfc.FB)
+		dummy := make([]byte, lfc.Fb)
 		ret = append(ret, dummy...)
 	case 3:
 		binary.LittleEndian.PutUint32(lBuf, leader)
@@ -83,11 +83,11 @@ func (lfc *LFCompressor) Marshal(ids []uint32) (ret []byte) {
 	return
 }
 
-func (lfc *LFCompressor) Unmarshal(b []byte) (ids []uint32) {
+func (lfc *LfCompressor) Unmarshal(b []byte) (ids []uint32) {
 	if lfc.ZlibExt {
 		b = zlibRead(b)
 	}
-	if lfc.FB == 0 {
+	if lfc.Fb == 0 {
 		return lfc.oc.Unmarshal(b)
 	}
 
@@ -102,7 +102,7 @@ func (lfc *LFCompressor) Unmarshal(b []byte) (ids []uint32) {
 			isLeaderStage = false
 			index += 4
 		} else {
-			for i := uint32(0); i < lfc.FB; i++ {
+			for i := uint32(0); i < lfc.Fb; i++ {
 				for j := uint32(0); j < 8; j++ {
 					if ((b[index+i] >> j) & 1) == 1 {
 						item = leader + (i * 8) + j + 1
@@ -112,7 +112,7 @@ func (lfc *LFCompressor) Unmarshal(b []byte) (ids []uint32) {
 			}
 
 			isLeaderStage = true
-			index += lfc.FB
+			index += lfc.Fb
 		}
 
 		if int(index) == len(b) {

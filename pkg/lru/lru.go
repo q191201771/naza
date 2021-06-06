@@ -10,7 +10,7 @@ package lru
 
 import "container/list"
 
-type LRU struct {
+type Lru struct {
 	c int                           // capacity
 	m map[interface{}]*list.Element // mapping key -> index
 	l *list.List                    // value
@@ -21,8 +21,8 @@ type pair struct {
 	v interface{}
 }
 
-func New(capacity int) *LRU {
-	return &LRU{
+func New(capacity int) *Lru {
+	return &Lru{
 		c: capacity,
 		m: make(map[interface{}]*list.Element),
 		l: list.New(),
@@ -30,10 +30,10 @@ func New(capacity int) *LRU {
 }
 
 // 注意：
-// 1. 无论插入前，元素是否已经存在，插入后，元素都会存在于lru容器中
+// 1. 无论插入前，元素是否已经存在，插入后，元素都会存在于Lru容器中
 // 2. 插入元素时，也会更新热度（不管插入前元素是否已经存在）
 // @return 插入前元素已经存在则返回false
-func (lru *LRU) Put(k interface{}, v interface{}) bool {
+func (lru *Lru) Put(k interface{}, v interface{}) bool {
 	var (
 		exist bool
 		e     *list.Element
@@ -58,7 +58,7 @@ func (lru *LRU) Put(k interface{}, v interface{}) bool {
 	return !exist
 }
 
-func (lru *LRU) Get(k interface{}) (v interface{}, exist bool) {
+func (lru *Lru) Get(k interface{}) (v interface{}, exist bool) {
 	e, exist := lru.m[k]
 	if !exist {
 		return nil, false
@@ -68,6 +68,6 @@ func (lru *LRU) Get(k interface{}) (v interface{}, exist bool) {
 	return pair.v, true
 }
 
-func (lru *LRU) Size() int {
+func (lru *Lru) Size() int {
 	return lru.l.Len()
 }

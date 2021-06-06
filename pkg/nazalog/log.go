@@ -100,7 +100,7 @@ func (l *logger) Errorf(format string, v ...interface{}) {
 
 func (l *logger) Fatalf(format string, v ...interface{}) {
 	l.Out(LevelFatal, 2, fmt.Sprintf(format, v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 
 func (l *logger) Panicf(format string, v ...interface{}) {
@@ -130,7 +130,7 @@ func (l *logger) Error(v ...interface{}) {
 
 func (l *logger) Fatal(v ...interface{}) {
 	l.Out(LevelFatal, 2, fmt.Sprint(v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 
 func (l *logger) Panic(v ...interface{}) {
@@ -157,7 +157,7 @@ func (l *logger) Println(v ...interface{}) {
 
 func (l *logger) Fatalln(v ...interface{}) {
 	l.Out(LevelInfo, 2, fmt.Sprint(v...))
-	fake.OS_Exit(1)
+	fake.Os_Exit(1)
 }
 
 func (l *logger) Panicln(v ...interface{}) {
@@ -173,7 +173,7 @@ func (l *logger) Assert(expected interface{}, actual interface{}) {
 			l.Out(LevelError, 2, err)
 		case AssertFatal:
 			l.Out(LevelFatal, 2, err)
-			fake.OS_Exit(1)
+			fake.Os_Exit(1)
 		case AssertPanic:
 			l.Out(LevelPanic, 2, err)
 			panic(err)
@@ -200,7 +200,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	l.core.buf.Reset()
 
 	if l.core.option.TimestampFlag {
-		writeTime(&l.core.buf, now, l.core.option.TimestampWithMSFlag)
+		writeTime(&l.core.buf, now, l.core.option.TimestampWithMsFlag)
 	}
 
 	if l.core.option.LevelFlag {
@@ -342,7 +342,7 @@ func validate(option Option) error {
 	return nil
 }
 
-func writeTime(buf *bytes.Buffer, t time.Time, withMS bool) {
+func writeTime(buf *bytes.Buffer, t time.Time, withMs bool) {
 	year, month, day := t.Date()
 	itoa(buf, year, 4)
 	buf.WriteByte('/')
@@ -358,7 +358,7 @@ func writeTime(buf *bytes.Buffer, t time.Time, withMS bool) {
 	buf.WriteByte(':')
 	itoa(buf, sec, 2)
 
-	if withMS {
+	if withMs {
 		buf.WriteByte('.')
 		itoa(buf, t.Nanosecond()/1e3, 6)
 	}

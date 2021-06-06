@@ -14,10 +14,10 @@ import (
 )
 
 type Bitrate interface {
-	// @param nowUnixMSec: 变参，可选择从外部传入当前 unix 时间戳，单位毫秒
-	Add(bytes int, nowUnixMSec ...int64)
+	// @param nowUnixMs: 变参，可选择从外部传入当前 unix 时间戳，单位毫秒
+	Add(bytes int, nowUnixMs ...int64)
 
-	Rate(nowUnixMSec ...int64) float32
+	Rate(nowUnixMs ...int64) float32
 }
 
 type Unit uint8
@@ -25,19 +25,19 @@ type Unit uint8
 const (
 	UnitBitPerSec Unit = iota + 1
 	UnitBytePerSec
-	UnitKBitPerSec
-	UnitKBytePerSec
+	UnitKbitPerSec
+	UnitKbytePerSec
 )
 
 // TODO chef: 考虑支持配置是否在内部使用锁
 type Option struct {
-	WindowMS int
+	WindowMs int
 	Unit     Unit
 }
 
 var defaultOption = Option{
-	WindowMS: 1000,
-	Unit:     UnitKBitPerSec,
+	WindowMs: 1000,
+	Unit:     UnitKbitPerSec,
 }
 
 type ModOption func(option *Option)
@@ -64,12 +64,12 @@ type bucket struct {
 	t int64 // unix 时间戳，单位毫秒
 }
 
-func (b *bitrate) Add(bytes int, nowUnixMSec ...int64) {
+func (b *bitrate) Add(bytes int, nowUnixMs ...int64) {
 	var now int64
-	if len(nowUnixMSec) == 0 {
+	if len(nowUnixMs) == 0 {
 		now = time.Now().UnixNano() / 1e6
 	} else {
-		now = nowUnixMSec[0]
+		now = nowUnixMs[0]
 	}
 
 	b.mu.Lock()
@@ -82,12 +82,12 @@ func (b *bitrate) Add(bytes int, nowUnixMSec ...int64) {
 	})
 }
 
-func (b *bitrate) Rate(nowUnixMSec ...int64) float32 {
+func (b *bitrate) Rate(nowUnixMs ...int64) float32 {
 	var now int64
-	if len(nowUnixMSec) == 0 {
+	if len(nowUnixMs) == 0 {
 		now = time.Now().UnixNano() / 1e6
 	} else {
-		now = nowUnixMSec[0]
+		now = nowUnixMs[0]
 	}
 
 	b.mu.Lock()
@@ -102,13 +102,13 @@ func (b *bitrate) Rate(nowUnixMSec ...int64) float32 {
 	var ret float32
 	switch b.option.Unit {
 	case UnitBitPerSec:
-		ret = float32(total*8*1000) / float32(b.option.WindowMS)
+		ret = float32(total*8*1000) / float32(b.option.WindowMs)
 	case UnitBytePerSec:
-		ret = float32(total*1000) / float32(b.option.WindowMS)
-	case UnitKBitPerSec:
-		ret = float32(total*8) / float32(b.option.WindowMS)
-	case UnitKBytePerSec:
-		ret = float32(total) / float32(b.option.WindowMS)
+		ret = float32(total*1000) / float32(b.option.WindowMs)
+	case UnitKbitPerSec:
+		ret = float32(total*8) / float32(b.option.WindowMs)
+	case UnitKbytePerSec:
+		ret = float32(total) / float32(b.option.WindowMs)
 	}
 	return ret
 }
@@ -117,7 +117,7 @@ func (b *bitrate) sweepStale(now int64) {
 	i := 0
 	l := len(b.bucketSlice)
 	for ; i < l; i++ {
-		if now-b.bucketSlice[i].t <= int64(b.option.WindowMS) {
+		if now-b.bucketSlice[i].t <= int64(b.option.WindowMs) {
 			break
 		}
 	}

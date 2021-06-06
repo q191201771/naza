@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-// @return 上层回调返回false，则关闭UDPConnection
+// @return 上层回调返回false，则关闭UdpConnection
 //
-type OnReadUDPPacket func(b []byte, raddr *net.UDPAddr, err error) bool
+type OnReadUdpPacket func(b []byte, raddr *net.UDPAddr, err error) bool
 
-type UDPConnectionOption struct {
+type UdpConnectionOption struct {
 	// 两种初始化方式：
 	// 方式一：直接传入外部创建好的连接对象供内部使用
 	Conn *net.UDPConn
@@ -37,22 +37,22 @@ type UDPConnectionOption struct {
 	AllocEachRead     bool // 使用Read Loop时，是否每次读取都申请新的内存块，如果为false，则复用一块内存块
 }
 
-var defaultOption = UDPConnectionOption{
+var defaultOption = UdpConnectionOption{
 	MaxReadPacketSize: 1500,
 	AllocEachRead:     true,
 }
 
-type UDPConnection struct {
-	option UDPConnectionOption
+type UdpConnection struct {
+	option UdpConnectionOption
 	ruaddr *net.UDPAddr
 }
 
-type ModUDPConnectionOption func(option *UDPConnectionOption)
+type ModUdpConnectionOption func(option *UdpConnectionOption)
 
-func NewUDPConnection(modOptions ...ModUDPConnectionOption) (*UDPConnection, error) {
+func NewUdpConnection(modOptions ...ModUdpConnectionOption) (*UdpConnection, error) {
 	var err error
 
-	c := &UDPConnection{}
+	c := &UdpConnection{}
 	c.option = defaultOption
 	for _, fn := range modOptions {
 		fn(&c.option)
@@ -64,7 +64,7 @@ func NewUDPConnection(modOptions ...ModUDPConnectionOption) (*UDPConnection, err
 		return c, nil
 	}
 
-	if c.option.Conn, err = listenUDPWithAddr(c.option.LAddr); err != nil {
+	if c.option.Conn, err = listenUdpWithAddr(c.option.LAddr); err != nil {
 		return nil, err
 	}
 	return c, err
@@ -74,7 +74,7 @@ func NewUDPConnection(modOptions ...ModUDPConnectionOption) (*UDPConnection, err
 //
 // @return error: 如果外部调用Dispose，会返回error
 //
-func (c *UDPConnection) RunLoop(onRead OnReadUDPPacket) error {
+func (c *UdpConnection) RunLoop(onRead OnReadUdpPacket) error {
 	var b []byte
 	if !c.option.AllocEachRead {
 		b = make([]byte, c.option.MaxReadPacketSize)
@@ -97,9 +97,9 @@ func (c *UDPConnection) RunLoop(onRead OnReadUDPPacket) error {
 
 // 直接读取数据，不使用RunLoop
 //
-func (c *UDPConnection) ReadWithTimeout(timeoutMS int) ([]byte, *net.UDPAddr, error) {
-	if timeoutMS > 0 {
-		if err := c.option.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)); err != nil {
+func (c *UdpConnection) ReadWithTimeout(timeoutMs int) ([]byte, *net.UDPAddr, error) {
+	if timeoutMs > 0 {
+		if err := c.option.Conn.SetReadDeadline(time.Now().Add(time.Duration(timeoutMs) * time.Millisecond)); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -111,16 +111,16 @@ func (c *UDPConnection) ReadWithTimeout(timeoutMS int) ([]byte, *net.UDPAddr, er
 	return b[:n], raddr, nil
 }
 
-func (c *UDPConnection) Write(b []byte) error {
+func (c *UdpConnection) Write(b []byte) error {
 	_, err := c.option.Conn.WriteToUDP(b, c.ruaddr)
 	return err
 }
 
-func (c *UDPConnection) Write2Addr(b []byte, ruaddr *net.UDPAddr) error {
+func (c *UdpConnection) Write2Addr(b []byte, ruaddr *net.UDPAddr) error {
 	_, err := c.option.Conn.WriteToUDP(b, ruaddr)
 	return err
 }
 
-func (c *UDPConnection) Dispose() error {
+func (c *UdpConnection) Dispose() error {
 	return c.option.Conn.Close()
 }

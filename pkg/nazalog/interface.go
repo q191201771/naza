@@ -81,7 +81,7 @@ type Option struct {
 
 	ShortFileFlag       bool `json:"short_file_flag"`        // 是否在每行日志尾部添加源码文件及行号的信息
 	TimestampFlag       bool `json:"timestamp_flag"`         // 是否在每行日志首部添加时间戳的信息
-	TimestampWithMSFlag bool `json:"timestamp_with_ms_flag"` // 时间戳是否精确到毫秒
+	TimestampWithMsFlag bool `json:"timestamp_with_ms_flag"` // 时间戳是否精确到毫秒
 	LevelFlag           bool `json:"level_flag"`             // 日志是否包含日志级别字段
 
 	AssertBehavior AssertBehavior `json:"assert_behavior"` // 断言失败时的行为
@@ -95,7 +95,7 @@ var defaultOption = Option{
 	IsRotateDaily:       false,
 	ShortFileFlag:       true,
 	TimestampFlag:       true,
-	TimestampWithMSFlag: true,
+	TimestampWithMsFlag: true,
 	LevelFlag:           true,
 	AssertBehavior:      AssertError,
 }

@@ -13,9 +13,9 @@ import "time"
 type deferTaskThread struct {
 }
 
-func (d *deferTaskThread) Go(deferMS int, task TaskFn, param ...interface{}) {
+func (d *deferTaskThread) Go(deferMs int, task TaskFn, param ...interface{}) {
 	go func() {
-		time.Sleep(time.Duration(deferMS) * time.Millisecond)
+		time.Sleep(time.Duration(deferMs) * time.Millisecond)
 		task(param...)
 	}()
 }

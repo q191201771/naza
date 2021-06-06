@@ -18,7 +18,7 @@ type LineReader interface {
 
 // @return firstLine: request的request line或response的status line
 // @return headers: request header fileds的键值对
-func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, err error) {
+func ReadHttpHeader(r LineReader) (firstLine string, headers map[string]string, err error) {
 	headers = make(map[string]string)
 
 	var line []byte
@@ -28,7 +28,7 @@ func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, 
 		return
 	}
 	if len(line) == 0 || isPrefix {
-		err = ErrHTTPHeader
+		err = ErrHttpHeader
 		return
 	}
 	firstLine = string(line)
@@ -39,7 +39,7 @@ func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, 
 			break
 		}
 		if isPrefix {
-			err = ErrHTTPHeader
+			err = ErrHttpHeader
 			return
 		}
 		if err != nil {
@@ -48,7 +48,7 @@ func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, 
 		l := string(line)
 		pos := strings.Index(l, ":")
 		if pos == -1 {
-			err = ErrHTTPHeader
+			err = ErrHttpHeader
 			return
 		}
 		headers[strings.Trim(l[0:pos], " ")] = strings.Trim(l[pos+1:], " ")
@@ -57,24 +57,24 @@ func ReadHTTPHeader(r LineReader) (firstLine string, headers map[string]string, 
 }
 
 // Request-Line = Method SP URI SP Version CRLF
-func ParseHTTPRequestLine(line string) (method string, uri string, version string, err error) {
+func ParseHttpRequestLine(line string) (method string, uri string, version string, err error) {
 	return parseFirstLine(line)
 }
 
 // Status-Line = Version SP Status-Code SP Reason CRLF
-func ParseHTTPStatusLine(line string) (version string, statusCode string, reason string, err error) {
+func ParseHttpStatusLine(line string) (version string, statusCode string, reason string, err error) {
 	return parseFirstLine(line)
 }
 
 func parseFirstLine(line string) (item1, item2, item3 string, err error) {
 	f := strings.Index(line, " ")
 	if f == -1 {
-		err = ErrHTTPHeader
+		err = ErrHttpHeader
 		return
 	}
 	s := strings.Index(line[f+1:], " ")
 	if s == -1 || f+1+s+1 == len(line) {
-		err = ErrHTTPHeader
+		err = ErrHttpHeader
 		return
 	}
 

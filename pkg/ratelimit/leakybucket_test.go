@@ -20,7 +20,7 @@ import (
 
 func TestNewLeakyBucket(t *testing.T) {
 	lb := ratelimit.NewLeakyBucket(10)
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 }
 
 func TestLeakyBucket_TryAquire(t *testing.T) {
@@ -32,20 +32,20 @@ func TestLeakyBucket_TryAquire(t *testing.T) {
 	lb = ratelimit.NewLeakyBucket(1)
 	time.Sleep(10 * time.Millisecond)
 	err = lb.TryAquire()
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 	assert.Equal(t, nil, err)
 	time.Sleep(10 * time.Millisecond)
 	err = lb.TryAquire()
 	assert.Equal(t, nil, err)
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 
 	lb = ratelimit.NewLeakyBucket(100)
 	err = lb.TryAquire()
 	assert.Equal(t, ratelimit.ErrResourceNotAvailable, err)
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 	err = lb.TryAquire()
 	assert.Equal(t, ratelimit.ErrResourceNotAvailable, err)
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 }
 
 func TestLeakyBucket_WaitUntilAquire(t *testing.T) {
@@ -53,14 +53,14 @@ func TestLeakyBucket_WaitUntilAquire(t *testing.T) {
 
 	lb = ratelimit.NewLeakyBucket(1)
 	lb.WaitUntilAquire()
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 	time.Sleep(100 * time.Millisecond)
 	lb.WaitUntilAquire()
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 
 	lb = ratelimit.NewLeakyBucket(200)
 	lb.WaitUntilAquire()
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 	lb.WaitUntilAquire()
-	nazalog.Debugf("MaybeAvailableIntervalMSec=%d", lb.MaybeAvailableIntervalMSec())
+	nazalog.Debugf("MaybeAvailableIntervalMs=%d", lb.MaybeAvailableIntervalMs())
 }

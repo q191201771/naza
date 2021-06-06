@@ -37,7 +37,7 @@ func TestWriteTimeout(t *testing.T) {
 	}()
 	conn, err := net.Dial("tcp", ":10027")
 	c := connection.New(conn, func(opt *connection.Option) {
-		opt.WriteTimeoutMS = 1000
+		opt.WriteTimeoutMs = 1000
 	})
 	assert.Equal(t, nil, err)
 	b := make([]byte, 128*1024)
@@ -64,7 +64,7 @@ func TestWrite(t *testing.T) {
 		srvConn := connection.New(c, func(option *connection.Option) {
 			option.WriteChanSize = 1024
 			//option.WriteBufSize = 256
-			option.WriteTimeoutMS = 10000
+			option.WriteTimeoutMs = 10000
 		})
 		assert.Equal(t, nil, err)
 		for i := 0; i < 10; i++ {

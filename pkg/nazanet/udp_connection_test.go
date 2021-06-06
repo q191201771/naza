@@ -38,13 +38,13 @@ import (
 // fail:
 //
 
-func TestUDPConnection(t *testing.T) {
-	p := nazanet.NewAvailUDPConnPool(4000, 8000)
+func TestUdpConnection(t *testing.T) {
+	p := nazanet.NewAvailUdpConnPool(4000, 8000)
 	srvConn, srvPort, err := p.Acquire()
 	assert.Equal(t, nil, err)
 	toAddr1 := fmt.Sprintf("127.0.0.1:%d", srvPort)
 	toAddr2 := fmt.Sprintf("[::1]:%d", srvPort)
-	srv, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+	srv, err := nazanet.NewUdpConnection(func(option *nazanet.UdpConnectionOption) {
 		option.Conn = srvConn
 	})
 	assert.Equal(t, nil, err)
@@ -68,7 +68,7 @@ func TestUDPConnection(t *testing.T) {
 		assert.IsNotNil(t, err)
 	}()
 
-	cli, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+	cli, err := nazanet.NewUdpConnection(func(option *nazanet.UdpConnectionOption) {
 		option.RAddr = toAddr1
 	})
 	assert.Equal(t, nil, err)
@@ -83,7 +83,7 @@ func TestUDPConnection(t *testing.T) {
 		wg.Done()
 	}()
 
-	cli2, err := nazanet.NewUDPConnection(func(option *nazanet.UDPConnectionOption) {
+	cli2, err := nazanet.NewUdpConnection(func(option *nazanet.UdpConnectionOption) {
 		option.RAddr = toAddr2
 	})
 	assert.Equal(t, nil, err)

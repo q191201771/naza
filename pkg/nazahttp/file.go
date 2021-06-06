@@ -17,10 +17,10 @@ import (
 )
 
 // 获取http文件保存至字节切片
-func GetHTTPFile(url string, timeoutMSec int) ([]byte, error) {
+func GetHttpFile(url string, timeoutMs int) ([]byte, error) {
 	var c http.Client
-	if timeoutMSec > 0 {
-		c.Timeout = time.Duration(timeoutMSec) * time.Millisecond
+	if timeoutMs > 0 {
+		c.Timeout = time.Duration(timeoutMs) * time.Millisecond
 	}
 	resp, err := c.Get(url)
 	if err != nil {
@@ -32,10 +32,10 @@ func GetHTTPFile(url string, timeoutMSec int) ([]byte, error) {
 }
 
 // 获取http文件保存至本地
-func DownloadHTTPFile(url string, saveTo string, timeoutMSec int) (int64, error) {
+func DownloadHttpFile(url string, saveTo string, timeoutMs int) (int64, error) {
 	var c http.Client
-	if timeoutMSec > 0 {
-		c.Timeout = time.Duration(timeoutMSec) * time.Millisecond
+	if timeoutMs > 0 {
+		c.Timeout = time.Duration(timeoutMs) * time.Millisecond
 	}
 	resp, err := c.Get(url)
 	if err != nil {

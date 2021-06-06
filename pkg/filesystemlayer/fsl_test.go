@@ -21,7 +21,7 @@ import (
 )
 
 func TestCase1(t *testing.T) {
-	fslCtx := filesystemlayer.FSLFactory(filesystemlayer.FSLTypeMemory)
+	fslCtx := filesystemlayer.FslFactory(filesystemlayer.FslTypeMemory)
 
 	var wg sync.WaitGroup
 	wg.Add(16)

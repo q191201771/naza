@@ -17,9 +17,9 @@ import (
 
 // NOTICE copy from https://github.com/golang/net/blob/master/http2/gotrack.go
 
-var ErrObtainGoroutineID = errors.New("nazasync: obtain current goroutine id failed")
+var ErrObtainGoroutineId = errors.New("nazasync: obtain current goroutine id failed")
 
-func CurGoroutineID() (int64, error) {
+func CurGoroutineId() (int64, error) {
 	var goroutineSpace = []byte("goroutine ")
 
 	b := make([]byte, 128)
@@ -27,7 +27,7 @@ func CurGoroutineID() (int64, error) {
 	b = bytes.TrimPrefix(b, goroutineSpace)
 	i := bytes.IndexByte(b, ' ')
 	if i < 0 {
-		return -1, ErrObtainGoroutineID
+		return -1, ErrObtainGoroutineId
 	}
 	return strconv.ParseInt(string(b[:i]), 10, 64)
 }

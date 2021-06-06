@@ -48,8 +48,8 @@ func marshalWrap(ids []uint32) (ret []byte) {
 	//var oc OriginCompressor
 	//ret = oc.Marshal(ids)
 
-	var lfc LFCompressor
-	lfc.FB = 4
+	var lfc LfCompressor
+	lfc.Fb = 4
 	ret = lfc.Marshal(ids)
 	log.Println("< marshal.")
 
@@ -65,13 +65,13 @@ func unmarshalWrap(b []byte) (ret []uint32) {
 	//var oc OriginCompressor
 	//ret = oc.Unmarshal(b)
 
-	var lfc LFCompressor
-	lfc.FB = 4
+	var lfc LfCompressor
+	lfc.Fb = 4
 	ret = lfc.Unmarshal(b)
 	return
 }
 
-func TestIC(t *testing.T) {
+func TestIc(t *testing.T) {
 	log.SetFlags(log.Lmicroseconds)
 
 	// 单元测试 case
@@ -95,11 +95,11 @@ func TestIC(t *testing.T) {
 	compressors = append(compressors, &OriginCompressor{})
 	compressors = append(compressors, &OriginCompressor{ZlibExt: true})
 
-	compressors = append(compressors, &LFCompressor{FB: 0})
-	compressors = append(compressors, &LFCompressor{FB: 0, ZlibExt: true})
-	compressors = append(compressors, &LFCompressor{FB: 2})
-	compressors = append(compressors, &LFCompressor{FB: 4})
-	compressors = append(compressors, &LFCompressor{FB: 4, ZlibExt: true})
+	compressors = append(compressors, &LfCompressor{Fb: 0})
+	compressors = append(compressors, &LfCompressor{Fb: 0, ZlibExt: true})
+	compressors = append(compressors, &LfCompressor{Fb: 2})
+	compressors = append(compressors, &LfCompressor{Fb: 4})
+	compressors = append(compressors, &LfCompressor{Fb: 4, ZlibExt: true})
 
 	for _, c := range compressors {
 		for _, uids := range uidss {

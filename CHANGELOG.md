@@ -1,3 +1,7 @@
+#### v0.19.1 (2021-06)
+
+- [feat] package nazasync: 优化Mutex的实现，更方便的定位Mutex的问题
+
 #### v0.19.0 (2021-06)
 
 - [refactor] 重构naza整个项目的命名规则，见 https://github.com/q191201771/lal/issues/87

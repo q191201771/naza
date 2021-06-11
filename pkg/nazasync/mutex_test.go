@@ -8,7 +8,9 @@
 
 package nazasync
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMutex(t *testing.T) {
 	var mu Mutex
@@ -25,6 +27,8 @@ func TestMutex(t *testing.T) {
 
 func TestMutex_Corner(t *testing.T) {
 	//var mu Mutex
+	//_ = mu
+
 	// case1 递归
 	//mu.Lock()
 	//mu.Lock()
@@ -40,5 +44,25 @@ func TestMutex_Corner(t *testing.T) {
 	//	<-ch
 	//	mu.Unlock()
 	//}()
+	//time.Sleep(200 * time.Millisecond)
+
+	// case4 死锁
+	//var mu2 Mutex
+	//ch := make(chan struct{}, 1)
+
+	//go func() {
+	//	mu2.Lock()
+	//	<-ch
+	//	mu.Lock()
+	//	mu.Unlock()
+	//	mu2.Unlock()
+	//}()
+	//mu.Lock()
+	//time.Sleep(200 * time.Millisecond)
+	//ch <- struct{}{}
+	//mu2.Lock()
+	//mu2.Unlock()
+	//mu.Unlock()
+
 	//time.Sleep(200 * time.Millisecond)
 }

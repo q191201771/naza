@@ -1,3 +1,7 @@
+#### v0.19.2 (2021-06)
+
+- [fix] package nazaatomic: arm32编译失败
+
 #### v0.19.1 (2021-06)
 
 - [feat] package nazasync: 优化Mutex的实现，更方便的定位Mutex的问题

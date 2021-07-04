@@ -85,7 +85,7 @@ func (m *MutexManager) printTmpDebug() {
 		m.mu.Lock()
 		now := time.Now()
 		buf.Reset()
-		buf.WriteString("long wait acuire:")
+		buf.WriteString("long wait acquire:")
 		for k, t := range m.waitAcquireContainer {
 			duration := now.Sub(t).Milliseconds()
 			if duration > 1000 {

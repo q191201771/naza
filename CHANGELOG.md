@@ -1,3 +1,7 @@
+#### v0.19.3 (2021-06)
+
+- [feat] package chartbar: 新的package，用于在控制台绘制ascii柱状图
+
 #### v0.19.2 (2021-06)
 
 - [fix] package nazaatomic: arm32编译失败

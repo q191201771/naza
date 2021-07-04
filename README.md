@@ -51,6 +51,7 @@ pkg/                     ...... 源码包
     |-- unique/          ...... 对象唯一ID
     |-- nazasync/        ...... 对sync的封装，比如定位sync.Mutex死锁
     |-- taskpool/        ...... 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
+    |-- chartbar/        ...... ascii柱状图
     |-- bitrate/         ...... 计算带宽
     |-- ratelimit/       ...... 限流器，令牌桶，漏桶
     |-- lru/             ...... LRU缓存

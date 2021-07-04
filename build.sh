@@ -32,25 +32,33 @@ if [ ! -d ${ROOT_DIR}/bin ]; then
 fi
 
 # 编译多个可执行程序
-if [ -d ${ROOT_DIR}/demo/add_blog_license ]; then
-  cd ${ROOT_DIR}/demo/add_blog_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_blog_license
-fi
+for file in `ls ${ROOT_DIR}/demo`
+do
+  if [ -d ${ROOT_DIR}/demo/${file} ]; then
+    echo "build" ${ROOT_DIR}/demo/${file} "..."
+    cd ${ROOT_DIR}/demo/${file} && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/${file}
+  fi
+done
 
-if [ -d ${ROOT_DIR}/demo/add_go_license ]; then
-  cd ${ROOT_DIR}/demo/add_go_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_go_license
-fi
-
-if [ -d ${ROOT_DIR}/demo/myapp ]; then
-  cd ${ROOT_DIR}/demo/myapp && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/myapp
-fi
-
-if [ -d ${ROOT_DIR}/demo/slicebytepool ]; then
-  cd ${ROOT_DIR}/demo/slicebytepool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/slicebytepool
-fi
-
-if [ -d ${ROOT_DIR}/demo/taskpool ]; then
-  cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool
-fi
+#if [ -d ${ROOT_DIR}/demo/add_blog_license ]; then
+#  cd ${ROOT_DIR}/demo/add_blog_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_blog_license
+#fi
+#
+#if [ -d ${ROOT_DIR}/demo/add_go_license ]; then
+#  cd ${ROOT_DIR}/demo/add_go_license && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/add_go_license
+#fi
+#
+#if [ -d ${ROOT_DIR}/demo/myapp ]; then
+#  cd ${ROOT_DIR}/demo/myapp && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/myapp
+#fi
+#
+#if [ -d ${ROOT_DIR}/demo/slicebytepool ]; then
+#  cd ${ROOT_DIR}/demo/slicebytepool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/slicebytepool
+#fi
+#
+#if [ -d ${ROOT_DIR}/demo/taskpool ]; then
+#  cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool
+#fi
 
 ls -lrt ${ROOT_DIR}/bin &&
 cd ${ROOT_DIR} && ./bin/myapp -v &&

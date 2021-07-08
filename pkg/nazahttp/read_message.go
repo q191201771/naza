@@ -23,7 +23,7 @@ type HttpMsgCtx struct {
 	ReqMethodOrRespVersion string
 	ReqUriOrRespStatusCode string
 	ReqVersionOrRespReason string
-	Headers                map[string]string
+	Headers                map[string][]string
 	Body                   []byte
 }
 
@@ -31,7 +31,7 @@ type HttpReqMsgCtx struct {
 	Method  string
 	Uri     string
 	Version string
-	Headers map[string]string
+	Headers map[string][]string
 	Body    []byte
 }
 
@@ -39,7 +39,7 @@ type HttpRespMsgCtx struct {
 	Version    string
 	StatusCode string
 	Reason     string
-	Headers    map[string]string
+	Headers    map[string][]string
 	Body       []byte
 }
 
@@ -85,7 +85,7 @@ func ReadHttpMessage(r HttpReader) (ctx HttpMsgCtx, err error) {
 	if !ok {
 		return ctx, nil
 	}
-	cl, err := strconv.Atoi(contentLength)
+	cl, err := strconv.Atoi(contentLength[0])
 	if err != nil {
 		return ctx, err
 	}

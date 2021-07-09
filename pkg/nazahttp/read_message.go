@@ -10,6 +10,7 @@ package nazahttp
 
 import (
 	"io"
+	"net/http"
 	"strconv"
 )
 
@@ -23,7 +24,7 @@ type HttpMsgCtx struct {
 	ReqMethodOrRespVersion string
 	ReqUriOrRespStatusCode string
 	ReqVersionOrRespReason string
-	Headers                HttpHeaders
+	Headers                http.Header
 	Body                   []byte
 }
 
@@ -31,7 +32,7 @@ type HttpReqMsgCtx struct {
 	Method  string
 	Uri     string
 	Version string
-	Headers HttpHeaders
+	Headers http.Header
 	Body    []byte
 }
 
@@ -39,7 +40,7 @@ type HttpRespMsgCtx struct {
 	Version    string
 	StatusCode string
 	Reason     string
-	Headers    HttpHeaders
+	Headers    http.Header
 	Body       []byte
 }
 
@@ -81,11 +82,11 @@ func ReadHttpMessage(r HttpReader) (ctx HttpMsgCtx, err error) {
 		return ctx, err
 	}
 
-	contentLength, ok := ctx.Headers[HeaderFieldContentLength]
-	if !ok {
+	contentLength := ctx.Headers.Get(HeaderFieldContentLength)
+	if len(contentLength) == 0 {
 		return ctx, nil
 	}
-	cl, err := strconv.Atoi(contentLength[0])
+	cl, err := strconv.Atoi(contentLength)
 	if err != nil {
 		return ctx, err
 	}

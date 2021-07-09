@@ -23,7 +23,7 @@ type HttpMsgCtx struct {
 	ReqMethodOrRespVersion string
 	ReqUriOrRespStatusCode string
 	ReqVersionOrRespReason string
-	Headers                map[string][]string
+	Headers                HttpHeaders
 	Body                   []byte
 }
 
@@ -31,7 +31,7 @@ type HttpReqMsgCtx struct {
 	Method  string
 	Uri     string
 	Version string
-	Headers map[string][]string
+	Headers HttpHeaders
 	Body    []byte
 }
 
@@ -39,7 +39,7 @@ type HttpRespMsgCtx struct {
 	Version    string
 	StatusCode string
 	Reason     string
-	Headers    map[string][]string
+	Headers    HttpHeaders
 	Body       []byte
 }
 

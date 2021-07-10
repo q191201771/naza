@@ -9,6 +9,7 @@
 package nazahttp
 
 import (
+	"net/http"
 	"strings"
 )
 
@@ -18,8 +19,8 @@ type LineReader interface {
 
 // @return firstLine: request的request line或response的status line
 // @return headers: request header fileds的键值对
-func ReadHttpHeader(r LineReader) (firstLine string, headers map[string]string, err error) {
-	headers = make(map[string]string)
+func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err error) {
+	headers = make(http.Header)
 
 	var line []byte
 	var isPrefix bool
@@ -51,7 +52,7 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers map[string]string, 
 			err = ErrHttpHeader
 			return
 		}
-		headers[strings.Trim(l[0:pos], " ")] = strings.Trim(l[pos+1:], " ")
+		headers.Add(strings.Trim(l[0:pos], " "), strings.Trim(l[pos+1:], " "))
 	}
 	return
 }

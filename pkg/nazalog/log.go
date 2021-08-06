@@ -33,11 +33,11 @@ const (
 	levelFatalString = "FATAL "
 	levelPanicString = "PANIC "
 
-	levelTraceColorString = "\033[22;32mTRACE\033[0m "
-	levelDebugColorString = "\033[22;34mDEBUG\033[0m "
-	levelInfoColorString  = "\033[22;36m INFO\033[0m "
-	levelWarnColorString  = "\033[22;33m WARN\033[0m "
-	levelErrorColorString = "\033[22;31mERROR\033[0m "
+	levelTraceColorString = "\033[22;32mTRACE\033[0m " // 浅绿，亮绿
+	levelDebugColorString = "\033[22;34mDEBUG\033[0m " // 深蓝
+	levelInfoColorString  = "\033[22;36m INFO\033[0m " // 暗绿，青
+	levelWarnColorString  = "\033[22;33m WARN\033[0m " // 黄
+	levelErrorColorString = "\033[22;31mERROR\033[0m " // 红
 	levelFatalColorString = "\033[22;31mFATAL\033[0m " // 颜色和 error 级别一样
 	levelPanicColorString = "\033[22;31mPANIC\033[0m " // 颜色和 error 级别一样
 )

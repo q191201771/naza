@@ -37,15 +37,19 @@ var (
 )
 
 type Connection interface {
-	// 包含interface net.Conn的所有方法
-	// Read
-	// Write
-	// Close
-	// LocalAddr
-	// RemoteAddr
-	// SetDeadline
-	// SetReadDeadline
-	// SetWriteDeadline
+	// Conn 包含net.Conn interface的所有方法
+	//
+	// Read(b []byte) (n int, err error)
+	// Write(b []byte) (n int, err error)
+	// // Close 允许调用多次
+	// //
+	// Close() error
+	// LocalAddr() net.Addr
+	// RemoteAddr() net.Addr
+	// SetDeadline(t time.Time) error
+	// SetReadDeadline(t time.Time) error
+	// SetWriteDeadline(t time.Time) error
+	//
 	net.Conn
 
 	ReadAtLeast(buf []byte, min int) (n int, err error)
@@ -56,8 +60,14 @@ type Connection interface {
 	// 一般在Close前，想要将剩余数据发送完毕时调用
 	Flush() error
 
-	// 阻塞直到连接关闭或发生错误
+	// Done 阻塞直到连接关闭或发生错误
+	//
+	// 注意，向上层严格保证，消息发送后，后续Read，Write等调用都将失败
+	//
+	// 注意，向上层严格保证，消息只发送一次
+	//
 	// @return 返回nil则是本端主动调用Close关闭
+	//
 	Done() <-chan error
 
 	// TODO chef: 这几个接口是否不提供
@@ -420,9 +430,12 @@ func (c *connection) close(err error) {
 		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}
 		}
-		c.doneChan <- err
+
+		// 注意，先Close后再发送消息，保证消息发送前，已经Close掉了
 		_ = c.Conn.Close()
-		// 如果使用了wChan，并不关闭它，避免竞态条件下connection继续使用它造成问题。让它随connection对象释放。
+		c.doneChan <- err
+
+		// 注意，如果使用了wChan，并不关闭它，避免竞态条件下connection继续使用它造成问题。让它随connection对象释放。
 	})
 }
 

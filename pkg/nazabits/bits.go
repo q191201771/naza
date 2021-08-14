@@ -155,8 +155,13 @@ func (br *BitReader) ReadBytes(n uint) (r []byte, err error) {
 	return
 }
 
-// 0阶指数哥伦布编码
 func (br *BitReader) ReadGolomb() (v uint32, err error) {
+	return br.ReadUeGolomb()
+}
+
+// ReadUeGolomb 0阶指数哥伦布编码，无符号
+//
+func (br *BitReader) ReadUeGolomb() (v uint32, err error) {
 	var t uint8
 	var n uint
 	var m uint32
@@ -176,6 +181,20 @@ func (br *BitReader) ReadGolomb() (v uint32, err error) {
 		return
 	}
 	v = 1<<n + m - 1
+	return
+}
+
+// ReadSeGolomb 哥伦布编码，有符号
+//
+func (br *BitReader) ReadSeGolomb() (v int32, err error) {
+	var vv uint32
+	vv, err = br.ReadUeGolomb()
+	if err != nil {
+		return 0, err
+	}
+	v = int32(vv) + 1
+	sign := -(v & 1)
+	v = ((v >> 1) ^ sign) - sign
 	return
 }
 

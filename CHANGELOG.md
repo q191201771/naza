@@ -1,3 +1,9 @@
+#### v0.20.1 (2021-08)
+
+- [feat] package nazabits: 新增func ReadUeGolomb和ReadSeGolomb，分别读取无符号和有符号哥伦布编码数据
+- [feat] package nazalog: Assert函数可选择填入描述信息
+- [fix] package connection: 先关闭net.Close再发送通知消息至channel
+
 #### v0.20.0 (2021-07)
 
 - [feat] package nazahttp: header支持重复键值

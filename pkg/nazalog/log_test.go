@@ -235,6 +235,7 @@ func TestAssert(t *testing.T) {
 		option.AssertBehavior = nazalog.AssertError
 	})
 	nazalog.Assert(nil, 1)
+	nazalog.Assert(nil, 1, "I guess this could be failed.", "I guess so")
 
 	_ = nazalog.Init(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal
@@ -254,6 +255,7 @@ func TestAssert(t *testing.T) {
 
 	l, _ := nazalog.New()
 	l.Assert(nil, 1)
+	l.Assert(nil, 1, "I guess this could be failed.", "I guess so")
 
 	l, _ = nazalog.New(func(option *nazalog.Option) {
 		option.AssertBehavior = nazalog.AssertFatal

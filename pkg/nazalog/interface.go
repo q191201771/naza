@@ -25,6 +25,8 @@ import "errors"
 // * 日志文件目录不存在则自动创建
 //
 // 目前性能和标准库log相当
+//
+// TODO(chef): 异步日志
 
 var ErrLog = errors.New("naza.log:fxxk")
 
@@ -47,9 +49,14 @@ type Logger interface {
 
 	Out(level Level, calldepth int, s string)
 
-	// 断言失败后的行为由配置项Option.AssertBehavior决定
+	// Assert 断言失败后的行为由配置项Option.AssertBehavior决定
 	// 注意，expected和actual的类型必须相同，比如int(1)和int32(1)是不相等的
-	Assert(expected interface{}, actual interface{})
+	//
+	// @param expected 期望值
+	// @param actual   实际值
+	// @param extInfo  期望值和实际值不相等时打印的补充信息，如果没有，可以不填
+	//
+	Assert(expected interface{}, actual interface{}, extInfo ...string)
 
 	// flush to disk, typically
 	Sync()
@@ -75,7 +82,7 @@ type Option struct {
 	// 文件输出和控制台输出可同时打开
 	// 控制台输出主要用做开发时调试，打开后level字段使用彩色输出
 	Filename   string `json:"filename"`     // 输出日志文件名，如果为空，则不写日志文件。可包含路径，路径不存在时，将自动创建
-	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台
+	IsToStdout bool   `json:"is_to_stdout"` // 是否以stdout输出到控制台 TODO(chef): 再增加一个stderr的配置
 
 	IsRotateDaily bool `json:"is_rotate_daily"` // 日志按天翻转
 

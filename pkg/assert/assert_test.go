@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"os"
 
 	"github.com/q191201771/naza/pkg/assert"
 )
@@ -22,8 +23,10 @@ type MockTestingT struct {
 }
 
 func (mtt MockTestingT) Errorf(format string, args ...interface{}) {
-	_ = fmt.Errorf(format, args...)
+	fmt.Fprintf(os.Stderr, format, args...)
+	fmt.Fprintf(os.Stderr, "\n")
 }
+
 func TestEqual(t *testing.T) {
 	// 测试Equal
 	assert.Equal(t, nil, nil)
@@ -49,6 +52,8 @@ func TestEqual(t *testing.T) {
 	assert.Equal(mtt, nil, 1)
 	assert.Equal(mtt, []byte{}, "aaa")
 	assert.Equal(mtt, nil, errors.New("mock error"))
+	// 测试msg参数
+	assert.Equal(mtt, nil, 1, "aaa", "bbb")
 }
 
 func TestIsNotNil(t *testing.T) {

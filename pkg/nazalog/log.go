@@ -165,18 +165,23 @@ func (l *logger) Panicln(v ...interface{}) {
 	panic(fmt.Sprint(v...))
 }
 
-func (l *logger) Assert(expected interface{}, actual interface{}) {
+func (l *logger) Assert(expected interface{}, actual interface{}, extInfo ...string) {
 	if !nazareflect.Equal(expected, actual) {
-		err := fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
+		var v string
+		if len(extInfo) == 0 {
+			v = fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v", expected, actual)
+		} else {
+			v = fmt.Sprintf("assert failed. excepted=%+v, but actual=%+v, extInfo=%s", expected, actual, extInfo)
+		}
 		switch l.core.option.AssertBehavior {
 		case AssertError:
-			l.Out(LevelError, 2, err)
+			l.Out(LevelError, 2, v)
 		case AssertFatal:
-			l.Out(LevelFatal, 2, err)
+			l.Out(LevelFatal, 2, v)
 			fake.Os_Exit(1)
 		case AssertPanic:
-			l.Out(LevelPanic, 2, err)
-			panic(err)
+			l.Out(LevelPanic, 2, v)
+			panic(v)
 		}
 	}
 }

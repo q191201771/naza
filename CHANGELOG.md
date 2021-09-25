@@ -1,3 +1,8 @@
+#### v0.20.2 (2021-09)
+
+- [feat] package nazajson: 新增函数CollectNotExistFields，用于收集json中所有不存在的字段
+- [feat] package log: 暴露一些ASCII打印颜色的字符串常量
+
 #### v0.20.1 (2021-08)
 
 - [feat] package nazabits: 新增func ReadUeGolomb和ReadSeGolomb，分别读取无符号和有符号哥伦布编码数据

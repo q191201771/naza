@@ -25,6 +25,16 @@ import (
 var _ Logger = new(logger)
 
 const (
+	ColorStringPrefixRed    = "\033[22;31m" // 红
+	ColorStringPrefixGreen  = "\033[22;32m" // 浅绿，亮绿
+	ColorStringPrefixYellow = "\033[22;33m" // 黄
+	ColorStringPrefixBlue   = "\033[22;34m" // 深蓝
+	ColorStringPrefixCyan   = "\033[22;36m" // 青，暗绿
+
+	ColorStringSuffix = "\033[0m"
+)
+
+const (
 	levelTraceString = "TRACE "
 	levelDebugString = "DEBUG "
 	levelInfoString  = " INFO "
@@ -33,13 +43,13 @@ const (
 	levelFatalString = "FATAL "
 	levelPanicString = "PANIC "
 
-	levelTraceColorString = "\033[22;32mTRACE\033[0m " // 浅绿，亮绿
-	levelDebugColorString = "\033[22;34mDEBUG\033[0m " // 深蓝
-	levelInfoColorString  = "\033[22;36m INFO\033[0m " // 暗绿，青
-	levelWarnColorString  = "\033[22;33m WARN\033[0m " // 黄
-	levelErrorColorString = "\033[22;31mERROR\033[0m " // 红
-	levelFatalColorString = "\033[22;31mFATAL\033[0m " // 颜色和 error 级别一样
-	levelPanicColorString = "\033[22;31mPANIC\033[0m " // 颜色和 error 级别一样
+	levelTraceColorString = ColorStringPrefixGreen + levelTraceString + ColorStringSuffix
+	levelDebugColorString = ColorStringPrefixBlue + levelDebugString + ColorStringSuffix
+	levelInfoColorString  = ColorStringPrefixCyan + levelInfoString + ColorStringSuffix
+	levelWarnColorString  = ColorStringPrefixYellow + levelWarnString + ColorStringSuffix
+	levelErrorColorString = ColorStringPrefixRed + levelErrorString + ColorStringSuffix
+	levelFatalColorString = ColorStringPrefixRed + levelFatalString + ColorStringSuffix
+	levelPanicColorString = ColorStringPrefixRed + levelPanicString + ColorStringSuffix
 )
 
 var (

@@ -9,6 +9,7 @@
 package nazajson
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/q191201771/naza/pkg/assert"
@@ -124,4 +125,70 @@ func BenchmarkExist(b *testing.B) {
 		exist = j.Exist("..")
 	}
 	nazalog.Debug(exist)
+}
+
+func TestCollectNotExistFields(t *testing.T) {
+	// 1. 测试自身的基础字段     完成
+	// 1.2 测试数组            完成
+	// 2. 测试自身的指针基础字段  完成
+	// 3. 测试匿名结构体        完成
+	// 4. 测试嵌套结构体        完成
+	// 5. 测试没有tag          完成
+	// 6. 测试小写不暴露的成员   完成
+
+	type Sub struct {
+		SubA int    `json:"suba"`
+		SubB int    `json:"subb"`
+		SubC string `json:"subc"`
+		SubD string `json:"subd"`
+	}
+	type Anoy struct {
+		AnoyA int `json:"anoya"`
+		AnoyB int `json:"anoyb"`
+	}
+	type St struct {
+		Anoy
+		A     int     `json:"a"`
+		B     string  `json:"b"`
+		C     []bool  `json:"c"`
+		D     []int   `json:"d"`
+		E     *int    `json:"e"`
+		F     *string `json:"f"`
+		Sub   Sub     `json:"sub"`
+		NoTag int
+		low   int
+	}
+
+	b := []byte(`
+{
+  "anoya": 3,
+  "a": 1,
+  "c": [true, false],
+  "e": 2,
+  "sub": {
+    "suba": 4,
+    "subc": "c"
+  }
+}
+`)
+	var st St
+	json.Unmarshal(b, &st)
+	nazalog.Infof("%+v", st)
+
+	//var st2 St
+	//collect, err := CollectNotExistFields(b, st)
+	//CollectNotExistFields(b, st2)
+	//CollectNotExistFields(b, &st2)
+	// 以上三种使用方式也都是正常的
+	collect, err := CollectNotExistFields(b, &st)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []string{"anoyb", "b", "d", "f", "sub.subb", "sub.subd"}, collect)
+
+	collect, err = CollectNotExistFields(b, st, "sub")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []string{"anoyb", "b", "d", "f"}, collect)
+
+	collect, err = CollectNotExistFields(b, st, "s")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, []string{"anoyb", "b", "d", "f"}, collect)
 }

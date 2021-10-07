@@ -10,6 +10,7 @@
 /demo/time
 /demo/temp
 /demo/analyse_git_log
+/demo/analyse_wireshark_plain_txt_dissection
 
 /.idea
 /.trash
@@ -23,3 +24,4 @@ tmp
 profile.out*
 profile*.pdf
 *.test
+*.h264

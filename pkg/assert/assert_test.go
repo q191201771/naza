@@ -11,8 +11,8 @@ package assert_test
 import (
 	"errors"
 	"fmt"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/q191201771/naza/pkg/assert"
 )

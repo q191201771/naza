@@ -11,6 +11,7 @@ package nazalog
 import (
 	"bytes"
 	"fmt"
+	"github.com/q191201771/naza/pkg/color"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -25,16 +26,6 @@ import (
 var _ Logger = new(logger)
 
 const (
-	ColorStringPrefixRed    = "\033[22;31m" // 红
-	ColorStringPrefixGreen  = "\033[22;32m" // 浅绿，亮绿
-	ColorStringPrefixYellow = "\033[22;33m" // 黄
-	ColorStringPrefixBlue   = "\033[22;34m" // 深蓝
-	ColorStringPrefixCyan   = "\033[22;36m" // 青，暗绿
-
-	ColorStringSuffix = "\033[0m"
-)
-
-const (
 	levelTraceString = "TRACE "
 	levelDebugString = "DEBUG "
 	levelInfoString  = " INFO "
@@ -43,13 +34,13 @@ const (
 	levelFatalString = "FATAL "
 	levelPanicString = "PANIC "
 
-	levelTraceColorString = ColorStringPrefixGreen + levelTraceString + ColorStringSuffix
-	levelDebugColorString = ColorStringPrefixBlue + levelDebugString + ColorStringSuffix
-	levelInfoColorString  = ColorStringPrefixCyan + levelInfoString + ColorStringSuffix
-	levelWarnColorString  = ColorStringPrefixYellow + levelWarnString + ColorStringSuffix
-	levelErrorColorString = ColorStringPrefixRed + levelErrorString + ColorStringSuffix
-	levelFatalColorString = ColorStringPrefixRed + levelFatalString + ColorStringSuffix
-	levelPanicColorString = ColorStringPrefixRed + levelPanicString + ColorStringSuffix
+	levelTraceColorString = color.SimplePrefixGreen + levelTraceString + color.SimpleSuffix
+	levelDebugColorString = color.SimplePrefixBlue + levelDebugString + color.SimpleSuffix
+	levelInfoColorString  = color.SimplePrefixCyan + levelInfoString + color.SimpleSuffix
+	levelWarnColorString  = color.SimplePrefixYellow + levelWarnString + color.SimpleSuffix
+	levelErrorColorString = color.SimplePrefixRed + levelErrorString + color.SimpleSuffix
+	levelFatalColorString = color.SimplePrefixRed + levelFatalString + color.SimpleSuffix
+	levelPanicColorString = color.SimplePrefixRed + levelPanicString + color.SimpleSuffix
 )
 
 var (

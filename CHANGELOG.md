@@ -1,7 +1,11 @@
+#### v0.21.1 (2021-10)
+
+- [feat] package connection: 增加Writev函数
+
 #### v0.21.0 (2021-10)
 
 - [feat] package color: 新包，控制台打印颜色相关
-- [refactor] package nazalog: 颜色相关的改为依赖package color（不兼容性修改）
+- [refactor] package nazalog: 颜色相关的改为依赖package color
 
 #### v0.20.2 (2021-09)
 

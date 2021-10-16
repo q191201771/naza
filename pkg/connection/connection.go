@@ -6,13 +6,14 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// package connection
+// Package connection
 //
 // 注意，这个package还在开发中
 //
 // 对 net.Conn 接口的二次封装，目的有两个：
 // 1. 在流媒体传输这种特定的长连接场景下提供更方便、高性能的接口
 // 2. 便于后续将TCPConn替换成其他传输协议
+//
 package connection
 
 import (
@@ -37,27 +38,54 @@ var (
 )
 
 type Connection interface {
-	// Conn 包含net.Conn interface的所有方法
+	// ----- net.Conn interface ----------------------------------------------------------------------------------------
 	//
-	// Read(b []byte) (n int, err error)
-	// Write(b []byte) (n int, err error)
-	// // Close 允许调用多次
-	// //
-	// Close() error
-	// LocalAddr() net.Addr
-	// RemoteAddr() net.Addr
-	// SetDeadline(t time.Time) error
-	// SetReadDeadline(t time.Time) error
-	// SetWriteDeadline(t time.Time) error
+	// 注意，如果没有特别说明，函数的语义和 net.Conn 相同
 	//
-	net.Conn
+
+	// Read ...
+	Read(b []byte) (n int, err error)
+
+	// Write
+	//
+	// @return n 发送成功的大小
+	//           注意，如果设置了 Option.WriteChanSize 做异步发送，那么`n`恒等于len(`b`)
+	//
+	Write(b []byte) (n int, err error)
+
+	// Close 允许调用多次
+	//
+	Close() error
+
+	LocalAddr() net.Addr
+	RemoteAddr() net.Addr
+	SetDeadline(t time.Time) error
+	SetReadDeadline(t time.Time) error
+	SetWriteDeadline(t time.Time) error
+
+	// -----------------------------------------------------------------------------------------------------------------
+
+	// Writev 发送多块不连续的内存块时使用
+	//
+	// 当有多块不连续的内存块需要发送时，调用 Writev 在某些平台性能会优于以下做法：
+	// 1. 多次调用Write
+	// 2. 将多块内存块拷贝拼接成一块内存块后调用Write
+	// 原因是减少了系统调用以及内存拷贝（还有可能有内存管理）的开销
+	//
+	// 注意，如果需要发送的是一块连续的内存块，建议使用 Write 发送
+	//
+	Writev(b net.Buffers) (n int, err error)
 
 	ReadAtLeast(buf []byte, min int) (n int, err error)
 	ReadLine() (line []byte, isPrefix bool, err error) // 只有设置了ReadBufSize才可以使用这个方法
 
+	// Flush
+	//
 	// 如果使用了bufio写缓冲，则将缓冲中的数据发送出去
 	// 如果使用了channel异步发送，则阻塞等待，直到之前channel中的数据全部发送完毕
+	//
 	// 一般在Close前，想要将剩余数据发送完毕时调用
+	//
 	Flush() error
 
 	// Done 阻塞直到连接关闭或发生错误
@@ -170,12 +198,14 @@ type wMsgType int
 const (
 	_ wMsgType = iota
 	wMsgTypeWrite
+	wMsgTypeWritev
 	wMsgTypeFlush
 )
 
 type wMsg struct {
-	t wMsgType
-	b []byte
+	t  wMsgType
+	b  []byte
+	bs net.Buffers
 }
 
 type connection struct {
@@ -305,6 +335,30 @@ func (c *connection) Write(b []byte) (n int, err error) {
 	return c.write(b)
 }
 
+func (c *connection) Writev(b net.Buffers) (n int, err error) {
+	if c.closedFlag.Load() {
+		return 0, ErrClosedAlready
+	}
+	if c.option.WriteChanSize > 0 {
+		for _, v := range b {
+			n += len(v)
+		}
+		switch c.option.WriteChanFullBehavior {
+		case WriteChanFullBehaviorBlock:
+			c.wChan <- wMsg{t: wMsgTypeWritev, bs: b}
+			return n, nil
+		case WriteChanFullBehaviorReturnError:
+			select {
+			case c.wChan <- wMsg{t: wMsgTypeWritev, bs: b}:
+				return n, nil
+			default:
+				return 0, ErrWriteChanFull
+			}
+		}
+	}
+	return c.writev(b)
+}
+
 func (c *connection) Flush() error {
 	if c.closedFlag.Load() {
 		return ErrClosedAlready
@@ -382,6 +436,24 @@ func (c *connection) write(b []byte) (n int, err error) {
 	return n, err
 }
 
+func (c *connection) writev(b net.Buffers) (n int, err error) {
+	if c.option.WriteTimeoutMs > 0 {
+		err = c.SetWriteDeadline(time.Now().Add(time.Duration(c.option.WriteTimeoutMs) * time.Millisecond))
+		if err != nil {
+			c.close(err)
+			return 0, err
+		}
+	}
+	var n64 int64
+	n64, err = b.WriteTo(c.w)
+	if err != nil {
+		c.close(err)
+	}
+	n = int(n64)
+	c.stat.WroteBytesSum.Add(uint64(n))
+	return n, err
+}
+
 func (c *connection) runWriteLoop() {
 	for {
 		select {
@@ -392,6 +464,10 @@ func (c *connection) runWriteLoop() {
 			switch msg.t {
 			case wMsgTypeWrite:
 				if _, err := c.write(msg.b); err != nil {
+					return
+				}
+			case wMsgTypeWritev:
+				if _, err := c.writev(msg.bs); err != nil {
 					return
 				}
 			case wMsgTypeFlush:

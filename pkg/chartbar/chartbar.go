@@ -19,9 +19,11 @@ import (
 )
 
 const (
-	OrderOrigin = iota + 1 // 原始序
-	OrderAsc               // 升序
-	OrderDesc              // 降序
+	OrderOrigin    Order = iota + 1 // 原始序
+	OrderAscCount                   // 按计数值升序排序
+	OrderDescCount                  // 按计数值降序排序
+	OrderAscName                    // 按字段名称升序排序
+	OrderDescName                   // 按字段名称降序排序
 )
 
 type Item struct {
@@ -31,15 +33,27 @@ type Item struct {
 	count int // bar
 }
 
-var (
-	//barList  = "▏▎▍▌▋▊▉█"
+type Order int
 
+var (
 	// config
+	//barList  = "▏▎▍▌▋▊▉█"
 	maxLength = 50
-	order     = OrderDesc
 )
 
-func WithItems(items []Item) (string, error) {
+type Option struct {
+	Order Order
+}
+
+var defaultOption = &Option{
+	Order: OrderDescCount,
+}
+
+func WithItems(items []Item, option *Option) string {
+	if option == nil {
+		option = defaultOption
+	}
+
 	// 最大的画满柱状条，其他的按与最大占比画
 	maxNum := calcMaxNum(items)
 	for i := range items {
@@ -50,9 +64,24 @@ func WithItems(items []Item) (string, error) {
 		}
 	}
 
-	if order == OrderDesc {
+	switch option.Order {
+	case OrderOrigin:
+	// noop
+	case OrderAscCount:
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].count < items[j].count
+		})
+	case OrderDescCount:
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].count > items[j].count
+		})
+	case OrderAscName:
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Name < items[j].Name
+		})
+	case OrderDescName:
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Name > items[j].Name
 		})
 	}
 
@@ -65,10 +94,10 @@ func WithItems(items []Item) (string, error) {
 		bar := strings.Repeat("█", item.count)
 		out += fmt.Sprintf(tmpl, item.Name, bar, item.Num)
 	}
-	return out, nil
+	return out
 }
 
-func WithMap(m map[string]int) (string, error) {
+func WithMap(m map[string]int, option *Option) string {
 	var items []Item
 
 	for k, v := range m {
@@ -79,10 +108,10 @@ func WithMap(m map[string]int) (string, error) {
 		items = append(items, item)
 	}
 
-	return WithItems(items)
+	return WithItems(items, option)
 }
 
-func WithMapFloat(m map[string]float64) (string, error) {
+func WithMapFloat(m map[string]float64, option *Option) string {
 	var items []Item
 
 	for k, v := range m {
@@ -93,10 +122,10 @@ func WithMapFloat(m map[string]float64) (string, error) {
 		items = append(items, item)
 	}
 
-	return WithItems(items)
+	return WithItems(items, option)
 }
 
-func WithCsv(filename string) (string, error) {
+func WithCsv(filename string, option *Option) (string, error) {
 	// 读取
 	fp, err := os.Open(filename)
 	if err != nil {
@@ -120,7 +149,7 @@ func WithCsv(filename string) (string, error) {
 		items = append(items, item)
 	}
 
-	return WithItems(items)
+	return WithItems(items, option), nil
 }
 
 func isFloat(v string) bool {

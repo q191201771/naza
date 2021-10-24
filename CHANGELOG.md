@@ -1,3 +1,7 @@
+#### v0.22.0 (2021-10)
+
+- [feat] package chartbar: 可外部指定排序方式
+
 #### v0.21.1 (2021-10)
 
 - [feat] package connection: 增加Writev函数

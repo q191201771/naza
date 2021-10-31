@@ -1,3 +1,9 @@
+#### v0.23.0 (2021-10)
+
+- [refactor] package nazacolor: color包重命名为nazacolor
+- [fix] package chartbar: 解决中文对齐问题
+- [chore] min golang version 1.13 -> 1.14
+
 #### v0.22.0 (2021-10)
 
 - [feat] package chartbar: 可外部指定排序方式

@@ -69,11 +69,11 @@ func WithItems(items []Item, option *Option) string {
 	// noop
 	case OrderAscCount:
 		sort.Slice(items, func(i, j int) bool {
-			return items[i].count < items[j].count
+			return items[i].Num < items[j].Num
 		})
 	case OrderDescCount:
 		sort.Slice(items, func(i, j int) bool {
-			return items[i].count > items[j].count
+			return items[i].Num > items[j].Num
 		})
 	case OrderAscName:
 		sort.Slice(items, func(i, j int) bool {
@@ -87,12 +87,13 @@ func WithItems(items []Item, option *Option) string {
 
 	maxNameLength := calcMaxNameLen(items)
 	maxCountLength := calcMaxCount(items)
-	tmpl := fmt.Sprintf("  %%%ds | %%-%ds | %%0.2f\n", maxNameLength, maxCountLength)
+	maxLengthOfNum := calcMaxLengthOfNum(items)
+	tmpl := fmt.Sprintf("%%%d.2f | %%-%ds | %%-%ds\n", maxLengthOfNum, maxCountLength, maxNameLength)
 	_ = maxNameLength
 	var out string
 	for _, item := range items {
 		bar := strings.Repeat("█", item.count)
-		out += fmt.Sprintf(tmpl, item.Name, bar, item.Num)
+		out += fmt.Sprintf(tmpl, item.Num, bar, item.Name)
 	}
 	return out
 }
@@ -184,4 +185,14 @@ func calcMaxCount(items []Item) int {
 		}
 	}
 	return max
+}
+
+func calcMaxLengthOfNum(items []Item) int {
+	var max float64
+	for _, item := range items {
+		if item.Num > max {
+			max = item.Num
+		}
+	}
+	return len(fmt.Sprintf("%0.2f", max))
 }

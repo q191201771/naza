@@ -11,12 +11,13 @@ package nazalog
 import (
 	"bytes"
 	"fmt"
-	"github.com/q191201771/naza/pkg/color"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/q191201771/naza/pkg/nazacolor"
 
 	"github.com/q191201771/naza/pkg/nazareflect"
 
@@ -34,13 +35,13 @@ const (
 	levelFatalString = "FATAL "
 	levelPanicString = "PANIC "
 
-	levelTraceColorString = color.SimplePrefixGreen + levelTraceString + color.SimpleSuffix
-	levelDebugColorString = color.SimplePrefixBlue + levelDebugString + color.SimpleSuffix
-	levelInfoColorString  = color.SimplePrefixCyan + levelInfoString + color.SimpleSuffix
-	levelWarnColorString  = color.SimplePrefixYellow + levelWarnString + color.SimpleSuffix
-	levelErrorColorString = color.SimplePrefixRed + levelErrorString + color.SimpleSuffix
-	levelFatalColorString = color.SimplePrefixRed + levelFatalString + color.SimpleSuffix
-	levelPanicColorString = color.SimplePrefixRed + levelPanicString + color.SimpleSuffix
+	levelTraceColorString = nazacolor.SimplePrefixGreen + levelTraceString + nazacolor.SimpleSuffix
+	levelDebugColorString = nazacolor.SimplePrefixBlue + levelDebugString + nazacolor.SimpleSuffix
+	levelInfoColorString  = nazacolor.SimplePrefixCyan + levelInfoString + nazacolor.SimpleSuffix
+	levelWarnColorString  = nazacolor.SimplePrefixYellow + levelWarnString + nazacolor.SimpleSuffix
+	levelErrorColorString = nazacolor.SimplePrefixRed + levelErrorString + nazacolor.SimpleSuffix
+	levelFatalColorString = nazacolor.SimplePrefixRed + levelFatalString + nazacolor.SimpleSuffix
+	levelPanicColorString = nazacolor.SimplePrefixRed + levelPanicString + nazacolor.SimpleSuffix
 )
 
 var (

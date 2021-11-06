@@ -1,3 +1,8 @@
+#### v0.24.0 (2021-11)
+
+- [feat] package mock: 新增的包，目前可以模拟标准库中的time.Now, time.NewTimer
+- [refactor] 移除package/ic
+
 #### v0.23.0 (2021-10)
 
 - [refactor] package nazacolor: color包重命名为nazacolor

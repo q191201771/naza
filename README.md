@@ -38,13 +38,14 @@ pkg/                     ...... 源码包
     |-- fake/            ...... 实现一些常用的接口，hook一些不方便测试的代码
     |-- filebatch/       ...... 文件批处理操作
     |-- filesystemlayer/ ...... 对文件操作的封装，可以使用内存作为磁盘使用
+    |-- mock/            ...... 模拟一些标准库中的常用接口，方便测试
     |-- nazaatomic/      ...... 原子操作
     |-- nazabits/        ...... 位操作
+    |-- nazacolor/       ...... 控制台打印颜色相关
     |-- nazaerrors/      ...... error相关
     |-- nazahttp/        ...... http操作
     |-- nazajson/        ...... json操作
     |-- nazalog/         ...... 日志库
-    |-- color/           ...... 控制台打印颜色相关
     |-- nazamd5/         ...... md5操作
     |-- nazanet/         ...... socket操作相关
     |-- nazareflect/     ...... 利用反射做的一些操作

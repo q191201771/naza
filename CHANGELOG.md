@@ -1,3 +1,10 @@
+#### v0.25.0 (2021-11)
+
+- [feat] package nazabytes: 新增包，提供Buffer struct
+- [feat] package dataops: 新增包，用于处理数据，比如切片类型转换，计数等等
+- [feat] package chartbar: 支持负数; 支持只绘制容器中的部分元素; 支持配置柱状图样式
+- [refactor] 删除pkg/fake/time.go
+
 #### v0.24.0 (2021-11)
 
 - [feat] package mock: 新增的包，目前可以模拟标准库中的time.Now, time.NewTimer

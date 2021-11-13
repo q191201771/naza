@@ -1,7 +1,14 @@
+// Copyright 2021, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package mock
 
 import (
-	"github.com/q191201771/naza/pkg/nazalog"
 	"sort"
 	"sync"
 	"time"
@@ -53,11 +60,11 @@ func (c *stdClock) NewTimer(d time.Duration) *Timer {
 }
 
 func (c *stdClock) Add(d time.Duration) {
-	nazalog.Warnf("calling stdClock::Add will do nothing actually, are you sure about this?")
+	// noop
 }
 
 func (c *stdClock) Set(t time.Time) {
-	nazalog.Warnf("calling stdClock::Set will do nothing actually, are you sure about this?")
+	// noop
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

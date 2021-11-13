@@ -17,6 +17,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/q191201771/naza/pkg/mock"
+
 	"github.com/q191201771/naza/pkg/nazalog"
 
 	"github.com/q191201771/naza/pkg/fake"
@@ -130,11 +132,12 @@ func TestRotate(t *testing.T) {
 	})
 	assert.Equal(t, nil, err)
 	nazalog.Info("aaa")
-	fake.WithFakeTimeNow(func() time.Time {
-		return time.Now().Add(48 * time.Hour)
-	}, func() {
-		nazalog.Info("bbb")
-	})
+
+	now := time.Now()
+	nazalog.Clock = mock.NewFakeClock()
+	nazalog.Clock.Set(now.Add(48 * time.Hour))
+	nazalog.Info("bbb")
+	nazalog.Clock = mock.NewStdClock()
 }
 
 func TestPanic(t *testing.T) {

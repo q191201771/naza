@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/q191201771/naza/pkg/mock"
+
 	"github.com/q191201771/naza/pkg/nazacolor"
 
 	"github.com/q191201771/naza/pkg/nazareflect"
@@ -25,6 +27,8 @@ import (
 )
 
 var _ Logger = new(logger)
+
+var Clock = mock.NewStdClock()
 
 const (
 	levelTraceString = "TRACE "
@@ -193,7 +197,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 		return
 	}
 
-	now := fake.Time_Now()
+	now := Clock.Now()
 
 	var file string
 	var line int

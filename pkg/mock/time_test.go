@@ -1,10 +1,19 @@
+// Copyright 2021, Chef.  All rights reserved.
+// https://github.com/q191201771/naza
+//
+// Use of this source code is governed by a MIT-style license
+// that can be found in the License file.
+//
+// Author: Chef (191201771@qq.com)
+
 package mock
 
 import (
-	"github.com/q191201771/naza/pkg/assert"
-	"github.com/q191201771/naza/pkg/nazalog"
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/q191201771/naza/pkg/assert"
 )
 
 func TestClock(t *testing.T) {
@@ -18,40 +27,40 @@ func TestClock(t *testing.T) {
 	// 测试Now
 	{
 		c = NewStdClock()
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		time.Sleep(10 * time.Millisecond)
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 
 		c = NewFakeClock()
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		c.Add(10 * time.Millisecond)
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 	}
 
 	// 简单测试Timer
 	{
 		c = NewStdClock()
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		timer = c.NewTimer(100 * time.Millisecond)
 		ch = <-timer.C
-		nazalog.Debugf("%+v", ch)
+		fmt.Printf("%+v\n", ch)
 
 		c = NewFakeClock()
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		timer = c.NewTimer(100 * time.Millisecond)
 		c.Add(100 * time.Millisecond)
 		ch = <-timer.C
-		nazalog.Debugf("%+v", ch)
+		fmt.Printf("%+v\n", ch)
 	}
 
 	// 测试Set
 	{
 		c = NewFakeClock()
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		c.Set(time.Date(2000, 1, 2, 3, 4, 5, 6, time.Local))
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 		c.Set(time.Now())
-		nazalog.Debugf("%+v", c.Now())
+		fmt.Printf("%+v\n", c.Now())
 	}
 
 	// 测试Timer::Stop

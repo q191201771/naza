@@ -6,17 +6,11 @@
 //
 // Author: Chef (191201771@qq.com)
 
+// Package chartbar 控制台绘制ascii柱状图
+//
 package chartbar
 
-import (
-	"encoding/csv"
-	"fmt"
-	"math"
-	"os"
-	"sort"
-	"strconv"
-	"strings"
-)
+// TODO(chef): 如果总数小于绘制长度并且都是正整数，可以考虑按原始值而非比例绘制
 
 const (
 	OrderOrigin    Order = iota + 1 // 原始序
@@ -24,6 +18,8 @@ const (
 	OrderDescCount                  // 按计数值降序排序
 	OrderAscName                    // 按字段名称升序排序
 	OrderDescName                   // 按字段名称降序排序
+
+	NoNumLimit = -1
 )
 
 type Item struct {
@@ -35,164 +31,50 @@ type Item struct {
 
 type Order int
 
-var (
-	// config
-	//barList  = "▏▎▍▌▋▊▉█"
-	maxLength = 50
-)
-
 type Option struct {
-	Order Order
+	MaxBarLength    int
+	DrawIconBlock   string
+	DrawIconPadding string
+
+	Order          Order
+	PrefixNumLimit int
+	SuffixNumLimit int
 }
 
-var defaultOption = &Option{
-	Order: OrderDescCount,
+var defaultOption = Option{
+	// 50 "▇" " "
+	// 18 "口" "　"
+	MaxBarLength:    50,  // MaxBarLength 柱状图形的最大长度
+	DrawIconBlock:   "▇", // 柱状图实体绘制内容
+	DrawIconPadding: " ", // 柱状图空余部分绘制内容
+
+	Order:          OrderDescCount,
+	PrefixNumLimit: NoNumLimit,
+	SuffixNumLimit: NoNumLimit,
 }
 
-func WithItems(items []Item, option *Option) string {
-	if option == nil {
-		option = defaultOption
-	}
+// ---------------------------------------------------------------------------------------------------------------------
 
-	// 最大的画满柱状条，其他的按与最大占比画
-	maxNum := calcMaxNum(items)
-	for i := range items {
-		items[i].count = int(math.Round(items[i].Num * float64(maxLength) / maxNum))
-		// 最小可能和最大的比太小了
-		if items[i].count == 0 {
-			items[i].count = 1
-		}
-	}
+var DefaultCtx = NewCtx()
 
-	switch option.Order {
-	case OrderOrigin:
-	// noop
-	case OrderAscCount:
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Num < items[j].Num
-		})
-	case OrderDescCount:
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Num > items[j].Num
-		})
-	case OrderAscName:
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Name < items[j].Name
-		})
-	case OrderDescName:
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].Name > items[j].Name
-		})
-	}
+type ModOption func(option *Option)
 
-	maxNameLength := calcMaxNameLen(items)
-	maxCountLength := calcMaxCount(items)
-	maxLengthOfNum := calcMaxLengthOfNum(items)
-	tmpl := fmt.Sprintf("%%%d.2f | %%-%ds | %%-%ds\n", maxLengthOfNum, maxCountLength, maxNameLength)
-	_ = maxNameLength
-	var out string
-	for _, item := range items {
-		bar := strings.Repeat("█", item.count)
-		out += fmt.Sprintf(tmpl, item.Num, bar, item.Name)
+func NewCtx(modOptions ...ModOption) *Ctx {
+	option := defaultOption
+	for _, fn := range modOptions {
+		fn(&option)
 	}
-	return out
+	return &Ctx{
+		option: option,
+	}
 }
 
-func WithMap(m map[string]int, option *Option) string {
-	var items []Item
-
-	for k, v := range m {
-		item := Item{
-			Name: k,
-			Num:  float64(v),
-		}
-		items = append(items, item)
+func NewCtxWith(ctx *Ctx, modOptions ...ModOption) *Ctx {
+	option := ctx.option
+	for _, fn := range modOptions {
+		fn(&option)
 	}
-
-	return WithItems(items, option)
-}
-
-func WithMapFloat(m map[string]float64, option *Option) string {
-	var items []Item
-
-	for k, v := range m {
-		item := Item{
-			Name: k,
-			Num:  v,
-		}
-		items = append(items, item)
+	return &Ctx{
+		option: option,
 	}
-
-	return WithItems(items, option)
-}
-
-func WithCsv(filename string, option *Option) (string, error) {
-	// 读取
-	fp, err := os.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	defer fp.Close()
-	r := csv.NewReader(fp)
-	records, err := r.ReadAll()
-	if err != nil {
-		return "", err
-	}
-
-	var items []Item
-	for _, line := range records {
-		var item Item
-		item.Name = line[0]
-		item.Num, err = strconv.ParseFloat(line[1], 64)
-		if err != nil {
-			return "", err
-		}
-		items = append(items, item)
-	}
-
-	return WithItems(items, option), nil
-}
-
-func isFloat(v string) bool {
-	return strings.Contains(v, ".")
-}
-
-func calcMaxNum(items []Item) float64 {
-	var max float64
-	for _, item := range items {
-		if item.Num > max {
-			max = item.Num
-		}
-	}
-	return max
-}
-
-func calcMaxNameLen(items []Item) int {
-	var max int
-	for _, item := range items {
-		if len(item.Name) > max {
-			max = len(item.Name)
-		}
-	}
-	return max
-}
-
-func calcMaxCount(items []Item) int {
-	var max int
-	for _, item := range items {
-		if item.count > max {
-			max = item.count
-		}
-	}
-	return max
-}
-
-func calcMaxLengthOfNum(items []Item) int {
-	var max float64
-	for _, item := range items {
-		if item.Num > max {
-			max = item.Num
-		}
-	}
-	return len(fmt.Sprintf("%0.2f", max))
 }

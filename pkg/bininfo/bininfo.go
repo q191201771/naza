@@ -7,8 +7,10 @@
 // Author: Chef (191201771@qq.com)
 
 // Package bininfo
+//
 // 将编译时源码的git版本信息（当前tag，commit log的sha值和commit message，是否有未提交的修改），编译时间，Go版本，编译、运行平台打入程序中
 // 编译时传入这些信息的方式见 naza 的编译脚本： https://github.com/q191201771/naza/blob/master/build.sh
+//
 package bininfo
 
 import (

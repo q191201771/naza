@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-// 获取http文件保存至字节切片
+// TODO(chef): 重命名为GetAll
+//
+// GetHttpFile 获取http文件保存至字节切片
+//
+//
 func GetHttpFile(url string, timeoutMs int) ([]byte, error) {
 	var c http.Client
 	if timeoutMs > 0 {

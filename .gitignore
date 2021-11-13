@@ -1,5 +1,4 @@
 /pkg/websocket
-/pkg/nazabytes/
 /pkg/tag
 /pkg/nazatime
 
@@ -11,6 +10,7 @@
 /demo/temp
 /demo/analyse_git_log
 /demo/analyse_wireshark_plain_txt_dissection
+/demo/disksweeper/
 
 /.idea
 /.trash

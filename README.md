@@ -34,6 +34,7 @@ pkg/                     ...... 源码包
     |-- bininfo/         ...... 将编译时源码的git版本信息（当前commit log的sha值和commit message），编译时间，Go版本，平台打入程序中
     |-- circularqueue    ...... 底层基于切片实现的固定容量大小的FIFO的环形队列
     |-- connection/      ...... 对net.Conn接口的二次封装
+    |-- dataops/         ...... 数据处理
     |-- defertaskthread  ...... 执行延时任务
     |-- fake/            ...... 实现一些常用的接口，hook一些不方便测试的代码
     |-- filebatch/       ...... 文件批处理操作
@@ -41,6 +42,7 @@ pkg/                     ...... 源码包
     |-- mock/            ...... 模拟一些标准库中的常用接口，方便测试
     |-- nazaatomic/      ...... 原子操作
     |-- nazabits/        ...... 位操作
+    |-- nazabytes/       ...... 字节切片，内存块操作
     |-- nazacolor/       ...... 控制台打印颜色相关
     |-- nazaerrors/      ...... error相关
     |-- nazahttp/        ...... http操作
@@ -70,10 +72,6 @@ bin/                     ...... 可执行文件编译输出目录
 #### 依赖
 
 无任何第三方依赖
-
-#### 相关文档
-
-https://pengrl.com/categories/Go/
 
 #### 联系我
 

@@ -8,6 +8,12 @@
 
 package ratelimit
 
+// LeakBucket和TokenBucket的区别
+//
+// LeakBucket:  业务方从LeakBucket获取资源的时间间隔必须>=设置的时间间隔
+// TokenBucket: 内部会持续生成资源并进行缓存，外部可以一次性获取
+//
+
 type RateLimiter interface {
 	TryAquire() error
 	WaitUntilAquire()

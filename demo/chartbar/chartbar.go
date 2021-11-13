@@ -20,7 +20,7 @@ import (
 
 func main() {
 	filename := parseFlag()
-	output, err := chartbar.WithCsv(filename, nil)
+	output, err := chartbar.DefaultCtx.WithCsv(filename)
 	nazalog.Assert(nil, err)
 	fmt.Print(output)
 }

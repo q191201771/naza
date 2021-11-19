@@ -9,6 +9,7 @@
 package nazahttp
 
 import (
+	"github.com/q191201771/naza/pkg/nazaerrors"
 	"net/http"
 	"strings"
 )
@@ -26,10 +27,11 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 	var isPrefix bool
 	line, isPrefix, err = r.ReadLine()
 	if err != nil {
+		err = nazaerrors.Wrap(err)
 		return
 	}
 	if len(line) == 0 || isPrefix {
-		err = ErrHttpHeader
+		err = nazaerrors.Wrap(ErrHttpHeader, string(line))
 		return
 	}
 	firstLine = string(line)
@@ -40,7 +42,7 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 			break
 		}
 		if isPrefix {
-			err = ErrHttpHeader
+			err = nazaerrors.Wrap(ErrHttpHeader, string(line))
 			return
 		}
 		if err != nil {
@@ -49,7 +51,7 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 		l := string(line)
 		pos := strings.Index(l, ":")
 		if pos == -1 {
-			err = ErrHttpHeader
+			err = nazaerrors.Wrap(ErrHttpHeader, l)
 			return
 		}
 		headers.Add(strings.Trim(l[0:pos], " "), strings.Trim(l[pos+1:], " "))
@@ -70,12 +72,12 @@ func ParseHttpStatusLine(line string) (version string, statusCode string, reason
 func parseFirstLine(line string) (item1, item2, item3 string, err error) {
 	f := strings.Index(line, " ")
 	if f == -1 {
-		err = ErrHttpHeader
+		err = nazaerrors.Wrap(ErrFirstLine, line)
 		return
 	}
 	s := strings.Index(line[f+1:], " ")
 	if s == -1 || f+1+s+1 == len(line) {
-		err = ErrHttpHeader
+		err = nazaerrors.Wrap(ErrFirstLine, line)
 		return
 	}
 

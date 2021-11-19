@@ -17,15 +17,20 @@ import (
 	"runtime"
 )
 
-func Wrap(err error) error {
+func Wrap(err error, msg ...string) error {
 	if err == nil {
 		return nil
 	}
 
 	_, file, line, _ := runtime.Caller(1)
 	s := filepath.Base(file)
+	if len(msg) > 0 {
+		return fmt.Errorf("%w(%s %s:%d)", err, msg, s, line)
+	}
 	return fmt.Errorf("%w(%s:%d)", err, s, line)
 }
+
+// TODO(chef): 整理下面三个函数
 
 func Unwrap(err error) error {
 	return errors.Unwrap(err)

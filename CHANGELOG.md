@@ -1,3 +1,8 @@
+#### v0.26.0 (2021-11)
+
+- [feat] nazaerrors: Wrap函数可填入补充信息
+- [refactor] nazahttp: 丰富error信息
+
 #### v0.25.0 (2021-11)
 
 - [feat] package nazabytes: 新增包，提供Buffer struct

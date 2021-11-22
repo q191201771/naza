@@ -1,6 +1,7 @@
-#### v0.27.1 (2021-11)
+#### v0.27.2 (2021-11)
 
 - [fix] nazahttp: 修复ReadHttpHeader读取不完整就返回错误的bug
+- [fix] nazahttp: 增加解析http header first line的兼容性
 
 #### v0.26.0 (2021-11)
 

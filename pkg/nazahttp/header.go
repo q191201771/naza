@@ -21,7 +21,7 @@ type LineReader interface {
 // ReadHttpHeader
 //
 // @return firstLine: request的request line或response的status line
-// @return headers:   request header fileds的键值对
+// @return headers:   request header fields的键值对
 //
 func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err error) {
 	headers = make(http.Header)
@@ -52,12 +52,12 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 	for {
 		var l string
 		l, err = readLineFn()
-		if len(l) == 0 { // 读到一个空的 \r\n 表示http头全部读取完毕了
-			break
-		}
 		if err != nil {
 			err = nazaerrors.Wrap(err, l)
 			return
+		}
+		if len(l) == 0 { // 读到一个空的 \r\n 表示http头全部读取完毕了
+			break
 		}
 
 		pos := strings.Index(l, ":")

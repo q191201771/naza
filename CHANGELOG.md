@@ -1,3 +1,7 @@
+#### v0.27.0 (2021-11)
+
+- [fix] nazahttp: 修复ReadHttpHeader读取不完整就返回错误的bug
+
 #### v0.26.0 (2021-11)
 
 - [feat] nazaerrors: Wrap函数可填入补充信息

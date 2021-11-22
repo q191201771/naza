@@ -91,10 +91,16 @@ func parseFirstLine(line string) (item1, item2, item3 string, err error) {
 		return
 	}
 	s := strings.Index(line[f+1:], " ")
-	if s == -1 || f+1+s+1 == len(line) {
-		err = nazaerrors.Wrap(ErrFirstLine, line)
-		return
-	}
+  if s == -1 {
+    return line[0:f], line[f+1:], "", nil
+  }
+  if f+1+s+1 == len(line) {
+    return line[0:f], line[f+1:f+1+s], "", nil
+  }
+	//if s == -1 || f+1+s+1 == len(line) {
+	//	err = nazaerrors.Wrap(ErrFirstLine, line)
+	//	return
+	//}
 
 	return line[0:f], line[f+1 : f+1+s], line[f+1+s+1:], nil
 }

@@ -64,10 +64,28 @@ func TestParseHttpStatusLine(t *testing.T) {
 	assert.Equal(t, "400", c)
 	assert.Equal(t, "Bad Request", r)
 
-	statusLine := "HTTP/1.1 400 "
-	for i := 0; i <= len(statusLine); i++ {
-		sl := statusLine[0:i]
-		_, _, _, e = nazahttp.ParseHttpStatusLine(sl)
-		assert.IsNotNil(t, e, sl)
-	}
+	//statusLine := "HTTP/1.1 400 "
+	//for i := 0; i <= len(statusLine); i++ {
+	//	sl := statusLine[0:i]
+	//	_, _, _, e = nazahttp.ParseHttpStatusLine(sl)
+	//	assert.IsNotNil(t, e, sl)
+	//}
+
+	v, c, r, e = nazahttp.ParseHttpStatusLine("HTTP/1.1 475 ")
+	assert.Equal(t, nil, e)
+	assert.Equal(t, "HTTP/1.1", v)
+	assert.Equal(t, "475", c)
+	assert.Equal(t, "", r)
+
+	v, c, r, e = nazahttp.ParseHttpStatusLine("HTTP/1.1 475")
+	assert.Equal(t, nil, e)
+	assert.Equal(t, "HTTP/1.1", v)
+	assert.Equal(t, "475", c)
+	assert.Equal(t, "", r)
+
+	v, c, r, e = nazahttp.ParseHttpStatusLine("HTTP/1.1 475  ")
+	assert.Equal(t, nil, e)
+	assert.Equal(t, "HTTP/1.1", v)
+	assert.Equal(t, "475", c)
+	assert.Equal(t, " ", r)
 }

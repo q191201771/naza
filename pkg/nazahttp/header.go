@@ -18,37 +18,48 @@ type LineReader interface {
 	ReadLine() (line []byte, isPrefix bool, err error)
 }
 
+// ReadHttpHeader
+//
 // @return firstLine: request的request line或response的status line
-// @return headers: request header fileds的键值对
+// @return headers:   request header fileds的键值对
+//
 func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err error) {
 	headers = make(http.Header)
 
-	var line []byte
-	var isPrefix bool
-	line, isPrefix, err = r.ReadLine()
-	if err != nil {
-		err = nazaerrors.Wrap(err)
+	readLineFn := func() (string, error) {
+		var line string
+		var bline []byte
+		var isPrefix bool
+		for {
+			bline, isPrefix, err = r.ReadLine()
+			if err != nil {
+				return "", err
+			}
+			line += string(bline)
+			if !isPrefix {
+				break
+			}
+		}
+		return line, nil
+	}
+
+	firstLine, err = readLineFn()
+	if err != nil || len(firstLine) == 0 {
+		err = nazaerrors.Wrap(err, firstLine)
 		return
 	}
-	if len(line) == 0 || isPrefix {
-		err = nazaerrors.Wrap(ErrHttpHeader, string(line))
-		return
-	}
-	firstLine = string(line)
 
 	for {
-		line, isPrefix, err = r.ReadLine()
-		if len(line) == 0 { // 读到一个空的 \r\n 表示http头全部读取完毕了
+		var l string
+		l, err = readLineFn()
+		if len(l) == 0 { // 读到一个空的 \r\n 表示http头全部读取完毕了
 			break
 		}
-		if isPrefix {
-			err = nazaerrors.Wrap(ErrHttpHeader, string(line))
-			return
-		}
 		if err != nil {
+			err = nazaerrors.Wrap(err, l)
 			return
 		}
-		l := string(line)
+
 		pos := strings.Index(l, ":")
 		if pos == -1 {
 			err = nazaerrors.Wrap(ErrHttpHeader, l)

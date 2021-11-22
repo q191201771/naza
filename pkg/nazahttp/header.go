@@ -44,8 +44,12 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 	}
 
 	firstLine, err = readLineFn()
-	if err != nil || len(firstLine) == 0 {
+	if err != nil {
 		err = nazaerrors.Wrap(err, firstLine)
+		return
+	}
+	if len(firstLine) == 0 {
+		err = nazaerrors.Wrap(ErrHttpHeader, firstLine)
 		return
 	}
 

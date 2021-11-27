@@ -1,3 +1,9 @@
+#### v0.28.0 (2021-11)
+
+- [feat] dataops: 增加SliceAllOf和SliceMinMax函数
+- [refactor] nazabytes: 删除package nazastring，部分内容重构后移入package nazabytes中
+
+
 #### v0.27.2 (2021-11)
 
 - [fix] nazahttp: 修复ReadHttpHeader读取不完整就返回错误的bug

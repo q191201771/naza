@@ -6,6 +6,8 @@
 //
 // Author: Chef (191201771@qq.com)
 
+// Package bitrate 平滑计算比特率（码率）
+//
 package bitrate
 
 import (
@@ -14,7 +16,10 @@ import (
 )
 
 type Bitrate interface {
+	// Add
+	//
 	// @param nowUnixMs: 变参，可选择从外部传入当前 unix 时间戳，单位毫秒
+	//
 	Add(bytes int, nowUnixMs ...int64)
 
 	Rate(nowUnixMs ...int64) float32

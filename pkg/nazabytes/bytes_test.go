@@ -1,4 +1,4 @@
-// Copyright 2019, Chef.  All rights reserved.
+// Copyright 2021, Chef.  All rights reserved.
 // https://github.com/q191201771/naza
 //
 // Use of this source code is governed by a MIT-style license
@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-package nazastring
+package nazabytes
 
 import (
 	"bytes"
@@ -19,32 +19,30 @@ var inbuf = bytes.Repeat([]byte{'1', '2', '3', '4'}, 5678)
 var instr = string(inbuf)
 
 func TestSliceByteToStringTmp(t *testing.T) {
-	str := SliceByteToStringTmp(inbuf)
+	str := Bytes2StringRef(inbuf)
 	assert.Equal(t, instr, str)
 }
 
 func TestStringToSliceByteTmp(t *testing.T) {
-	buf := StringToSliceByteTmp(instr)
+	buf := String2BytesRef(instr)
 	assert.Equal(t, inbuf, buf)
-}
-
-func TestDumpSliceByte(t *testing.T) {
-	golden := []byte{1, 2, 3, 4, 5}
-	ret := DumpSliceByte(golden)
-	assert.Equal(t, "[]byte{0x01, 0x02, 0x03, 0x04, 0x05}", ret)
 }
 
 func TestSubSliceSafety(t *testing.T) {
 	var b []byte
-	assert.Equal(t, nil, SubSliceSafety(b, 1))
-	assert.Equal(t, nil, SubSliceSafety(b, 2))
+	assert.Equal(t, nil, Sub(b, 0, 1))
+	assert.Equal(t, nil, Sub(b, 0, 2))
 	b = []byte{1}
-	assert.Equal(t, b, SubSliceSafety(b, 1))
-	assert.Equal(t, b, SubSliceSafety(b, 2))
+	assert.Equal(t, b, Sub(b, 0, 1))
+	assert.Equal(t, b, Sub(b, 0, 2))
 	b = []byte{1, 2}
-	assert.Equal(t, []byte{1}, SubSliceSafety(b, 1))
-	assert.Equal(t, b, SubSliceSafety(b, 2))
-	assert.Equal(t, b, SubSliceSafety(b, 3))
+	assert.Equal(t, []byte{1}, Sub(b, 0, 1))
+	assert.Equal(t, b, Sub(b, 0, 2))
+	assert.Equal(t, b, Sub(b, 0, 3))
+
+	assert.Equal(t, []byte{2}, Sub(b, 1, 1))
+	assert.Equal(t, []byte{2}, Sub(b, 1, 2))
+	assert.Equal(t, nil, Sub(b, 2, 1))
 }
 
 func BenchmarkSliceByteToStringOrigin(b *testing.B) {
@@ -60,7 +58,7 @@ func BenchmarkSliceByteToStringTmp(b *testing.B) {
 	var str string
 
 	for i := 0; i < b.N; i++ {
-		str = SliceByteToStringTmp(inbuf)
+		str = Bytes2StringRef(inbuf)
 	}
 	assert.Equal(b, instr, str)
 }
@@ -78,7 +76,7 @@ func BenchmarkStringToSliceByteTmp(b *testing.B) {
 	var buf []byte
 
 	for i := 0; i < b.N; i++ {
-		buf = StringToSliceByteTmp(instr)
+		buf = String2BytesRef(instr)
 	}
 	assert.Equal(b, buf, inbuf)
 }

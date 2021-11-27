@@ -13,10 +13,8 @@ import (
 	"io"
 
 	"github.com/q191201771/naza/pkg/nazalog"
-	"github.com/q191201771/naza/pkg/nazastring"
 )
 
-// TODO(chef): refactor 移入naza中
 // TODO(chef): 增加options: growRoundThreshold; 是否做检查
 // TODO(chef): 扩容策略函数可由外部传入
 
@@ -247,7 +245,7 @@ func (b *Buffer) Cap() int {
 // ---------------------------------------------------------------------------------------------------------------------
 
 func (b *Buffer) WriteString(s string) (n int, err error) {
-	return b.Write(nazastring.StringToSliceByteTmp(s))
+	return b.Write(String2BytesRef(s))
 }
 
 func (b *Buffer) String() string {

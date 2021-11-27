@@ -21,8 +21,9 @@ import (
 // @return ret: 转换后的字符串切片
 //
 func Slice2Strings(a interface{}, fn func(originItem interface{}) string) (ret []string) {
-	IterateInterfaceAsSlice(a, func(iterItem interface{}) {
+	IterateInterfaceAsSlice(a, func(iterItem interface{}) bool {
 		ret = append(ret, fn(iterItem))
+		return true
 	})
 	return
 }
@@ -30,8 +31,9 @@ func Slice2Strings(a interface{}, fn func(originItem interface{}) string) (ret [
 // Slice2Times 将任意类型切片转换为时间切片
 //
 func Slice2Times(a interface{}, fn func(originItem interface{}) time.Time) (ret []time.Time) {
-	IterateInterfaceAsSlice(a, func(iterItem interface{}) {
+	IterateInterfaceAsSlice(a, func(iterItem interface{}) bool {
 		ret = append(ret, fn(iterItem))
+		return true
 	})
 	return
 }
@@ -42,9 +44,10 @@ func Slice2Times(a interface{}, fn func(originItem interface{}) time.Time) (ret 
 //
 func SliceUniqueCount(a interface{}, fn func(originItem interface{}) string) (ret map[string]int) {
 	ret = make(map[string]int)
-	IterateInterfaceAsSlice(a, func(iterItem interface{}) {
+	IterateInterfaceAsSlice(a, func(iterItem interface{}) bool {
 		k := fn(iterItem)
 		ret[k] += 1
+		return true
 	})
 	return
 }
@@ -104,7 +107,10 @@ func Map2Strings(a interface{}, fn func(k, v interface{}) string) (ret []string)
 //
 // 遍历切片`a`，通过`onIterate`逐个回调元素
 //
-func IterateInterfaceAsSlice(a interface{}, onIterate func(iterItem interface{})) {
+// @param onIterate:
+//     @return keepIterate: 如果返回false，则停止变化
+//
+func IterateInterfaceAsSlice(a interface{}, onIterate func(iterItem interface{}) (keepIterate bool)) {
 	v := reflect.ValueOf(a)
 	for i := 0; i < v.Len(); i++ {
 		onIterate(v.Index(i).Interface())
@@ -117,4 +123,41 @@ func IterateInterfaceAsMap(a interface{}, onIterate func(k, v interface{})) {
 		s := v.MapIndex(key)
 		onIterate(key.Interface(), s.Interface())
 	}
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+func SliceAllOf(a interface{}, fn func(originItem interface{}) bool) (ret bool) {
+	ret = true
+	IterateInterfaceAsSlice(a, func(iterItem interface{}) bool {
+		if !fn(iterItem) {
+			ret = false
+			return false
+		}
+		return true
+	})
+	return
+}
+
+func SliceMinMax(a interface{}, less func(i, j int) bool) (min, max interface{}) {
+	v := reflect.ValueOf(a)
+	imin := 0
+	imax := 0
+	if v.Len() == 1 {
+		return v.Index(imin).Interface(), v.Index(imax).Interface()
+	}
+	for i := 1; i < v.Len(); i++ {
+		if less(i, imin) {
+			imin = i
+		}
+		if less(imax, i) {
+			imax = i
+		}
+	}
+	return v.Index(imin).Interface(), v.Index(imax).Interface()
+}
+
+func SliceMax(a interface{}, less func(i, j int) bool) (max interface{}) {
+	_, max = SliceMinMax(a, less)
+	return
 }

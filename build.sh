@@ -59,7 +59,3 @@ done
 #if [ -d ${ROOT_DIR}/demo/taskpool ]; then
 #  cd ${ROOT_DIR}/demo/taskpool && go build -ldflags "$LDFlags" -o ${ROOT_DIR}/bin/taskpool
 #fi
-
-cd ${ROOT_DIR} && ./bin/myapp -v &&
-ls -lrt ${ROOT_DIR}/bin &&
-echo 'build done.'

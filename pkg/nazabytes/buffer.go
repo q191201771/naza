@@ -201,7 +201,7 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	b.Grow(len(p))
 	copy(b.core[b.wpos:], p)
-	b.wpos += n
+	b.wpos += len(p)
 	return len(p), nil
 }
 

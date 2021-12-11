@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-// TODO(chef): [feat] 增加Clock::Sleep，内部用Timer实现等待
 // TODO(chef): [feat] 增加Clock::NewTicker
 
 type Clock interface {
@@ -24,6 +23,7 @@ type Clock interface {
 	//
 	Now() time.Time
 	NewTimer(d time.Duration) *Timer
+	Sleep(d time.Duration)
 
 	// Add Set ...
 	//
@@ -57,6 +57,10 @@ func (c *stdClock) NewTimer(d time.Duration) *Timer {
 		C:        stdTimer.C,
 		stdTimer: stdTimer,
 	}
+}
+
+func (c *stdClock) Sleep(d time.Duration) {
+	time.Sleep(d)
 }
 
 func (c *stdClock) Add(d time.Duration) {
@@ -93,6 +97,11 @@ func (fc *fakeClock) NewTimer(d time.Duration) *Timer {
 	}
 	fc.addTimer(t)
 	return t
+}
+
+func (fc *fakeClock) Sleep(d time.Duration) {
+	// TODO(chef): [feat] 实现和add、set挂钩的Sleep，内部用Timer实现等待
+	// 当前的使用场景都是测试场景，直接快速跳过Sleep以及能够满足需求
 }
 
 func (fc *fakeClock) Add(d time.Duration) {

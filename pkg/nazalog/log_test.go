@@ -135,9 +135,11 @@ func TestRotate(t *testing.T) {
 
 	now := time.Now()
 	nazalog.Clock = mock.NewFakeClock()
+	defer func() {
+		nazalog.Clock = mock.NewStdClock()
+	}()
 	nazalog.Clock.Set(now.Add(48 * time.Hour))
 	nazalog.Info("bbb")
-	nazalog.Clock = mock.NewStdClock()
 }
 
 func TestPanic(t *testing.T) {

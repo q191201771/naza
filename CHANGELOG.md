@@ -1,8 +1,12 @@
+#### v0.28.1 (2021-12)
+
+- [feat] mock: 增加Sleep函数
+- [fix] nazabytes: 修复Write函数错误写入的bug
+
 #### v0.28.0 (2021-11)
 
 - [feat] dataops: 增加SliceAllOf和SliceMinMax函数
 - [refactor] nazabytes: 删除package nazastring，部分内容重构后移入package nazabytes中
-
 
 #### v0.27.2 (2021-11)
 

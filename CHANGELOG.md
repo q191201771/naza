@@ -1,3 +1,7 @@
+#### v0.28.2 (2021-12)
+
+- [opt] nazahttp: 增强兼容性，解析http header时，存在没有冒号的行。把没有冒号的行内容判定为属于上一个header的value
+
 #### v0.28.1 (2021-12)
 
 - [feat] mock: 增加Sleep函数

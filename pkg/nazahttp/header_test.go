@@ -12,6 +12,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"sync"
 	"testing"
 
 	"github.com/q191201771/naza/pkg/assert"
@@ -22,6 +23,7 @@ import (
 )
 
 func TestHeader(t *testing.T) {
+	// TODO(chef): 抽象出可获取可用监听端口
 	for port := 8080; port != 8090; port++ {
 		addr := fmt.Sprintf(":%d", port)
 		ln, err := net.Listen("tcp", addr)
@@ -47,6 +49,45 @@ func TestHeader(t *testing.T) {
 		assert.Equal(t, "GET", m)
 		assert.Equal(t, "/test", u)
 		assert.Equal(t, "HTTP/1.1", v)
+
+		_ = conn.Close()
+		_ = ln.Close()
+		break
+	}
+}
+
+func TestReadHttpResponseMessage(t *testing.T) {
+	// 兼容性case1
+	for port := 8080; port != 8090; port++ {
+		addr := fmt.Sprintf(":%d", port)
+		ln, err := net.Listen("tcp", addr)
+		if err != nil {
+			continue
+		}
+
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			conn, err := net.Dial("tcp", addr)
+			assert.Equal(t, nil, err)
+			conn.Write([]byte("PLAY rtsp://127.0.0.1:5544/live/test110 RTSP/1.0\r\nUser-Agent: lal/0.26.0\r\nSession: 191201771\r\nRange: npt=0.000-\r\nCSeq: 5\r\n\r\n"))
+			r := bufio.NewReader(conn)
+			ctx, err := nazahttp.ReadHttpResponseMessage(r)
+			assert.Equal(t, nil, err)
+			assert.Equal(t, "url=track_id=0;seq=63248;rtptime=0,url=track_id=1;seq=56208;rtptime=0", ctx.Headers.Get("Rtp-Info"))
+			wg.Done()
+		}()
+
+		conn, err := ln.Accept()
+		r := bufio.NewReader(conn)
+		_, err = nazahttp.ReadHttpResponseMessage(r)
+		assert.Equal(t, nil, err)
+
+		_, _ = conn.Write([]byte("RTSP/1.0 200 OK\r\nCSeq: 5\r\nSession: ac5a1f04\r\nRTP-Info: url=track_id=0;seq=63248;rtptime=0,\r\nurl=track_id=1;seq=56208;rtptime=0\r\n\r\n"))
+		wg.Wait()
+
+		_ = conn.Close()
+		_ = ln.Close()
 		break
 	}
 }

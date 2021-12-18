@@ -70,7 +70,10 @@ func ReadHttpResponseMessage(r HttpReader) (ctx HttpRespMsgCtx, err error) {
 	return
 }
 
+// ReadHttpMessage
+//
 // 注意，如果HTTP Header中不包含`Content-Length`，则不会读取HTTP Body，并且err返回值为nil
+//
 func ReadHttpMessage(r HttpReader) (ctx HttpMsgCtx, err error) {
 	var requestLine string
 	requestLine, ctx.Headers, err = ReadHttpHeader(r)

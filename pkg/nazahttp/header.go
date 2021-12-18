@@ -9,9 +9,10 @@
 package nazahttp
 
 import (
-	"github.com/q191201771/naza/pkg/nazaerrors"
 	"net/http"
 	"strings"
+
+	"github.com/q191201771/naza/pkg/nazaerrors"
 )
 
 type LineReader interface {
@@ -53,6 +54,8 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 		return
 	}
 
+	var lastKey string
+
 	for {
 		var l string
 		l, err = readLineFn()
@@ -66,9 +69,18 @@ func ReadHttpHeader(r LineReader) (firstLine string, headers http.Header, err er
 
 		pos := strings.Index(l, ":")
 		if pos == -1 {
-			err = nazaerrors.Wrap(ErrHttpHeader, l)
-			return
+			// 兼容性处理，见单元测试TestReadHttpResponseMessage中的case1
+			//
+			// 如果找不到冒号，就把它算到上一个header条目的value里
+			// 也即我们认为上一个value中的自身内容包含了格式错误的\r\n
+			//
+			if lastKey != "" {
+				vs := headers.Values(lastKey)
+				vs[len(vs)-1] = vs[len(vs)-1] + l
+			}
+			continue
 		}
+		lastKey = strings.Trim(l[0:pos], " ")
 		headers.Add(strings.Trim(l[0:pos], " "), strings.Trim(l[pos+1:], " "))
 	}
 	return

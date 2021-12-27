@@ -329,7 +329,7 @@ func newLogger(modOptions ...ModOption) (*logger, error) {
 	}
 	if l.core.option.Filename != "" {
 		dir := filepath.Dir(l.core.option.Filename)
-		if err = os.MkdirAll(dir, 0777); err != nil {
+		if fsinfo,err := os.Stat(dir); err != nil || !fsinfo.IsDir() {
 			return nil, err
 		}
 		if l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {

@@ -265,9 +265,14 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 	if l.core.fp != nil {
 		if l.core.option.IsRotateDaily && now.Day() != l.core.currRoundTime.Day() {
 			backupName := l.core.option.Filename + "." + l.core.currRoundTime.Format("20060102")
-			if err := os.Rename(l.core.option.Filename, backupName); err == nil {
-				_ = l.core.fp.Close()
-				l.core.fp, _ = os.Create(l.core.option.Filename)
+			if err := l.core.fp.Close(); err == nil {
+				if err := os.Rename(l.core.option.Filename, backupName); err == nil {
+					l.core.fp, _ = os.Create(l.core.option.Filename)
+				} else {
+					if l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
+						return
+					}
+				}
 			}
 			l.core.currRoundTime = now
 		}

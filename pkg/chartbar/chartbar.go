@@ -10,8 +10,6 @@
 //
 package chartbar
 
-// TODO(chef): 如果总数小于绘制长度并且都是正整数，可以考虑按原始值而非比例绘制
-
 const (
 	OrderOrigin    Order = iota + 1 // 原始序
 	OrderAscCount                   // 按计数值升序排序
@@ -32,21 +30,25 @@ type Item struct {
 type Order int
 
 type Option struct {
-	MaxBarLength    int
-	DrawIconBlock   string
-	DrawIconPadding string
+	MaxBarLength    int    // 柱状图形的最大长度
+	DrawIconBlock   string // 柱状图实体绘制内容
+	DrawIconPadding string // 柱状图空余部分绘制内容
+	HideName        bool   // 是否隐藏图形旁边的Name字段
+	HideNum         bool   // 是否隐藏图形旁边的Num字段
 
-	Order          Order
-	PrefixNumLimit int
-	SuffixNumLimit int
+	Order          Order // 排序方式
+	PrefixNumLimit int   // 只显示前`PrefixNumLimit`个元素，注意，可以和`SuffixNumLimit`同时使用
+	SuffixNumLimit int   // 只显示后`SuffixNumLimit`个元素
 }
 
 var defaultOption = Option{
 	// 50 "▇" " "
 	// 18 "口" "　"
-	MaxBarLength:    50,  // MaxBarLength 柱状图形的最大长度
-	DrawIconBlock:   "▇", // 柱状图实体绘制内容
-	DrawIconPadding: " ", // 柱状图空余部分绘制内容
+	MaxBarLength:    50,
+	DrawIconBlock:   "▇",
+	DrawIconPadding: " ",
+	HideName:        false, //
+	HideNum:         false,
 
 	Order:          OrderDescCount,
 	PrefixNumLimit: NoNumLimit,
@@ -69,6 +71,10 @@ func NewCtx(modOptions ...ModOption) *Ctx {
 	}
 }
 
+// NewCtxWith
+//
+// 在`ctx`参数基础上使用`modOptions`生成新的 Ctx
+//
 func NewCtxWith(ctx *Ctx, modOptions ...ModOption) *Ctx {
 	option := ctx.option
 	for _, fn := range modOptions {

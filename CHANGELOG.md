@@ -1,3 +1,10 @@
+#### v0.29.0 (2022-01)
+
+- [fix] nazalog: windows 日志无法按天翻滚
+- [feat] chartbar: 可配置隐藏Name和Num
+- [opt] chartbar: 都是整数则不显示小数部分
+- [opt] chartbar: 都是小整数则按原始值绘制
+
 #### v0.28.2 (2021-12)
 
 - [opt] nazahttp: 增强兼容性，解析http header时，存在没有冒号的行。把没有冒号的行内容判定为属于上一个header的value

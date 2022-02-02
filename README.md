@@ -2,10 +2,10 @@
 <br>
 Go语言基础库
 <br><br>
-[![Release](https://img.shields.io/github/tag/q191201771/naza.svg?label=release)](https://github.com/q191201771/naza/tags)
-[![CI](https://github.com/q191201771/naza/actions/workflows/main.yml/badge.svg)](https://github.com/q191201771/naza/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/q191201771/naza/branch/master/graph/badge.svg?token=9wWcoiktZl)](https://codecov.io/gh/q191201771/naza)
-[![goreportcard](https://goreportcard.com/badge/github.com/q191201771/naza)](https://goreportcard.com/report/github.com/q191201771/naza)
+<a title="Release" target="_blank" href="https://github.com/q191201771/naza/tags"><img src="https://img.shields.io/github/tag/q191201771/naza.svg?label=release"></a>
+<a title="CI" target="_blank" href="https://github.com/q191201771/naza/actions/workflows/main.yml"><img src="https://github.com/q191201771/naza/actions/workflows/main.yml/badge.svg"></a>
+<a title="codecov" target="_blank" href="https://codecov.io/gh/q191201771/naza"><img src="https://codecov.io/gh/q191201771/naza/branch/master/graph/badge.svg?token=9wWcoiktZl"></a>
+<a title="goreportcard" target="_blank" href="https://goreportcard.com/report/github.com/q191201771/naza"><img src="https://goreportcard.com/badge/github.com/q191201771/naza"></a>
 <br>
 <a title="codeline" target="_blank" href="https://github.com/q191201771/naza"><img src="https://sloc.xyz/github/q191201771/naza/?category=code"></a>
 <a title="license" target="_blank" href="https://github.com/q191201771/naza/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"></a>

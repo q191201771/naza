@@ -3,7 +3,7 @@
 Go语言基础库
 <br><br>
 <a title="Release" target="_blank" href="https://github.com/q191201771/naza/tags"><img src="https://img.shields.io/github/tag/q191201771/naza.svg?label=release"></a>
-<a title="CI" target="_blank" href="https://github.com/q191201771/naza/actions/workflows/main.yml"><img src="https://github.com/q191201771/naza/actions/workflows/main.yml/badge.svg"></a>
+<a title="CI" target="_blank" href="https://github.com/q191201771/naza/actions/workflows/ci.yml"><img src="https://github.com/q191201771/naza/actions/workflows/ci.yml/badge.svg"></a>
 <a title="codecov" target="_blank" href="https://codecov.io/gh/q191201771/naza"><img src="https://codecov.io/gh/q191201771/naza/branch/master/graph/badge.svg?token=9wWcoiktZl"></a>
 <a title="goreportcard" target="_blank" href="https://goreportcard.com/report/github.com/q191201771/naza"><img src="https://goreportcard.com/badge/github.com/q191201771/naza"></a>
 <br>

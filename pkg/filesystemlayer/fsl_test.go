@@ -9,7 +9,9 @@
 package filesystemlayer_test
 
 import (
+	"bytes"
 	"fmt"
+	"runtime"
 	"sync"
 	"testing"
 
@@ -109,4 +111,37 @@ func TestCase1(t *testing.T) {
 	// 重命名不存在的文件
 	err = fslCtx.Rename("/tmp/lal/hls/test1/1.ts", "/tmp/lal/hls/test1/new1.ts")
 	assert.Equal(t, filesystemlayer.ErrNotFound, err)
+}
+
+func TestFslMemory(t *testing.T) {
+	buf := bytes.Repeat([]byte("x"), 4096000)
+	var m runtime.MemStats
+
+	runtime.ReadMemStats(&m)
+	nazalog.Debugf("%+v", m)
+
+	fslCtx := filesystemlayer.FslFactory(filesystemlayer.FslTypeMemory)
+	fp, err := fslCtx.Create("./aaa/b1")
+	assert.Equal(t, nil, err)
+	_, err = fp.Write(buf)
+	assert.Equal(t, nil, err)
+
+	runtime.ReadMemStats(&m)
+	nazalog.Debugf("%+v", m)
+
+	fp2, err := fslCtx.Create("./aaa/b2")
+	assert.Equal(t, nil, err)
+	_, err = fp2.Write(buf)
+	assert.Equal(t, nil, err)
+
+	runtime.ReadMemStats(&m)
+	nazalog.Debugf("%+v", m)
+
+	err = fslCtx.RemoveAll("./aaa")
+	assert.Equal(t, nil, err)
+
+	runtime.GC()
+
+	runtime.ReadMemStats(&m)
+	nazalog.Debugf("%+v", m)
 }

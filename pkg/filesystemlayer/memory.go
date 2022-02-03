@@ -107,6 +107,8 @@ func (f *FslMemory) WriteFile(filename string, data []byte, perm uint32) error {
 	return err
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 func (f *FslMemory) openFile(name string, flag int, perm uint32) (IFile, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
@@ -120,6 +122,8 @@ func (f *FslMemory) openFile(name string, flag int, perm uint32) (IFile, error) 
 	fi.truncate()
 	return fi, nil
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
 
 func (f *file) Write(b []byte) (n int, err error) {
 	f.buf = append(f.buf, b...)

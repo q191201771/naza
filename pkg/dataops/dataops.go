@@ -111,6 +111,7 @@ func Map2Strings(a interface{}, fn func(k, v interface{}) string) (ret []string)
 //     @return keepIterate: 如果返回false，则停止变化
 //
 func IterateInterfaceAsSlice(a interface{}, onIterate func(iterItem interface{}) (keepIterate bool)) {
+	// TODO(chef): fix haven't use keepIterate
 	v := reflect.ValueOf(a)
 	for i := 0; i < v.Len(); i++ {
 		onIterate(v.Index(i).Interface())

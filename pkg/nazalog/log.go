@@ -80,7 +80,7 @@ type core struct {
 	m             sync.Mutex
 	fp            *os.File
 	console       *os.File
-	buf           bytes.Buffer
+	buf           bytes.Buffer // TODO(chef): [refactor] 是否需要使用nazabytes.Buffer
 	currRoundTime time.Time
 }
 
@@ -315,36 +315,44 @@ func (l *logger) GetOption() Option {
 	return l.core.option
 }
 
-func newLogger(modOptions ...ModOption) (*logger, error) {
+func (l *logger) Init(modOptions ...ModOption) error {
 	var err error
 
-	l := &logger{
-		core: &core{
-			currRoundTime: time.Now(),
-		},
-	}
+	l.core.currRoundTime = time.Now()
 	l.core.option = defaultOption
 
 	for _, fn := range modOptions {
 		fn(&l.core.option)
 	}
 
-	if err := validate(l.core.option); err != nil {
-		return nil, err
+	if err = validate(l.core.option); err != nil {
+		return err
 	}
 	if l.core.option.Filename != "" {
 		dir := filepath.Dir(l.core.option.Filename)
 		if err = os.MkdirAll(dir, 0777); err != nil {
-			return nil, err
+			return err
 		}
 		if l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	if l.core.option.IsToStdout {
 		l.core.console = os.Stdout
 	}
 
+	return nil
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+func newLogger(modOptions ...ModOption) (*logger, error) {
+	l := &logger{
+		core: &core{},
+	}
+	if err := l.Init(modOptions...); err != nil {
+		return nil, err
+	}
 	return l, nil
 }
 

@@ -139,26 +139,35 @@ func GetOption() Option {
 	return global.GetOption()
 }
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 
-// 这些设置全局Logger的函数没有加锁，由调用方保证调用Init、SetGlobalLogger函数时不会并发调用全局Logger的其他方法
-// 也即最好在程序启动时配置
-
-func SetGlobalLogger(l Logger) {
-	global = l
-}
-
+// GetGlobalLogger 获取全局Logger
+//
 func GetGlobalLogger() Logger {
 	return global
 }
 
-// 初始化全局Logger
+// Init 初始化全局Logger
+//
+// 注意，全局Logger在不需要特殊配置时，可以不显示调用 Init 函数
+// 注意，该方法不会修改global指针指向，而是操作global指针指向的对象
+//
 func Init(modOptions ...ModOption) error {
-	var err error
-	global, err = newLogger(modOptions...)
-	return err
+	return global.Init(modOptions...)
 }
 
+// SetGlobalLogger 更换全局Logger
+//
+// 注意，更换后，之前调用 GetGlobalLogger 获取的全局Logger和当前的全局Logger将是两个对象
+//
+// TODO(chef): [refactor] 在已经提供 Init 的前提下，是否应该删除掉该函数
+//
+func SetGlobalLogger(l Logger) {
+	global = l
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 func init() {
-	_ = Init()
+	global, _ = newLogger()
 }

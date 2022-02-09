@@ -58,13 +58,16 @@ type Logger interface {
 	//
 	Assert(expected interface{}, actual interface{}, extInfo ...string)
 
-	// flush to disk, typically
+	// Sync flush to disk, typically
+	//
 	Sync()
 
-	// 添加前缀，新生成一个Logger对象，如果老Logger也有prefix，则老Logger依然打印老prefix，新Logger打印多个prefix
+	// WithPrefix 添加前缀，新生成一个Logger对象，如果老Logger也有prefix，则老Logger依然打印老prefix，新Logger打印多个prefix
+	//
 	WithPrefix(s string) Logger
 
-	// 下面这些打印接口是为兼容标准库，让某些已使用标准库日志的代码替换到nazalog方便一些
+	// Output Print ... 下面这些打印接口是为兼容标准库，让某些已使用标准库日志的代码替换到nazalog方便一些
+	//
 	Output(calldepth int, s string) error
 	Print(v ...interface{})
 	Printf(format string, v ...interface{})
@@ -72,8 +75,18 @@ type Logger interface {
 	Fatalln(v ...interface{})
 	Panicln(v ...interface{})
 
-	// 获取配置项，注意，作用是只读，非修改配置
+	// GetOption 获取配置项
+	//
+	// 注意，作用是只读，非修改配置
+	//
 	GetOption() Option
+
+	// Init 初始化配置
+	//
+	// 注意，正常情况下，应在调用 New 函数生成Logger对象时进行配置， Init 方法提供了在已有Logger对象上配置的机会，
+	// 但是，出于性能考虑，操作logger对象内部成员时没有加锁，调用方需自行保证该函数不和其他函数并发调用，也即在使用Logger对象前（比如程序启动时)
+	//
+	Init(modOptions ...ModOption) error
 }
 
 type Option struct {

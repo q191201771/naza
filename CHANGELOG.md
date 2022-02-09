@@ -1,3 +1,10 @@
+#### v0.30.0 (2022-02)
+
+- [feat] nazalog: 增加Init接口函数
+- [test] filesystemlayer: 测试内存模式
+- [chore] CI: 增加定时任务，增加测试覆盖率
+- [doc] 更新README的徽章
+
 #### v0.29.0 (2022-01)
 
 - [fix] nazalog: windows 日志无法按天翻滚

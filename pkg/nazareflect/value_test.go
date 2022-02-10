@@ -49,16 +49,25 @@ func TestEqual(t *testing.T) {
 }
 
 func TestEqualInteger(t *testing.T) {
+	// i i
 	sure(t, EqualInteger(0, 0))
+	// i u
 	sure(t, EqualInteger(1, uint(1)))
+	// u i
 	sure(t, EqualInteger(uint32(1), int16(1)))
+	// u u
 	sure(t, EqualInteger(uint(1), uint8(1)))
 
+	// i i
 	sure(t, !EqualInteger(1, 0))
-	sure(t, !EqualInteger(0, "aaa"))
+	// i u
 	sure(t, !EqualInteger(-1, uint(0)))
-	sure(t, !EqualInteger(int32(0), int16(1)))
+	// u i
 	sure(t, !EqualInteger(uint16(0), int32(-1)))
+	// u u
+	sure(t, !EqualInteger(uint32(0), uint16(1)))
+	// not int
+	sure(t, !EqualInteger(0, "aaa"))
 }
 
 // 因为naza assert package引用了naza value package，如果这里再使用assert，就造成package循环引用了

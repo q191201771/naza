@@ -57,6 +57,7 @@ func TestEqualInteger(t *testing.T) {
 	sure(t, !EqualInteger(1, 0))
 	sure(t, !EqualInteger(0, "aaa"))
 	sure(t, !EqualInteger(-1, uint(0)))
+	sure(t, !EqualInteger(int32(0), int16(1)))
 	sure(t, !EqualInteger(uint16(0), int32(-1)))
 }
 

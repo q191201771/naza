@@ -60,7 +60,7 @@ func EqualInteger(a, b interface{}) bool {
 	buv, buok := tryUint(b)
 
 	if auok && buok { // a,b都是无符号整型 (1)
-		return auv == auv
+		return auv == buv
 	}
 	if aiok && buok { // a是有符号整型，b是无符号整型 (1)
 		if aiv < 0 {

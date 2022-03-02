@@ -47,9 +47,9 @@ func TestBuffer(t *testing.T) {
 	assert.Equal(t, golden, buf)
 	b.Skip(10)
 	assert.Equal(t, nil, b.Bytes())
-	assert.Equal(t, 16, len(b.WritableBytes()))
+	assert.Equal(t, 128, len(b.WritableBytes()))
 	assert.Equal(t, 0, b.Len())
-	assert.Equal(t, 16, b.Cap())
+	assert.Equal(t, 128, b.Cap())
 
 	// 利用头部空闲空间扩容
 	buf = b.ReserveBytes(10)
@@ -63,7 +63,7 @@ func TestBuffer(t *testing.T) {
 	assert.Equal(t, golden[2:], b.Bytes()[:8])
 	assert.Equal(t, golden[:7], b.Bytes()[8:])
 	assert.Equal(t, 15, b.Len())
-	assert.Equal(t, 16, b.Cap())
+	assert.Equal(t, 128, b.Cap())
 
 	// Truncate
 	b.Reset()

@@ -18,6 +18,7 @@ import (
 // TODO(chef): 增加options: growRoundThreshold; 是否做检查
 // TODO(chef): 扩容策略函数可由外部传入
 
+const growMinThreshold = 128
 const growRoundThreshold = 1048576 // 1MB
 
 // Buffer 先进先出可扩容流式buffer，可直接读写内部切片避免拷贝
@@ -133,13 +134,15 @@ func (b *Buffer) Grow(n int) {
 		return
 	}
 
+	// 预分配一些
+	if n <= growMinThreshold {
+		n = growMinThreshold
+	} else if n < growMinThreshold {
+		n = roundUpPowerOfTwo(n)
+	}
+
 	// 扩容后总共需要的大小
 	needed := b.Len() + n
-
-	// 扩容大小在阈值范围内时，向上取值到2的倍数
-	if needed < growRoundThreshold {
-		needed = roundUpPowerOfTwo(needed)
-	}
 
 	nazalog.Debugf("[%p] Buffer::Grow. realloc, n=%d, copy=%d, cap=(%d, %d)", b, n, b.Len(), b.Cap(), needed)
 	core := make([]byte, needed, needed)

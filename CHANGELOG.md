@@ -1,3 +1,8 @@
+#### v0.30.1 (2022-03)
+
+- [opt] nazabytes: 优化Buffer的扩容逻辑
+- [fix] nazareflect: 修复两个无符号整型比较时的bug
+
 #### v0.30.0 (2022-02)
 
 - [feat] nazalog: 增加Init接口函数

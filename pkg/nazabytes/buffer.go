@@ -127,7 +127,7 @@ func (b *Buffer) Grow(n int) {
 
 	if b.rpos+tail >= n {
 		// 头部加上尾部空闲空间足够，将可读数据移动到头部，回收头部空闲空间
-		nazalog.Debugf("[%p] Buffer::Grow. move, n=%d, copy=%d", b, n, b.Len())
+		nazalog.Debugf("[%p] Buffer::Grow. move, this round need=%d, copy=%d", b, n, b.Len())
 		copy(b.core, b.core[b.rpos:b.wpos])
 		b.wpos -= b.rpos
 		b.rpos = 0
@@ -137,19 +137,19 @@ func (b *Buffer) Grow(n int) {
 	// 预分配一些
 	if n <= growMinThreshold {
 		n = growMinThreshold
-	} else if n < growMinThreshold {
+	} else if n < growRoundThreshold {
 		n = roundUpPowerOfTwo(n)
 	}
 
 	// 扩容后总共需要的大小
 	needed := b.Len() + n
 
-	nazalog.Debugf("[%p] Buffer::Grow. realloc, n=%d, copy=%d, cap=(%d, %d)", b, n, b.Len(), b.Cap(), needed)
+	nazalog.Debugf("[%p] Buffer::Grow. realloc, this round need=%d, copy=%d, cap=(%d -> %d)", b, n, b.Len(), b.Cap(), needed)
 	core := make([]byte, needed, needed)
 	copy(core, b.core[b.rpos:b.wpos])
 	b.core = core
-	b.rpos = 0
 	b.wpos -= b.rpos
+	b.rpos = 0
 }
 
 // WritableBytes 返回当前可写入的字节切片
@@ -161,9 +161,13 @@ func (b *Buffer) WritableBytes() []byte {
 	return b.core[b.wpos:]
 }
 
-// ReserveBytes 返回可写入`n`大小的字节切片，如果空闲空间不够，内部会进行扩容
+// ReserveBytes
 //
-// 注意，返回值空间大小只会为`n`，
+// 返回可写入`n`大小的字节切片，如果空闲空间不够，内部会进行扩容。
+//
+// 注意，一般在完成写入后，需要调用 Flush。
+//
+// @return: 注意，返回值空间大小只会为`n`。
 //
 func (b *Buffer) ReserveBytes(n int) []byte {
 	b.Grow(n)
@@ -199,7 +203,11 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 
 // ----- implement io.Writer interface ---------------------------------------------------------------------------------
 
-// Write 拷贝
+// Write 拷贝。内部空间不够时，会自动扩容
+//
+// @return n: 目前恒等于`len(p)`
+//
+// @return err: 目前恒等于nil
 //
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	b.Grow(len(p))

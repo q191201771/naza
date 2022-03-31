@@ -9,6 +9,7 @@
 package nazabytes
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/q191201771/naza/pkg/assert"
@@ -90,4 +91,12 @@ func TestBuffer(t *testing.T) {
 	// 特殊值，极小的扩容
 	b = NewBuffer(1)
 	buf = b.ReserveBytes(2)
+
+	b = NewBuffer(4096)
+	b.Write(bytes.Repeat([]byte{'1'}, 1400))
+	b.Skip(20)
+	b.Write(bytes.Repeat([]byte{'1'}, 1400))
+	b.Write(bytes.Repeat([]byte{'1'}, 1400))
+	b.Bytes()
+	assert.Equal(t, 4180, b.Len())
 }

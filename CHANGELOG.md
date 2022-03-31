@@ -1,3 +1,8 @@
+#### v0.30.2 (2022-03)
+
+- [fix] nazabytes: 修复扩容时bug
+- [feat] nazajson: 增加序列化、反序列化json文件的函数
+
 #### v0.30.1 (2022-03)
 
 - [opt] nazabytes: 优化Buffer的扩容逻辑

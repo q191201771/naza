@@ -63,9 +63,11 @@ type Buffer struct {
 }
 
 func NewBuffer(initCap int) *Buffer {
-	return &Buffer{
-		core: make([]byte, initCap, initCap),
+	b := &Buffer{}
+	if initCap > 0 {
+		b.core = make([]byte, initCap, initCap)
 	}
+	return b
 }
 
 // NewBufferRefBytes
@@ -144,7 +146,9 @@ func (b *Buffer) Grow(n int) {
 	// 扩容后总共需要的大小
 	needed := b.Len() + n
 
-	nazalog.Debugf("[%p] Buffer::Grow. realloc, this round need=%d, copy=%d, cap=(%d -> %d)", b, n, b.Len(), b.Cap(), needed)
+	if len(b.core) != 0 {
+		nazalog.Debugf("[%p] Buffer::Grow. realloc, this round need=%d, copy=%d, cap=(%d -> %d)", b, n, b.Len(), b.Cap(), needed)
+	}
 	core := make([]byte, needed, needed)
 	copy(core, b.core[b.rpos:b.wpos])
 	b.core = core
@@ -230,11 +234,17 @@ func (b *Buffer) Truncate(n int) {
 	b.resetIfEmpty()
 }
 
-// Reset 重置
-//
-// 注意，并不会释放内存块
+// Reset 重置。注意，并不会释放内存块，可复用
 //
 func (b *Buffer) Reset() {
+	b.rpos = 0
+	b.wpos = 0
+}
+
+// ResetAndFree 重置并不再持有底层内存块
+//
+func (b *Buffer) ResetAndFree() {
+	b.core = nil
 	b.rpos = 0
 	b.wpos = 0
 }

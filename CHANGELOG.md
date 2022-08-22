@@ -1,3 +1,7 @@
+#### v0.30.4 (2022-08)
+
+- [feat] nazasync: 增加一个竞争失败时非阻塞的Once
+
 #### v0.30.3 (2022-06)
 
 - [opt] nazabytes::Buffer: (1) NewBuffer的initCap参数支持用0初始化 (2) Grow函数扩容前的大小如果0则不打印debug日志 (3) 增加ResetAndFree函数，重置并不再持有底层内存块

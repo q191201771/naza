@@ -47,7 +47,9 @@ func BeFloat64(p []byte) (ret float64) {
 func LeUint32(p []byte) (ret uint32) {
 	return binary.LittleEndian.Uint32(p)
 }
-
+func LeUint16(p []byte) (ret uint16) {
+	return binary.LittleEndian.Uint16(p)
+}
 func ReadBytes(r io.Reader, n int) ([]byte, error) {
 	b := make([]byte, n)
 	// 原生Read函数，读不够时，会在第一次调用时读入剩余的数据，并返回读入数据的真实长度，以及nil值的error
@@ -115,7 +117,13 @@ func ReadLeUint32(r io.Reader) (uint32, error) {
 	}
 	return LeUint32(b), nil
 }
-
+func ReadLeUint16(r io.Reader) (uint16, error) {
+	b, err := ReadBytes(r, 4)
+	if err != nil {
+		return 0, err
+	}
+	return LeUint16(b), nil
+}
 // ----- 序列化 -----
 
 func BePutUint16(out []byte, in uint16) {
@@ -139,7 +147,9 @@ func BePutUint64(out []byte, in uint64) {
 func LePutUint32(out []byte, in uint32) {
 	binary.LittleEndian.PutUint32(out, in)
 }
-
+func LePutUint16(out []byte, in uint16) {
+	binary.LittleEndian.PutUint16(out, in)
+}
 func WriteBeUint24(writer io.Writer, in uint32) error {
 	_, err := writer.Write([]byte{uint8(in >> 16), uint8(in >> 8), uint8(in & 0xFF)})
 	return err

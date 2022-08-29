@@ -115,7 +115,22 @@ func TestLeUint32(t *testing.T) {
 		assert.Equal(t, vector[i].output, LeUint32(vector[i].input))
 	}
 }
+func TestLeUint16(t *testing.T) {
+	vector := []struct {
+		input  []byte
+		output uint16
+	}{
+		{input: []byte{0, 0}, output: 0},
+		{input: []byte{0, 1}, output: 1* 256 },
+		{input: []byte{1, 0}, output: 1 },
+		{input: []byte{12, 34}, output: 12 + 34*256},
+		{input: []byte{1, 99}, output: 1 + 99*256},
+	}
 
+	for i := 0; i < len(vector); i++ {
+		assert.Equal(t, vector[i].output, LeUint16(vector[i].input))
+	}
+}
 func TestBePutUint16(t *testing.T) {
 	b := make([]byte, 2)
 	BePutUint16(b, 1)
@@ -184,7 +199,23 @@ func TestLePutUint32(t *testing.T) {
 		assert.Equal(t, vector[i].output, out)
 	}
 }
+func TestLePutUint16(t *testing.T) {
+	vector := []struct {
+		input  uint16
+		output []byte
+	}{
+		{input: 0, output: []byte{0, 0}},
+		{input: 1 * 256, output: []byte{0, 1}},
+		{input: 1, output: []byte{1, 0}},
+		{input:  34*256 + 12, output: []byte{12, 34}},
+	}
 
+	out := make([]byte, 2)
+	for i := 0; i < len(vector); i++ {
+		LePutUint16(out, vector[i].input)
+		assert.Equal(t, vector[i].output, out)
+	}
+}
 func TestWriteBeUint24(t *testing.T) {
 	vector := []struct {
 		input  uint32

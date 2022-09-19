@@ -1,3 +1,7 @@
+#### v0.30.6 (2022-09)
+
+- [feat] nazanet: UdpConnection增加修改socket读写缓存区的函数
+
 #### v0.30.5 (2022-08)
 
 - [feat] bele: 增加小端uint16的一些函数

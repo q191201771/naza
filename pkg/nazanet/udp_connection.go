@@ -42,6 +42,7 @@ var defaultOption = UdpConnectionOption{
 	AllocEachRead:     true,
 }
 
+// TODO(chef): [opt] 增加函数，可以返回内部的本地地址 202208
 type UdpConnection struct {
 	option UdpConnectionOption
 	ruaddr *net.UDPAddr
@@ -73,6 +74,8 @@ func NewUdpConnection(modOptions ...ModUdpConnectionOption) (*UdpConnection, err
 // 阻塞直至Read发生错误或上层回调函数返回false
 //
 // @return error: 如果外部调用Dispose，会返回error
+//
+// 注意，回调存在err!=nil(*net.OpError, Err={error | poll.errNetClosing} use of closed network connection), len==0的情况
 //
 func (c *UdpConnection) RunLoop(onRead OnReadUdpPacket) error {
 	var b []byte

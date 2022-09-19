@@ -71,6 +71,20 @@ func NewUdpConnection(modOptions ...ModUdpConnectionOption) (*UdpConnection, err
 	return c, err
 }
 
+func (c *UdpConnection) SetReadBuffer(bufSize int)  error {
+	err := c.option.Conn.SetReadBuffer(bufSize)
+	if err != nil {
+		c.Dispose()
+	}
+	return err
+}
+func (c *UdpConnection) SetWriteBuffer(bufSize int)  error {
+	err := c.option.Conn.SetWriteBuffer(bufSize)
+	if err != nil {
+		c.Dispose()
+	}
+	return err
+}
 // 阻塞直至Read发生错误或上层回调函数返回false
 //
 // @return error: 如果外部调用Dispose，会返回error

@@ -9,6 +9,7 @@
 package nazahttp
 
 import (
+	"encoding/hex"
 	"net/http"
 	"strings"
 
@@ -99,7 +100,7 @@ func ParseHttpStatusLine(line string) (version string, statusCode string, reason
 func parseFirstLine(line string) (item1, item2, item3 string, err error) {
 	f := strings.Index(line, " ")
 	if f == -1 {
-		err = nazaerrors.Wrap(ErrFirstLine, line)
+		err = nazaerrors.Wrap(ErrFirstLine, hex.Dump([]byte(line)))
 		return
 	}
 	s := strings.Index(line[f+1:], " ")

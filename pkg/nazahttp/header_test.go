@@ -129,4 +129,8 @@ func TestParseHttpStatusLine(t *testing.T) {
 	assert.Equal(t, "HTTP/1.1", v)
 	assert.Equal(t, "475", c)
 	assert.Equal(t, " ", r)
+
+	// 测试解析错误的情况
+	v, c, r, e = nazahttp.ParseHttpStatusLine("fxxk")
+	assert.IsNotNil(t, e)
 }

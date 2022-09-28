@@ -1,3 +1,7 @@
+#### v0.30.7 (2022-09)
+
+- [opt] nazahttp: 解析first line失败时，返回的错误信息更完整
+
 #### v0.30.6 (2022-09)
 
 - [feat] nazanet: UdpConnection增加修改socket读写缓存区的函数

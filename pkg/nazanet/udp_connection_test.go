@@ -102,4 +102,10 @@ func TestUdpConnection(t *testing.T) {
 
 	err = srv.Dispose()
 	assert.Equal(t, nil, err)
+
+	// 测试没有设置对端地址，直接使用Write的情况
+	cli3, err := nazanet.NewUdpConnection()
+	assert.Equal(t, nil, err)
+	err = cli3.Write([]byte{'1'})
+	assert.IsNotNil(t, err)
 }

@@ -1,3 +1,7 @@
+#### v0.30.8 (2022-10)
+
+[opt] nazanet: UdpConnection当RAddr没有配置时，Write函数使用接收数据时的对端地址
+
 #### v0.30.7 (2022-09)
 
 - [opt] nazahttp: 解析first line失败时，返回的错误信息更完整

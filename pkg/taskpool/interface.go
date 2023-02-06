@@ -27,8 +27,15 @@ type Status struct {
 }
 
 type Pool interface {
+	// Go
+	//
 	// 向池内放入任务
+	//
 	// 非阻塞函数，不会等待task执行
+	//
+	// 注意一种场景，往Pool添加了一堆task任务，但是还没有执行到，现在想取消没有执行的任务。
+	// 这种情况业务层可以在task实现中增加标志位，通过标志位决定是否执行任务。
+	//
 	Go(task TaskFn, param ...interface{})
 
 	// 获取当前的状态，注意，只是一个瞬时值

@@ -1,3 +1,7 @@
+#### v0.30.9 (2023-02)
+
+- [feat] nazalog: 增加Option.HookBackendOutFn，业务方可以注册回调拿到最终的日志内存数据
+
 #### v0.30.8 (2022-10)
 
 [opt] nazanet: UdpConnection当RAddr没有配置时，Write函数使用接收数据时的对端地址

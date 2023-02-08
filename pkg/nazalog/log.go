@@ -282,6 +282,11 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 		}
 	}
 
+	// 输出至hook
+	if l.core.option.HookBackendOutFn != nil {
+		l.core.option.HookBackendOutFn(level, l.core.buf.Bytes())
+	}
+
 	l.core.m.Unlock()
 }
 

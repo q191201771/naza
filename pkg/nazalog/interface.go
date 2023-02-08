@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// package nazalog 日志库
+// Package nazalog 日志库
 package nazalog
 
 import "errors"
@@ -62,7 +62,11 @@ type Logger interface {
 	//
 	Sync()
 
-	// WithPrefix 添加前缀，新生成一个Logger对象，如果老Logger也有prefix，则老Logger依然打印老prefix，新Logger打印多个prefix
+	// WithPrefix
+	//
+	// 添加前缀，新生成一个Logger对象，如果老Logger也有prefix，则老Logger依然打印老prefix，新Logger打印多个prefix。
+	//
+	// 返回的Logger对象是新的，底层的 core 是同一个
 	//
 	WithPrefix(s string) Logger
 
@@ -89,6 +93,8 @@ type Logger interface {
 	Init(modOptions ...ModOption) error
 }
 
+type HookBackendOutFn func(level Level, line []byte)
+
 type Option struct {
 	Level Level `json:"level"` // 日志级别，大于等于该级别的日志才会被输出
 
@@ -105,6 +111,18 @@ type Option struct {
 	LevelFlag           bool `json:"level_flag"`             // 日志是否包含日志级别字段
 
 	AssertBehavior AssertBehavior `json:"assert_behavior"` // 断言失败时的行为
+
+	// HookBackendOutFn
+	//
+	// hook后端输出的日志内容。
+	//
+	// 业务场景：比如业务方使用了nazalog向日志文件输出日志，与之同时还想要再程序中实时获取一份日志内容。
+	//
+	// 每次回调一行日志。
+	// 获取的是全量日志。
+	// 阻塞函数。
+	// 回调结束后，内部会服用回调中日志内容的内存块。
+	HookBackendOutFn HookBackendOutFn
 }
 
 // 没有配置的属性，将按如下配置

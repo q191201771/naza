@@ -396,6 +396,25 @@ func TestLogger_GetOption(t *testing.T) {
 	assert.Equal(t, nazalog.LevelDebug, o.Level)
 }
 
+func TestHook(t *testing.T) {
+	l, _ := nazalog.New(func(option *nazalog.Option) {
+		option.HookBackendOutFn = func(level nazalog.Level, line []byte) {
+			fmt.Printf("%s", string(line))
+			assert.Equal(t, nazalog.LevelDebug, level)
+		}
+	})
+	l.Debug("hookme")
+
+	l2, _ := nazalog.New()
+	l2.Init(func(option *nazalog.Option) {
+		option.HookBackendOutFn = func(level nazalog.Level, line []byte) {
+			fmt.Printf("%s", string(line))
+			assert.Equal(t, nazalog.LevelInfo, level)
+		}
+	})
+	l2.Infof("hookme %d", 2)
+}
+
 func BenchmarkNazaLog(b *testing.B) {
 	b.ReportAllocs()
 

@@ -344,6 +344,8 @@ func (l *logger) Init(modOptions ...ModOption) error {
 	}
 	if l.core.option.IsToStdout {
 		l.core.console = os.Stdout
+	} else {
+		l.core.console = nil
 	}
 
 	return nil

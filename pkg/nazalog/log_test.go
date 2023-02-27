@@ -415,6 +415,27 @@ func TestHook(t *testing.T) {
 	l2.Infof("hookme %d", 2)
 }
 
+func TestOptionIsToStdout(t *testing.T) {
+	nazalog.Debugf("expected see me 1")
+	nazalog.Init(func(option *nazalog.Option) {
+		option.IsToStdout = false
+	})
+	nazalog.Debugf("expected not see me 1")
+	nazalog.Init(func(option *nazalog.Option) {
+		option.IsToStdout = true
+	})
+	nazalog.Debugf("expected see me 2")
+
+	l1, _ := nazalog.New(func(option *nazalog.Option) {
+		option.IsToStdout = false
+	})
+	l1.Debugf("expected not see me 2")
+
+	l2, _ := nazalog.New(func(option *nazalog.Option) {
+	})
+	l2.Debugf("expected see me 3")
+}
+
 func BenchmarkNazaLog(b *testing.B) {
 	b.ReportAllocs()
 

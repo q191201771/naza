@@ -142,7 +142,6 @@ func GetOption() Option {
 // ---------------------------------------------------------------------------------------------------------------------
 
 // GetGlobalLogger 获取全局Logger
-//
 func GetGlobalLogger() Logger {
 	return global
 }
@@ -151,7 +150,6 @@ func GetGlobalLogger() Logger {
 //
 // 注意，全局Logger在不需要特殊配置时，可以不显示调用 Init 函数
 // 注意，该方法不会修改global指针指向，而是操作global指针指向的对象
-//
 func Init(modOptions ...ModOption) error {
 	return global.Init(modOptions...)
 }
@@ -161,7 +159,6 @@ func Init(modOptions ...ModOption) error {
 // 注意，更换后，之前调用 GetGlobalLogger 获取的全局Logger和当前的全局Logger将是两个对象
 //
 // TODO(chef): [refactor] 在已经提供 Init 的前提下，是否应该删除掉该函数
-//
 func SetGlobalLogger(l Logger) {
 	global = l
 }

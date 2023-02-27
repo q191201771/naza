@@ -1,3 +1,7 @@
+#### v0.30.10 (2023-02)
+
+- [feat] nazalog: 修复IsToStdout设置为false不生效的bug
+
 #### v0.30.9 (2023-02)
 
 - [feat] nazalog: 增加Option.HookBackendOutFn，业务方可以注册回调拿到最终的日志内存数据

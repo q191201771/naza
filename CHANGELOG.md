@@ -1,3 +1,7 @@
+#### v0.30.11 (2023-03)
+
+- [feat] nazalog: 增加Option.IsRotateHourly，日志可以按小时翻滚
+
 #### v0.30.10 (2023-02)
 
 - [feat] nazalog: 修复IsToStdout设置为false不生效的bug

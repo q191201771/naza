@@ -24,6 +24,8 @@ Go语言基础库
 
 ```
 pkg/                     ...... 源码包
+    |-- nazalog/         ...... 日志库
+
     |-- assert/          ...... 提供了单元测试时的断言功能，减少一些模板代码
     |-- bele/            ...... 大小端转换操作
     |-- bininfo/         ...... 将编译时源码的git版本信息（当前commit log的sha值和commit message），编译时间，Go版本，平台打入程序中
@@ -42,7 +44,6 @@ pkg/                     ...... 源码包
     |-- nazaerrors/      ...... error相关
     |-- nazahttp/        ...... http操作
     |-- nazajson/        ...... json操作
-    |-- nazalog/         ...... 日志库
     |-- nazamd5/         ...... md5操作
     |-- nazanet/         ...... socket操作相关
     |-- nazareflect/     ...... 利用反射做的一些操作

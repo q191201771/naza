@@ -263,19 +263,44 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 
 	// 输出至日志文件
 	if l.core.fp != nil {
-		if l.core.option.IsRotateDaily && now.Day() != l.core.currRoundTime.Day() {
-			backupName := l.core.option.Filename + "." + l.core.currRoundTime.Format("20060102")
-			if err := l.core.fp.Close(); err == nil {
-				if err := os.Rename(l.core.option.Filename, backupName); err == nil {
-					l.core.fp, _ = os.Create(l.core.option.Filename)
-				} else {
-					if l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666); err != nil {
-						return
-					}
-				}
+
+		// 同时满足条件时，翻滚一次就够了
+		rotateFlag := false
+		var backupName string
+
+		if l.core.option.IsRotateHourly && now.Hour() != l.core.currRoundTime.Hour() {
+			backupName = l.core.option.Filename + "." + l.core.currRoundTime.Format("2006010215")
+			rotateFlag = true
+		}
+
+		if !rotateFlag && l.core.option.IsRotateDaily && now.Day() != l.core.currRoundTime.Day() {
+			backupName = l.core.option.Filename + "." + l.core.currRoundTime.Format("20060102")
+			rotateFlag = true
+		}
+
+		if rotateFlag {
+			err := l.core.fp.Close()
+			// 忽略关闭的错误
+			_ = err
+
+			err = os.Rename(l.core.option.Filename, backupName)
+			if err != nil {
+				// windows会走这个逻辑分支
+				// TODO(chef): 应判断具体的错误值 202302
+
+				l.core.fp, err = os.OpenFile(l.core.option.Filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+			} else {
+				l.core.fp, err = os.Create(l.core.option.Filename)
 			}
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "reopen error. err=%+v, fp=%+v, filename=%s, backupName=%s, now=%s, curr=%s",
+					err, l.core.fp, l.core.option.Filename, backupName, now.String(), l.core.currRoundTime.String())
+				return
+			}
+
 			l.core.currRoundTime = now
 		}
+
 		_, _ = l.core.fp.Write(l.core.buf.Bytes())
 		if level == LevelFatal || level == LevelPanic {
 			_ = l.core.fp.Sync()

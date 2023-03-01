@@ -123,23 +123,51 @@ func TestNew(t *testing.T) {
 }
 
 func TestRotate(t *testing.T) {
-	err := nazalog.Init(func(option *nazalog.Option) {
+	// 按天翻转
+	l, err := nazalog.New(func(option *nazalog.Option) {
 		option.Level = nazalog.LevelInfo
-		option.Filename = "/tmp/nazalogtest/ccc.log"
+		option.Filename = "/tmp/nazalogtest/daily.log"
 		option.IsToStdout = false
 		option.IsRotateDaily = true
-
 	})
 	assert.Equal(t, nil, err)
-	nazalog.Info("aaa")
+	l.Info("IsRotateDaily 1")
+	l.Info("IsRotateDaily 2")
+	l.Sync()
 
 	now := time.Now()
 	nazalog.Clock = mock.NewFakeClock()
-	defer func() {
-		nazalog.Clock = mock.NewStdClock()
-	}()
-	nazalog.Clock.Set(now.Add(48 * time.Hour))
-	nazalog.Info("bbb")
+	nazalog.Clock.Set(now.Add(25 * time.Hour))
+	l.Info("IsRotateDaily 3")
+	l.Info("IsRotateDaily 4")
+	l.Sync()
+
+	nazalog.Clock = mock.NewStdClock()
+
+	l, err = nazalog.New(func(option *nazalog.Option) {
+		option.Level = nazalog.LevelInfo
+		option.Filename = "/tmp/nazalogtest/hourly.log"
+		option.IsToStdout = false
+		option.IsRotateHourly = true
+	})
+	assert.Equal(t, nil, err)
+	l.Info("IsRotateHourly 1")
+	l.Info("IsRotateHourly 2")
+	l.Sync()
+
+	now = time.Now()
+	nazalog.Clock = mock.NewFakeClock()
+	nazalog.Clock.Set(now.Add(1 * time.Hour))
+	l.Info("IsRotateHourly 3")
+	l.Info("IsRotateHourly 4")
+	l.Sync()
+	nazalog.Clock.Set(now.Add(2 * time.Hour))
+	l.Info("IsRotateHourly 5")
+	l.Info("IsRotateHourly 6")
+	l.Sync()
+
+	nazalog.Clock = mock.NewStdClock()
+	//_ = os.RemoveAll("/tmp/nazalogtest")
 }
 
 func TestPanic(t *testing.T) {

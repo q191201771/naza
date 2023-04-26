@@ -23,8 +23,9 @@ func NewWorker(p *pool) *worker {
 func (w *worker) Start() {
 	go func() {
 		for {
-			task, ok := <-w.taskChan
-			if !ok {
+			task := <-w.taskChan
+			if task.disposeFlag {
+				w.p.onDispose(w)
 				break
 			}
 			task.taskFn(task.param...)
@@ -34,7 +35,9 @@ func (w *worker) Start() {
 }
 
 func (w *worker) Stop() {
-	close(w.taskChan)
+	w.taskChan <- taskWrapper{
+		disposeFlag: true,
+	}
 }
 
 func (w *worker) Go(t taskWrapper) {

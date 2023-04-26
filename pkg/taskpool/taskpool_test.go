@@ -9,6 +9,7 @@
 package taskpool_test
 
 import (
+	"github.com/q191201771/naza/pkg/nazaatomic"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -163,4 +164,88 @@ func TestCorner(t *testing.T) {
 		option.MaxWorkerNum = 1
 	})
 	assert.Equal(t, taskpool.ErrTaskPool, err)
+}
+
+func TestPool_Dispose2(t *testing.T) {
+	// 测试 DisposeTypeRunAllBlockTask
+
+	tp, _ := taskpool.NewPool(func(option *taskpool.Option) {
+		option.InitWorkerNum = 2
+		option.MaxWorkerNum = 2
+	})
+
+	var count nazaatomic.Int32
+	for i := 0; i < 10; i++ {
+		tp.Go(func(param ...interface{}) {
+			ii := param[0].(int)
+			time.Sleep(time.Duration(10) * time.Millisecond)
+			nazalog.Debugf("%d", ii)
+			count.Increment()
+		}, i)
+	}
+
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	tp.Dispose(taskpool.DisposeTypeRunAllBlockTask)
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	time.Sleep(200 * time.Millisecond)
+	assert.Equal(t, 10, int(count.Load()))
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+
+	// 测试空闲情况dispose
+	{
+		tpp, _ := taskpool.NewPool(func(option *taskpool.Option) {
+			option.InitWorkerNum = 2
+		})
+		nazalog.Debugf("%+v", tp.GetCurrentStatus())
+		tpp.Dispose(taskpool.DisposeTypeAsap)
+		nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	}
+}
+
+func TestPool_Dispose(t *testing.T) {
+	tp, _ := taskpool.NewPool(func(option *taskpool.Option) {
+		option.InitWorkerNum = 1
+		option.MaxWorkerNum = 1
+	})
+
+	var v nazaatomic.Int32
+
+	// 任务1在dispose之前已经被执行的任务，但是由于自身的sleep导致没有执行完，从而导致任务2，3在dispose时处于阻塞状态，还没有被执行
+	// 也因此，任务2，,3在dispose后不再执行
+	tp.Go(func(param ...interface{}) {
+		nazalog.Debugf("> task 1")
+		time.Sleep(100 * time.Millisecond)
+		nazalog.Debugf("< task 1")
+		v.Add(1)
+	})
+
+	tp.Go(func(param ...interface{}) {
+		nazalog.Debugf("> task 2")
+		time.Sleep(300 * time.Millisecond)
+		nazalog.Debugf("< task 2")
+		v.Add(2)
+	})
+
+	tp.Go(func(param ...interface{}) {
+		nazalog.Debugf("> task 3")
+		time.Sleep(500 * time.Millisecond)
+		nazalog.Debugf("< task 3")
+		v.Add(4)
+	})
+
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	time.Sleep(50 * time.Millisecond)
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	tp.Dispose(taskpool.DisposeTypeAsap)
+
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+	time.Sleep(400 * time.Millisecond)
+
+	tp.Dispose(taskpool.DisposeTypeAsap)
+	tp.Go(func(param ...interface{}) {
+	})
+	tp.KillIdleWorkers()
+	nazalog.Debugf("%+v", tp.GetCurrentStatus())
+
+	assert.Equal(t, 1, int(v.Load()))
 }

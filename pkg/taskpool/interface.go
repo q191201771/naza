@@ -6,7 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
-// 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
+// Package taskpool 非阻塞协程池，协程数量可动态增长，可配置最大协程并发数量，可手动释放空闲的协程
 package taskpool
 
 import (
@@ -15,6 +15,23 @@ import (
 
 // TODO
 // - channel 通信替换成其他方式是否有可能提高性能
+
+// DisposeType
+//
+// 任务分为3种状态:
+//
+// 1. 已添加（到Pool中)），正在执行
+// 2. 已添加，但是还没有被执行
+// 3. 还没有添加
+//
+// DisposeTypeAsap: 1会执行，2和3不会
+// DisposeTypeRunAllBlockTask: 1和2会执行，3不会
+type DisposeType int
+
+const (
+	DisposeTypeAsap DisposeType = iota + 1
+	DisposeTypeRunAllBlockTask
+)
 
 var ErrTaskPool = errors.New("naza.taskpool: fxxk")
 
@@ -38,11 +55,14 @@ type Pool interface {
 	//
 	Go(task TaskFn, param ...interface{})
 
-	// 获取当前的状态，注意，只是一个瞬时值
+	// GetCurrentStatus 获取当前的状态，注意，只是一个瞬时值
 	GetCurrentStatus() Status
 
-	// 关闭池内所有的空闲协程
+	// KillIdleWorkers 关闭池内所有的空闲协程
 	KillIdleWorkers()
+
+	// Dispose 完全释放池内资源，包括所有协程
+	Dispose(t DisposeType)
 }
 
 type Option struct {

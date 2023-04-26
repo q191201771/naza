@@ -13,17 +13,20 @@ import (
 )
 
 type taskWrapper struct {
-	taskFn TaskFn
-	param  []interface{}
+	taskFn      TaskFn
+	param       []interface{}
+	disposeFlag bool
 }
 
 type pool struct {
 	maxWorkerNum int
 
-	m              sync.Mutex
-	totalWorkerNum int
+	m sync.Mutex
+	//totalWorkerNum int
 	idleWorkerList []*worker
 	blockTaskList  []taskWrapper
+	allWorkerList  []*worker
+	disposeFlag    bool
 }
 
 func newPool(option Option) *pool {
@@ -37,12 +40,18 @@ func newPool(option Option) *pool {
 }
 
 func (p *pool) Go(task TaskFn, param ...interface{}) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	if p.disposeFlag {
+		return
+	}
+
 	tw := taskWrapper{
 		taskFn: task,
 		param:  param,
 	}
 	var w *worker
-	p.m.Lock()
+
 	if len(p.idleWorkerList) != 0 {
 		// 还有空闲worker
 
@@ -53,7 +62,7 @@ func (p *pool) Go(task TaskFn, param ...interface{}) {
 		// 无空闲worker
 
 		if p.maxWorkerNum == 0 ||
-			(p.maxWorkerNum > 0 && p.totalWorkerNum < p.maxWorkerNum) {
+			(p.maxWorkerNum > 0 && len(p.allWorkerList) < p.maxWorkerNum) {
 			// 无最大worker限制，或还未达到限制
 
 			p.newWorkerWithTask(tw)
@@ -63,24 +72,47 @@ func (p *pool) Go(task TaskFn, param ...interface{}) {
 			p.blockTaskList = append(p.blockTaskList, tw)
 		}
 	}
-	p.m.Unlock()
 }
 
 func (p *pool) KillIdleWorkers() {
 	p.m.Lock()
-	p.totalWorkerNum = p.totalWorkerNum - len(p.idleWorkerList)
+	defer p.m.Unlock()
+	if p.disposeFlag {
+		return
+	}
+
 	for i := range p.idleWorkerList {
 		p.idleWorkerList[i].Stop()
 	}
 	p.idleWorkerList = p.idleWorkerList[0:0]
-	p.m.Unlock()
+}
+
+func (p *pool) Dispose(t DisposeType) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	if p.disposeFlag {
+		return
+	}
+
+	p.disposeFlag = true
+
+	if t == DisposeTypeAsap {
+		p.blockTaskList = nil
+	} else if t == DisposeTypeRunAllBlockTask {
+		// noop
+	}
+
+	for i := range p.idleWorkerList {
+		p.idleWorkerList[i].Stop()
+	}
+	p.idleWorkerList = p.idleWorkerList[0:0]
 }
 
 func (p *pool) GetCurrentStatus() Status {
 	p.m.Lock()
 	defer p.m.Unlock()
 	return Status{
-		TotalWorkerNum: p.totalWorkerNum,
+		TotalWorkerNum: len(p.allWorkerList),
 		IdleWorkerNum:  len(p.idleWorkerList),
 		BlockTaskNum:   len(p.blockTaskList),
 	}
@@ -90,7 +122,7 @@ func (p *pool) newWorker() *worker {
 	w := NewWorker(p)
 	w.Start()
 	p.idleWorkerList = append(p.idleWorkerList, w)
-	p.totalWorkerNum++
+	p.allWorkerList = append(p.allWorkerList, w)
 	return w
 }
 
@@ -98,13 +130,19 @@ func (p *pool) newWorkerWithTask(task taskWrapper) {
 	w := NewWorker(p)
 	w.Start()
 	w.Go(task)
-	p.totalWorkerNum++
+	p.allWorkerList = append(p.allWorkerList, w)
 }
 
 func (p *pool) onIdle(w *worker) {
 	p.m.Lock()
+	defer p.m.Unlock()
 	if len(p.blockTaskList) == 0 {
 		// 没有等待执行的任务
+
+		if p.disposeFlag {
+			w.Stop()
+			return
+		}
 
 		p.idleWorkerList = append(p.idleWorkerList, w)
 	} else {
@@ -112,5 +150,15 @@ func (p *pool) onIdle(w *worker) {
 		p.blockTaskList = p.blockTaskList[1:]
 		w.Go(t)
 	}
-	p.m.Unlock()
+}
+
+func (p *pool) onDispose(w *worker) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	for i := range p.allWorkerList {
+		if p.allWorkerList[i] == w {
+			p.allWorkerList = append(p.allWorkerList[0:i], p.allWorkerList[i+1:]...)
+			break
+		}
+	}
 }

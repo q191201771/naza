@@ -4,7 +4,7 @@
 
 #### v0.30.10 (2023-02)
 
-- [feat] nazalog: 修复IsToStdout设置为false不生效的bug
+- [fix] nazalog: 修复IsToStdout设置为false不生效的bug
 
 #### v0.30.9 (2023-02)
 
@@ -12,7 +12,7 @@
 
 #### v0.30.8 (2022-10)
 
-[opt] nazanet: UdpConnection当RAddr没有配置时，Write函数使用接收数据时的对端地址
+- [opt] nazanet: UdpConnection当RAddr没有配置时，Write函数使用接收数据时的对端地址
 
 #### v0.30.7 (2022-09)
 

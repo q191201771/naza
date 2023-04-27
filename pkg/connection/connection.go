@@ -8,12 +8,9 @@
 
 // Package connection
 //
-// 注意，这个package还在开发中
-//
 // 对 net.Conn 接口的二次封装，目的有两个：
 // 1. 在流媒体传输这种特定的长连接场景下提供更方便、高性能的接口
 // 2. 便于后续将TCPConn替换成其他传输协议
-//
 package connection
 
 import (
@@ -98,14 +95,18 @@ type Connection interface {
 	//
 	Done() <-chan error
 
+	// ModWriteChanSize Modxxx
+	//
 	// TODO chef: 这几个接口是否不提供
 	// Mod类型函数不加锁，需要调用方保证不发生竞态调用
+	//
+	// ModWriteChanSize 只允许在初始化时为0的前提下调用
 	ModWriteChanSize(n int)
 	ModWriteBufSize(n int)
 	ModReadTimeoutMs(n int)
 	ModWriteTimeoutMs(n int)
 
-	// 连接上读取和发送的字节总数。
+	// GetStat 连接上读取和发送的字节总数。
 	// 注意，如果是异步发送，发送字节统计的是调用底层write的值，而非上层调用Connection发送的值
 	// 也即不包含Connection中的发送缓存部分，但是可能包含内核socket发送缓冲区的值。
 	GetStat() Stat
@@ -229,6 +230,10 @@ func (c *connection) ModWriteChanSize(n int) {
 	if c.option.WriteChanSize > 0 {
 		panic(ErrConnectionPanic)
 	}
+	if c.option.WriteChanSize == 0 {
+		return
+	}
+
 	c.option.WriteChanSize = n
 	c.wChan = make(chan wMsg, n)
 	c.flushDoneChan = make(chan struct{}, 1)

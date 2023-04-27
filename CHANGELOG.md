@@ -1,3 +1,8 @@
+#### v0.30.12 (2023-04)
+
+- [feat] taskpool: 增加Dispose方法，用于完全释放池内资源，包括所有协程
+- [fix] connection: ModWriteChanSize为0时不应该开启异步发送协程
+
 #### v0.30.11 (2023-03)
 
 - [feat] nazalog: 增加Option.IsRotateHourly，日志可以按小时翻滚

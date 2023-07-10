@@ -1,3 +1,7 @@
+#### v0.30.48 (2023-07)
+
+- [fix] connection: not working set ModWriteChanSize
+
 #### v0.30.12 (2023-04)
 
 - [feat] taskpool: 增加Dispose方法，用于完全释放池内资源，包括所有协程

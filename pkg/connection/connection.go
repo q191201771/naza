@@ -230,7 +230,7 @@ func (c *connection) ModWriteChanSize(n int) {
 	if c.option.WriteChanSize > 0 {
 		panic(ErrConnectionPanic)
 	}
-	if c.option.WriteChanSize == 0 {
+	if n == 0 {
 		return
 	}
 

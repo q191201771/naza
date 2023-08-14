@@ -12,7 +12,6 @@
 // le是little endian的缩写，即小端
 //
 // assume local is `le`
-//
 package bele
 
 import (
@@ -124,6 +123,7 @@ func ReadLeUint16(r io.Reader) (uint16, error) {
 	}
 	return LeUint16(b), nil
 }
+
 // ----- 序列化 -----
 
 func BePutUint16(out []byte, in uint16) {

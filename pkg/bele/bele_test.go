@@ -121,8 +121,8 @@ func TestLeUint16(t *testing.T) {
 		output uint16
 	}{
 		{input: []byte{0, 0}, output: 0},
-		{input: []byte{0, 1}, output: 1* 256 },
-		{input: []byte{1, 0}, output: 1 },
+		{input: []byte{0, 1}, output: 1 * 256},
+		{input: []byte{1, 0}, output: 1},
 		{input: []byte{12, 34}, output: 12 + 34*256},
 		{input: []byte{1, 99}, output: 1 + 99*256},
 	}
@@ -207,7 +207,7 @@ func TestLePutUint16(t *testing.T) {
 		{input: 0, output: []byte{0, 0}},
 		{input: 1 * 256, output: []byte{0, 1}},
 		{input: 1, output: []byte{1, 0}},
-		{input:  34*256 + 12, output: []byte{12, 34}},
+		{input: 34*256 + 12, output: []byte{12, 34}},
 	}
 
 	out := make([]byte, 2)

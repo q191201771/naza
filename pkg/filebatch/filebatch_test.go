@@ -36,16 +36,17 @@ var tail = `
 `
 
 // /<root>/
-//     |-- /dir1/
-//     |-- /dir2/
-//         |-- file5
-//         |-- file6
-//         |-- file7.txt
-//         |-- file8.txt
-//     |-- file1
-//     |-- file2
-//     |-- file3.txt
-//     |-- file4.txt
+//
+//	|-- /dir1/
+//	|-- /dir2/
+//	    |-- file5
+//	    |-- file6
+//	    |-- file7.txt
+//	    |-- file8.txt
+//	|-- file1
+//	|-- file2
+//	|-- file3.txt
+//	|-- file4.txt
 func prepareTestFile() (string, error) {
 	filenameToContent = make(map[string][]byte)
 

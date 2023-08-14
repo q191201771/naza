@@ -7,7 +7,6 @@
 // Author: Chef (191201771@qq.com)
 
 // Package bitrate 平滑计算比特率（码率）
-//
 package bitrate
 
 import (

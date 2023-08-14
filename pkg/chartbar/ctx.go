@@ -27,7 +27,6 @@ type Ctx struct {
 // WithItems
 //
 // @param items: 注意，内部不会修改切片底层数据的值以及顺序
-//
 func (ctx *Ctx) WithItems(items []Item) string {
 	// 拷贝一份，避免修改外部切片的原始顺序
 	if ctx.option.Order != OrderOrigin {

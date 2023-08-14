@@ -24,7 +24,6 @@ import "fmt"
 // Format 格式
 //
 // TODO(chef): 添加其他值：0（默认值）、1（高亮）、22（非粗体）、4（下划线）、24（非下划线）、 5（闪烁）、25（非闪烁）、7（反显）、27（非反显）
-//
 type Format int
 
 const (
@@ -32,7 +31,6 @@ const (
 )
 
 // FgColor 前景色(字体颜色)
-//
 type FgColor int
 
 const (
@@ -48,7 +46,6 @@ const (
 )
 
 // BgColor 背景色
-//
 type BgColor int
 
 const (
@@ -81,25 +78,21 @@ const (
 )
 
 // Wrap 分别设置样式，前景色(字体颜色)，背景色
-//
 func Wrap(v string, format Format, fg FgColor, bg BgColor) string {
 	return fmt.Sprintf("%s%d;%d;%dm%s%s", prefix, format, fg, bg, v, suffix)
 }
 
 // WrapWithFgColor 只设置前景色(字体颜色)
-//
 func WrapWithFgColor(v string, fg FgColor) string {
 	return fmt.Sprintf("%s%d;%dm%s%s", prefix, FormatNonBold, fg, v, suffix)
 }
 
 // WrapBlack 将前景色(字体颜色)设置为黑色
-//
 func WrapBlack(v string) string {
 	return WrapWithFgColor(v, FgBlack)
 }
 
 // WrapRed 将前景色(字体颜色)设置为红色
-//
 func WrapRed(v string) string {
 	return WrapWithFgColor(v, FgRed)
 }

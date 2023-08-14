@@ -45,16 +45,17 @@ type ModOption func(option *Option)
 
 // @param dups: 每个实际的 node 转变成多少个环上的节点，必须大于等于1
 // @param modOptions: 可修改内部的哈希函数，比如替换成murmur32的开源实现，可以这样：
-//   import "github.com/spaolacci/murmur3"
-//   import "github.com/q191201771/naza/pkg/consistenthash"
 //
-//   ch := consistenthash.New(1000, func(option *Option) {
-//     option.hfn = func(bytes []byte) uint32 {
-//       h := murmur3.New32()
-//       h.Write(bytes)
-//       return h.Sum32()
-//     }
-//   })
+//	import "github.com/spaolacci/murmur3"
+//	import "github.com/q191201771/naza/pkg/consistenthash"
+//
+//	ch := consistenthash.New(1000, func(option *Option) {
+//	  option.hfn = func(bytes []byte) uint32 {
+//	    h := murmur3.New32()
+//	    h.Write(bytes)
+//	    return h.Sum32()
+//	  }
+//	})
 func New(dups int, modOptions ...ModOption) ConsistentHash {
 	option := defaultOption
 	for _, fn := range modOptions {

@@ -6,6 +6,7 @@
 //
 // Author: Chef (191201771@qq.com)
 
+//go:build go1.13
 // +build go1.13
 
 package nazaerrors

@@ -160,7 +160,6 @@ func (br *BitReader) ReadGolomb() (v uint32, err error) {
 }
 
 // ReadUeGolomb 0阶指数哥伦布编码，无符号
-//
 func (br *BitReader) ReadUeGolomb() (v uint32, err error) {
 	var t uint8
 	var n uint
@@ -185,7 +184,6 @@ func (br *BitReader) ReadUeGolomb() (v uint32, err error) {
 }
 
 // ReadSeGolomb 哥伦布编码，有符号
-//
 func (br *BitReader) ReadSeGolomb() (v int32, err error) {
 	var vv uint32
 	vv, err = br.ReadUeGolomb()
@@ -324,10 +322,12 @@ func GetBit8(v uint8, pos uint) uint8 {
 // @param n:   取多少位， 取值范围 [1, 8]
 //
 // 举例，GetBits8(105, 2, 4) = 10（即1010）
-//   v: 0110 1001
-// pos:       2
-//   n:   .. ..
 //
+//	v: 0110 1001
+//
+// pos:       2
+//
+//	n:   .. ..
 func GetBits8(v uint8, pos uint, n uint) uint8 {
 	return v >> pos & m1[n]
 }

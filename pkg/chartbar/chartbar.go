@@ -7,7 +7,6 @@
 // Author: Chef (191201771@qq.com)
 
 // Package chartbar 控制台绘制ascii柱状图
-//
 package chartbar
 
 const (
@@ -74,7 +73,6 @@ func NewCtx(modOptions ...ModOption) *Ctx {
 // NewCtxWith
 //
 // 在`ctx`参数基础上使用`modOptions`生成新的 Ctx
-//
 func NewCtxWith(ctx *Ctx, modOptions ...ModOption) *Ctx {
 	option := ctx.option
 	for _, fn := range modOptions {

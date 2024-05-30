@@ -214,13 +214,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 		writeTime(&l.core.buf, now, l.core.option.TimestampWithMsFlag)
 	}
 
-	if l.core.option.LevelFlag {
-		if l.core.console != nil {
-			l.core.buf.WriteString(levelToColorString[level])
-		} else {
-			l.core.buf.WriteString(levelToString[level])
-		}
-	}
+	l.writeLevelStringIfNeeded(level)
 
 	if l.prefixs != nil {
 		for _, s := range l.prefixs {

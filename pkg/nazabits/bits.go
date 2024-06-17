@@ -12,13 +12,13 @@ import "errors"
 
 var ErrNazaBits = errors.New("nazabits: fxxk")
 
-// 按位流式读取字节切片
+// BitReader 按位流式读取字节切片
 // 从高位向低位读
 // 注意，可以在每次读取后，判断是否发生错误。也可以在多次读取后，判断是否发生错误。
 type BitReader struct {
 	core  []byte
 	avail uint // 还没有读取的bit数量
-	index uint // 从0开始
+	index uint // 从0开始，待读取的字节下标
 	pos   uint // 从左往右，从高位往低位 [0, 7]
 	err   error
 }
@@ -131,6 +131,7 @@ func (br *BitReader) ReadBits64(n uint) (r uint64, err error) {
 	}
 }
 
+// ReadBytes
 // @param n: 读取多少个字节
 func (br *BitReader) ReadBytes(n uint) (r []byte, err error) {
 	// 对常见的pos为0的情况单独做优化
@@ -152,6 +153,16 @@ func (br *BitReader) ReadBytes(n uint) (r []byte, err error) {
 		}
 		r = append(r, t)
 	}
+	return
+}
+
+func (br *BitReader) ReadString(n uint) (r string, err error) {
+	var bs []byte
+	bs, err = br.ReadBytes(n)
+	if err != nil {
+		return
+	}
+	r = string(bs)
 	return
 }
 
@@ -194,6 +205,16 @@ func (br *BitReader) ReadSeGolomb() (v int32, err error) {
 	sign := -(v & 1)
 	v = ((v >> 1) ^ sign) - sign
 	return
+}
+
+func (br *BitReader) ReadBits32IgnErr(n uint) uint32 {
+	r, _ := br.ReadBits32(n)
+	return r
+}
+
+func (br *BitReader) ReadStringIgnErr(n uint) string {
+	r, _ := br.ReadString(n)
+	return r
 }
 
 func (br *BitReader) SkipBytes(n uint) error {

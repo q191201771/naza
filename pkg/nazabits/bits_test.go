@@ -253,6 +253,24 @@ func TestBitReader_ReadBytes(t *testing.T) {
 	}
 }
 
+func TestBitReader_ReadString(t *testing.T) {
+	v := []byte{48, 57, 49, 56}
+	{
+		br := nazabits.NewBitReader(v)
+		r, err := br.ReadString(2)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "09", r)
+		assert.Equal(t, nil, br.Err())
+
+		r = br.ReadStringIgnErr(2)
+		assert.Equal(t, "18", r)
+
+		br.ReadStringIgnErr(1)
+		assert.Equal(t, nazabits.ErrNazaBits, br.Err())
+
+	}
+}
+
 func TestBitReader_ReadGolomb(t *testing.T) {
 	var b []byte
 	var v uint32

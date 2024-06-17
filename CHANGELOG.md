@@ -1,3 +1,9 @@
+#### v0.30.49 (2024-06)
+
+- [feat] nazabits: new func ReadString, ReadBits32IgnErr, ReadStringIgnErr
+- [opt] nazalog: windows平台下，日志级别字段不要携带颜色
+- [chore] update go min ver 1.14 -> 1.18 to avoid github ci failed
+
 #### v0.30.48 (2023-07)
 
 - [fix] connection: not working set ModWriteChanSize

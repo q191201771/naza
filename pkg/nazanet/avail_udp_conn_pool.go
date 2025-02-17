@@ -15,7 +15,6 @@ import (
 
 // 从指定的UDP端口范围内，寻找可绑定监听的端口，绑定监听并返回
 // Pool只提供Acquire获取接口，不提供释放接口，连接资源是标准*net.UDPConn对象，需要释放时，外部直接Close即可
-//
 type AvailUdpConnPool struct {
 	minPort uint16
 	maxPort uint16
@@ -36,15 +35,15 @@ func (a *AvailUdpConnPool) Acquire() (*net.UDPConn, uint16, error) {
 	a.m.Lock()
 	defer a.m.Unlock()
 
-	loopFirstFlag := true
+	nTried := 0
 	p := a.lastPort
 	for {
 		// 找了一轮也没有可用的，返回错误
-		if !loopFirstFlag && p == a.lastPort {
+		if nTried >= int(a.maxPort-a.minPort+1) {
 			return nil, 0, ErrNazaNet
 		}
-		loopFirstFlag = false
 
+		nTried++
 		conn, err := listenUdpWithPort(p)
 
 		// 绑定失败，尝试下一个端口
@@ -61,31 +60,31 @@ func (a *AvailUdpConnPool) Acquire() (*net.UDPConn, uint16, error) {
 
 // 有的业务场景，需要返回两个可用的端口，并且必须是连续的
 // @return 前面的是端口小的，后面的是端口+1的
-//
 func (a *AvailUdpConnPool) Acquire2() (*net.UDPConn, uint16, *net.UDPConn, uint16, error) {
 	a.m.Lock()
 	defer a.m.Unlock()
 
-	loopFirstFlag := true
+	nTried := 0
 	p := a.lastPort
 	for {
 		// 找了一轮也没有可用的，返回错误
-		if !loopFirstFlag && p == a.lastPort {
+		if nTried >= int(a.maxPort-a.minPort+1) {
 			return nil, 0, nil, 0, ErrNazaNet
 		}
-		loopFirstFlag = false
 
+		nTried++
 		// 因为第一个端口如果为最大值，那么和第二个端口肯定不是线性连续了
 		if p == a.maxPort {
 			p = a.minPort
 			continue
 		}
 
+		nTried++
 		conn, err := listenUdpWithPort(p)
 
-		// 第一个就绑定失败，尝试下一个端口
+		// 第一个就绑定失败，尝试下一对端口
 		if err != nil {
-			p = a.nextPort(p)
+			p = a.nextPort(p + 1)
 			continue
 		}
 

@@ -1,3 +1,7 @@
+#### v0.30.50 (2025-02)
+
+- [fix] nazanet: AvailUdpConnPool Acquire2 may dead loop
+
 #### v0.30.49 (2024-06)
 
 - [feat] nazabits: new func ReadString, ReadBits32IgnErr, ReadStringIgnErr

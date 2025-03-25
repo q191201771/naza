@@ -105,6 +105,7 @@ type Option struct {
 
 	IsRotateDaily  bool `json:"is_rotate_daily"`  // 日志按天翻转
 	IsRotateHourly bool `json:"is_rotate_hourly"` // 日志按小时翻滚，整点翻滚
+	MaxRotateDays  int  `json:"max_rotate_days"`  // 日志最大存储天数
 
 	ShortFileFlag       bool `json:"short_file_flag"`        // 是否在每行日志尾部添加源码文件及行号的信息
 	TimestampFlag       bool `json:"timestamp_flag"`         // 是否在每行日志首部添加时间戳的信息
@@ -132,6 +133,7 @@ var defaultOption = Option{
 	Filename:            "",
 	IsToStdout:          true,
 	IsRotateDaily:       false,
+	MaxRotateDays:       30,
 	ShortFileFlag:       true,
 	TimestampFlag:       true,
 	TimestampWithMsFlag: true,

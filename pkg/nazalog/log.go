@@ -260,15 +260,17 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 
 		// 同时满足条件时，翻滚一次就够了
 		rotateFlag := false
-		var backupName string
+		var backupName, expireName string
 
 		if l.core.option.IsRotateHourly && now.Hour() != l.core.currRoundTime.Hour() {
 			backupName = l.core.option.Filename + "." + l.core.currRoundTime.Format("2006010215")
+			expireName = l.core.option.Filename + "." + now.AddDate(0, 0, -l.core.option.MaxRotateDays).Format("2006010215")
 			rotateFlag = true
 		}
 
 		if !rotateFlag && l.core.option.IsRotateDaily && now.Day() != l.core.currRoundTime.Day() {
 			backupName = l.core.option.Filename + "." + l.core.currRoundTime.Format("20060102")
+			expireName = l.core.option.Filename + "." + now.AddDate(0, 0, -l.core.option.MaxRotateDays).Format("20060102")
 			rotateFlag = true
 		}
 
@@ -278,6 +280,7 @@ func (l *logger) Out(level Level, calldepth int, s string) {
 			_ = err
 
 			err = os.Rename(l.core.option.Filename, backupName)
+			os.Remove(expireName)
 			if err != nil {
 				// windows会走这个逻辑分支
 				// TODO(chef): 应判断具体的错误值 202302

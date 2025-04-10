@@ -1,3 +1,7 @@
+#### v0.30.51 (2025-04)
+
+- [opt] nazalog: add `max_rotate_days` option and auto clean log per this config
+
 #### v0.30.50 (2025-02)
 
 - [fix] nazanet: AvailUdpConnPool Acquire2 may dead loop
